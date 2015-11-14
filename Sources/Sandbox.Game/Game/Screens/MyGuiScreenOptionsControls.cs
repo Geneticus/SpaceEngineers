@@ -1,4 +1,5 @@
-﻿using Sandbox.Engine.Utils;
+﻿
+using Sandbox.Engine.Utils;
 using Sandbox.Game.GUI;
 using Sandbox.Game.Localization;
 using Sandbox.Graphics.GUI;
@@ -65,6 +66,7 @@ namespace Sandbox.Game.Gui
         {
             base.RecreateControls(constructor);
 
+
             AddCaption(MyCommonTexts.ScreenCaptionControls);
 
             MyInput.Static.TakeSnapshot();
@@ -81,18 +83,21 @@ namespace Sandbox.Game.Gui
             var okButton = new MyGuiControlButton(
                 position: new Vector2(-buttonSize.X - 20f / MyGuiConstants.GUI_OPTIMAL_SIZE.X, buttonsY),
                 size: MyGuiConstants.MESSAGE_BOX_BUTTON_SIZE_SMALL,
+
                 text: MyTexts.Get(MyCommonTexts.Ok),
                 onButtonClick: OnOkClick,
                 originAlign: MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_CENTER);
             var cancelButton = new MyGuiControlButton(
                 position: new Vector2(0f, buttonsY),
                 size: MyGuiConstants.MESSAGE_BOX_BUTTON_SIZE_SMALL,
+
                 text: MyTexts.Get(MyCommonTexts.Cancel),
                 onButtonClick: OnCancelClick,
                 originAlign: MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_CENTER);
             var resetButton = new MyGuiControlButton(
                 position: new Vector2(buttonSize.X + 20f / MyGuiConstants.GUI_OPTIMAL_SIZE.X, buttonsY),
                 size: MyGuiConstants.MESSAGE_BOX_BUTTON_SIZE_SMALL,
+
                 text: MyTexts.Get(MyCommonTexts.Revert),
                 onButtonClick: OnResetDefaultsClick,
                 originAlign: MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_CENTER);
@@ -105,6 +110,7 @@ namespace Sandbox.Game.Gui
             var cBoxPosition = m_controlsOriginRight + 0.5f * MyGuiConstants.CONTROLS_DELTA +
                                new Vector2(MyGuiConstants.COMBOBOX_MEDIUM_SIZE.X / 2.0f, 0) - new Vector2(0.065f, 0);
             m_controlTypeList = new MyGuiControlCombobox(cBoxPosition);
+
             m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.General, MyCommonTexts.ControlTypeGeneral);
             m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Navigation, MyCommonTexts.ControlTypeNavigation);
             m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.ToolsOrWeapons, MyCommonTexts.ControlTypeToolsOrWeapons);
@@ -113,6 +119,7 @@ namespace Sandbox.Game.Gui
             m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Systems2, MyCommonTexts.ControlTypeSystems2);
             m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Systems3, MyCommonTexts.ControlTypeSystems3);
             m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Spectator, MyCommonTexts.Spectator);
+            m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Microcontrollers, MySpaceTexts.Microcontrollers);
             m_controlTypeList.SelectItemByKey((int)m_currentControlType);
             Controls.Add(m_controlTypeList);
 
@@ -144,6 +151,7 @@ namespace Sandbox.Game.Gui
             AddControlsByType(MyGuiControlTypeEnum.ToolsOrWeapons);
             AddControlsByType(MyGuiControlTypeEnum.ToolsOrWeapons2);
             AddControlsByType(MyGuiControlTypeEnum.Spectator);
+            AddControlsByType(MyGuiControlTypeEnum.Microcontrollers);
 
             foreach (var entry in m_allControls)
             {
@@ -180,6 +188,7 @@ namespace Sandbox.Game.Gui
         {
             StringBuilder boundText = null;
             control.AppendBoundButtonNames(ref boundText, device);
+
             MyControl.AppendUnknownTextIfNeeded(ref boundText, MyTexts.GetString(MyCommonTexts.UnknownControl_None));
             var button = new MyGuiControlButton(
                 position: position,
@@ -199,7 +208,11 @@ namespace Sandbox.Game.Gui
                 AddGeneralControls();
                 return;
             }
-
+            else if (type == MyGuiControlTypeEnum.Microcontrollers)
+            {
+                AddMicrocontrollerControls();
+                return;
+            }
             var buttonStyle = MyGuiControlButton.GetVisualStyle(MyGuiControlButtonStyleEnum.ControlSetting);
 
             Vector2 controlsOriginRight = m_controlsOriginRight;
@@ -209,6 +222,7 @@ namespace Sandbox.Game.Gui
             float buttonScale = 0.85f;
 
             var controls = MyInput.Static.GetGameControlsList();
+
 
             var keyboardLabel   = MakeLabel(MyCommonTexts.ScreenOptionsControls_Keyboard, Vector2.Zero);
             var keyboard2Label  = MakeLabel(MyCommonTexts.ScreenOptionsControls_Keyboard2, Vector2.Zero);
@@ -292,6 +306,7 @@ namespace Sandbox.Game.Gui
             m_allControls[MyGuiControlTypeEnum.General] = new List<MyGuiControlBase>();
 
 
+
             MyGuiControlLabel tmp = MakeLabel(2f, MyCommonTexts.InvertMouseX);
             m_allControls[MyGuiControlTypeEnum.General].Add(MakeLabel(2f, MyCommonTexts.InvertMouseX));
             m_allControls[MyGuiControlTypeEnum.General].Add(MakeLabel(3f, MyCommonTexts.InvertMouseY));
@@ -326,6 +341,7 @@ namespace Sandbox.Game.Gui
                 const float multiplierSensitivity = 8;
                 const float multiplierExponent = 9;
                 const float multiplierDeadzone = 10;
+
 
                 m_allControls[MyGuiControlTypeEnum.General].Add(MakeLabel(multiplierJoystick, MyCommonTexts.Joystick));
                 m_allControls[MyGuiControlTypeEnum.General].Add(MakeLabel(multiplierSensitivity, MyCommonTexts.JoystickSensitivity));
@@ -362,6 +378,30 @@ namespace Sandbox.Game.Gui
 
         }
 
+        private void AddMicrocontrollerControls()
+        {
+            MyGuiControlCombobox m_McontrollerTypeList;
+            m_allControls[MyGuiControlTypeEnum.Microcontrollers] = new List<MyGuiControlBase>();
+            MyGuiControlLabel tmp = MakeLabel(2f, MySpaceTexts.DetectedDevices1);
+            m_allControls[MyGuiControlTypeEnum.Microcontrollers].Add(MakeLabel(2f, MySpaceTexts.DetectedDevices1));
+            m_allControls[MyGuiControlTypeEnum.Microcontrollers].Add(MakeLabel(3f, MySpaceTexts.ChooseDevice1));
+            m_allControls[MyGuiControlTypeEnum.Microcontrollers].Add(MakeLabel(4f, MySpaceTexts.UniqueName1));
+            m_allControls[MyGuiControlTypeEnum.Microcontrollers].Add(MakeLabel(5f, MySpaceTexts.IOdirectionIn1));
+            m_allControls[MyGuiControlTypeEnum.Microcontrollers].Add(MakeLabel(6f, MySpaceTexts.IOdirectionOut1));
+
+            
+            m_McontrollerTypeList = new MyGuiControlCombobox(MyGuiConstants.CONTROLS_DELTA + new Vector2(MyGuiConstants.COMBOBOX_MEDIUM_SIZE.X / 2.0f, 0));
+            m_McontrollerTypeList.ItemSelected += OnSelectMicrocontroller;
+            //AddMicroControllersToComboBox();
+            //m_McontrollerTypeList.Enabled = !MyFakes.ENFORCE_CONTROLLER || !MyInput.Static.IsJoystickConnected();
+            m_allControls[MyGuiControlTypeEnum.Microcontrollers].Add(m_McontrollerTypeList);
+
+
+
+
+
+        }
+
         private void DeactivateControls(MyGuiControlTypeEnum type)
         {
             foreach (var item in m_allControls[type])
@@ -382,6 +422,7 @@ namespace Sandbox.Game.Gui
         {
             int counter = 0;
             bool selectedJoystick = false;
+
             m_joystickCombobox.AddItem(counter++, MyTexts.Get(MyCommonTexts.Disabled));
 
             var joysticks = MyInput.Static.EnumerateJoystickNames();
@@ -404,6 +445,12 @@ namespace Sandbox.Game.Gui
         {
             MyInput.Static.JoystickInstanceName = m_joystickCombobox.GetSelectedIndex() == 0 ? null : m_joystickCombobox.GetSelectedValue().ToString();
             RefreshJoystickControlEnabling();
+        }
+
+        private void OnSelectMicrocontroller()
+        {
+            //MyInput.Static.JoystickInstanceName = m_joystickCombobox.GetSelectedIndex() == 0 ? null : m_joystickCombobox.GetSelectedValue().ToString();
+            //RefreshJoystickControlEnabling();
         }
 
         private void RefreshJoystickControlEnabling()
@@ -437,9 +484,11 @@ namespace Sandbox.Game.Gui
         {
             var data = (ControlButtonData)button.UserData;
 
+
             MyStringId messageText = MyCommonTexts.AssignControlKeyboard;
             if (data.Device == MyGuiInputDeviceEnum.Mouse)
             {
+
                 messageText = MyCommonTexts.AssignControlMouse;
             }
 
@@ -452,6 +501,7 @@ namespace Sandbox.Game.Gui
         {
             MyGuiSandbox.AddScreen(MyGuiSandbox.CreateMessageBox(
                 buttonType: MyMessageBoxButtonsType.YES_NO,
+
                 messageCaption: MyTexts.Get(MyCommonTexts.MessageBoxCaptionResetControlsToDefault),
                 messageText: MyTexts.Get(MyCommonTexts.MessageBoxTextResetControlsToDefault),
                 callback: (res) =>
@@ -528,6 +578,7 @@ namespace Sandbox.Game.Gui
             {
                 var data = (ControlButtonData)button.UserData;
                 data.Control.AppendBoundButtonNames(ref tmp, data.Device);
+
                 MyControl.AppendUnknownTextIfNeeded(ref tmp, MyTexts.GetString(MyCommonTexts.UnknownControl_None));
                 button.Text = tmp.ToString();
                 tmp.Clear();
@@ -553,6 +604,7 @@ namespace Sandbox.Game.Gui
                 styleEnum: MyMessageBoxStyleEnum.Error,
                 buttonType: MyMessageBoxButtonsType.NONE,
                 messageText: MyTexts.Get(messageText),
+
                 messageCaption: MyTexts.Get(MyCommonTexts.SelectControl),
                 okButtonText: default(MyStringId),
                 cancelButtonText: default(MyStringId),
@@ -704,6 +756,7 @@ namespace Sandbox.Game.Gui
             private void ShowControlIsNotValidMessageBox()
             {
                 MyGuiSandbox.AddScreen(MyGuiSandbox.CreateMessageBox(
+
                     messageText: MyTexts.Get(MyCommonTexts.ControlIsNotValid),
                     messageCaption: MyTexts.Get(MyCommonTexts.CanNotAssignControl)));
             }
@@ -734,9 +787,11 @@ namespace Sandbox.Game.Gui
             {
                 return MyGuiSandbox.CreateMessageBox(
                     buttonType: MyMessageBoxButtonsType.YES_NO,
+
                     messageText: new StringBuilder(string.Format(MyTexts.GetString(MyCommonTexts.ControlAlreadyAssigned),
                                                                  controlButtonName,
                                                                  MyTexts.Get(controlAlreadySet.GetControlName()))),
+
                     messageCaption: MyTexts.Get(MyCommonTexts.CanNotAssignControl));
             }
 

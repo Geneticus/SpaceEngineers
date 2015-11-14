@@ -95,6 +95,86 @@ namespace Sandbox.Game.Localization
         public static readonly MyStringId ControlName_RotationUp = MyStringId.GetOrCompute("ControlName_RotationUp");
 
         ///<summary>
+        ///SELECT CONTROL
+        ///</summary>
+        public static readonly MyStringId SelectControl = MyStringId.GetOrCompute("SelectControl");
+
+        ///<summary>
+        ///SCHEDULED SERVER SHUTDOWN
+        ///</summary>
+        public static readonly MyStringId ServerShutdownNotificationCaption = MyStringId.GetOrCompute("ServerShutdownNotificationCaption");
+
+        ///<summary>
+        ///Sorry, but the settings you have chosen are not supported by your hardware.
+        ///</summary>
+        public static readonly MyStringId SorryButSelectedSettingsAreNotSupportedByYourHardware = MyStringId.GetOrCompute("SorryButSelectedSettingsAreNotSupportedByYourHardware");
+
+        ///<summary>
+        ///Space
+        ///</summary>
+        public static readonly MyStringId KeysSpace = MyStringId.GetOrCompute("KeysSpace");
+
+        ///<summary>
+        ///Starting game … please wait.
+        ///</summary>
+        public static readonly MyStringId StartGameInProgressPleaseWait = MyStringId.GetOrCompute("StartGameInProgressPleaseWait");
+
+        ///<summary>
+        ///Strafe left
+        ///</summary>
+        public static readonly MyStringId ControlName_StrafeLeft = MyStringId.GetOrCompute("ControlName_StrafeLeft");
+
+        ///<summary>
+        ///Strafe right
+        ///</summary>
+        public static readonly MyStringId ControlName_StrafeRight = MyStringId.GetOrCompute("ControlName_StrafeRight");
+
+        ///<summary>
+        ///Systems 1
+        ///</summary>
+        public static readonly MyStringId ControlTypeSystems1 = MyStringId.GetOrCompute("ControlTypeSystems1");
+
+        ///<summary>
+        ///Systems 2
+        ///</summary>
+        public static readonly MyStringId ControlTypeSystems2 = MyStringId.GetOrCompute("ControlTypeSystems2");
+
+        ///<summary>
+        ///MicroControllers
+        ///</summary>
+        public static readonly MyStringId Microontrollers = MyStringId.GetOrCompute("Microontrollers");
+
+        ///<summary>
+        ///Tab
+        ///</summary>
+        public static readonly MyStringId KeysTab = MyStringId.GetOrCompute("KeysTab");
+
+        ///<summary>
+        ///Failed to start the browser.
+        ///</summary>
+        public static readonly MyStringId TitleFailedToStartInternetBrowser = MyStringId.GetOrCompute("TitleFailedToStartInternetBrowser");
+
+        ///<summary>
+        ///none
+        ///</summary>
+        public static readonly MyStringId UnknownControl_None = MyStringId.GetOrCompute("UnknownControl_None");
+
+        ///<summary>
+        ///Up
+        ///</summary>
+        public static readonly MyStringId KeysUp = MyStringId.GetOrCompute("KeysUp");
+
+        ///<summary>
+        ///Use / Interact
+        ///</summary>
+        public static readonly MyStringId ControlName_UseOrInteract = MyStringId.GetOrCompute("ControlName_UseOrInteract");
+
+        ///<summary>
+        ///Vertical sync
+        ///</summary>
+        public static readonly MyStringId VerticalSync = MyStringId.GetOrCompute("VerticalSync");
+
+        ///<summary>
         ///Video
         ///</summary>
         public static readonly MyStringId ScreenOptionsButtonVideo = MyStringId.GetOrCompute("ScreenOptionsButtonVideo");
@@ -3083,6 +3163,41 @@ namespace Sandbox.Game.Localization
         ///Enable spectator
         ///</summary>
         public static readonly MyStringId WorldSettings_EnableSpectator = MyStringId.GetOrCompute("WorldSettings_EnableSpectator");
+
+        ///<summary>
+        ///MicroControllers
+        ///</summary>
+        public static readonly MyStringId Microcontrollers = MyStringId.GetOrCompute("Microcontrollers");
+
+        ///<summary>
+        ///Detected Devices
+        ///</summary>
+        public static readonly MyStringId DetectedDevices1 = MyStringId.GetOrCompute("DetectedDevices1");
+
+        ///<summary>
+        ///Choose a Device
+        ///</summary>
+        public static readonly MyStringId ChooseDevice1 = MyStringId.GetOrCompute("ChooseDevice1");
+
+        ///<summary>
+        ///Set a Unique Name for this Device
+        ///</summary>
+        public static readonly MyStringId UniqueName1 = MyStringId.GetOrCompute("UniqueName1");
+
+        ///<summary>
+        ///This is an Input Device
+        ///</summary>
+        public static readonly MyStringId IOdirectionIn1 = MyStringId.GetOrCompute("IOdirectionIn1");
+
+        ///<summary>
+        ///This is an Output Device
+        ///</summary>
+        public static readonly MyStringId IOdirectionOut1 = MyStringId.GetOrCompute("IOdirectionOut1");
+
+        ///<summary>
+        ///Player color
+        ///</summary>
+        public static readonly MyStringId PlayerCharacterColor = MyStringId.GetOrCompute("PlayerCharacterColor");
 
         ///<summary>
         ///Black

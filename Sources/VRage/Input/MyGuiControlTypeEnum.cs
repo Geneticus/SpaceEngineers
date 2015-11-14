@@ -11,5 +11,6 @@ namespace VRage.Input
         Systems2,
         Systems3,
         Spectator,
+        Microcontrollers,
     }
 }
