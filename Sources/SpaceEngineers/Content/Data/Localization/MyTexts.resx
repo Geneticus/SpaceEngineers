@@ -169,9 +169,6 @@
   <data name="ControlName_RotationUp" xml:space="preserve">
     <value>Rotate up</value>
   </data>
-  <data name="Microontrollers" xml:space="preserve">
-    <value>MicroControllers</value>
-  </data>  
   <data name="ScreenOptionsButtonVideo" xml:space="preserve">
     <value>Video</value>
   </data>
@@ -2013,24 +2010,6 @@ Higher numbers affect performance.</value>
   </data>
   <data name="WorldSettings_EnableSpectator" xml:space="preserve">
     <value>Enable spectator</value>
-  </data>
-  <data name="Microcontrollers" xml:space="preserve">
-    <value>MicroControllers</value>
-  </data>
-  <data name="DetectedDevices1" xml:space="preserve">
-    <value>Detected Devices</value>
-  </data>
-  <data name="ChooseDevice1" xml:space="preserve">
-    <value>Choose a Device</value>
-  </data>
-  <data name="UniqueName1" xml:space="preserve">
-    <value>Set a Unique Name for this Device</value>
-  </data>
-  <data name="IOdirectionIn1" xml:space="preserve">
-    <value>This is an Input Device</value>
-  </data>
-  <data name="IOdirectionOut1" xml:space="preserve">
-    <value>This is an Output Device</value>
   </data>
   <data name="PlayerCharacterColorBlack" xml:space="preserve">
     <value>Black</value>
