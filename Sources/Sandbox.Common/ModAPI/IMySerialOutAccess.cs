@@ -2,14 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using VRage;
+using VRage.ModAPI;
 
-namespace Sandbox.Common.ModAPI
+namespace Sandbox.ModAPI
 {
     public interface IMySerialOutAccess
     {
-        //VRage.
+        bool SendMessageToSerial(String Message, String devicename);
+        bool SendMessageToSerial(String Message, int COMPortNumber);
+
+        //VRage.SerialOutput.SerialOut Message = new VRage.SerialOutput.SerialOut();
+        //bool MessageSuccess = SendMessageToSerial(String Message, int x);
+
+
+
+
     }
+
+
+
+
+
+
+
 
     //public interface IMyCharacter
     //{
