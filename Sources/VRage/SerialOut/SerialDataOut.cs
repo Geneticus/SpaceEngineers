@@ -123,7 +123,7 @@ namespace VRage.SerialOutput
          ///<summary>
          ///This will send a string message straight to the COM port. (For Debug use)
          ///</summary>
-         public static  bool SendMessageToSerial(String Message, int COMPortNumber)//Change Bool for routing to SE log file.
+         public static bool SendMessageToSerial(String Message, int COMPortNumber)//Change Bool for routing to SE log file.
          {
              bool success = false;
              string textToSend = string.Format("\x02{0}\x03", Message);
