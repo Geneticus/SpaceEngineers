@@ -14,9 +14,9 @@ namespace Sandbox.ModAPI
         {
             return SerialOut.SendMessageToSerial(Message, devicename);
         }
-        bool IMySerialOutAccess.SendMessageToSerial(String Message, int COMPortNumber)
+        bool IMySerialOutAccess.SendMessageToSerial(String Message, int COMPortNumber, int baudRate)
         {
-            return SerialOut.SendMessageToSerial(Message, COMPortNumber);
+            return SerialOut.SendMessageToSerial(Message, COMPortNumber, baudRate);
         }
 
 

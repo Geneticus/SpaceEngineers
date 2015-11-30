@@ -9,7 +9,7 @@ namespace Sandbox.ModAPI
     public interface IMySerialOutAccess
     {
         bool SendMessageToSerial(String Message, String devicename);
-        bool SendMessageToSerial(String Message, int COMPortNumber);
+        bool SendMessageToSerial(String Message, int COMPortNumber, int baudRate);
 
         //VRage.SerialOutput.SerialOut Message = new VRage.SerialOutput.SerialOut();
         //bool MessageSuccess = SendMessageToSerial(String Message, int x);
