@@ -491,7 +491,7 @@
     <Compile Include="Serialization\MySerializer.cs" />
     <Compile Include="Serialization\MySerializerString.cs" />
     <Compile Include="Serialization\MySerializer`1.cs" />
-    <Compile Include="SerialOut\SerialDataOut.cs" />
+	<Compile Include="SerialOut\SerialDataOut.cs" />
     <Compile Include="SpriteEnums.cs" />
     <Compile Include="Sync\SyncExtensions.cs" />
     <Compile Include="Sync\SyncHelpers.cs" />

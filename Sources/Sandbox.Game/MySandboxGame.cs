@@ -22,7 +22,6 @@ using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 using Sandbox.Graphics;
 using Sandbox.Graphics.GUI;
-
 using Sandbox.ModAPI;
 using SteamSDK;
 using System;
@@ -87,7 +86,6 @@ namespace Sandbox
 
         public static bool IsGameReady
         {
-
             get 
             {
                 if (MyPerGameSettings.BlockForVoxels && (MySession.Static == null || MySession.Static.VoxelMaps.Instances.Count == 0))
@@ -376,18 +374,15 @@ namespace Sandbox
 
         protected virtual void InitInput()
         {
-
             MyGuiGameControlsHelpers.Add(MyControlsSpace.FORWARD, new MyGuiDescriptor(MyCommonTexts.ControlName_Forward));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.BACKWARD, new MyGuiDescriptor(MyCommonTexts.ControlName_Backward));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.STRAFE_LEFT, new MyGuiDescriptor(MyCommonTexts.ControlName_StrafeLeft));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.STRAFE_RIGHT, new MyGuiDescriptor(MyCommonTexts.ControlName_StrafeRight));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.ROLL_LEFT, new MyGuiDescriptor(MySpaceTexts.ControlName_RollLeft));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.ROLL_RIGHT, new MyGuiDescriptor(MySpaceTexts.ControlName_RollRight));
-
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SPRINT, new MyGuiDescriptor(MyCommonTexts.ControlName_HoldToSprint));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.PRIMARY_TOOL_ACTION, new MyGuiDescriptor(MySpaceTexts.ControlName_FirePrimaryWeapon));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SECONDARY_TOOL_ACTION, new MyGuiDescriptor(MySpaceTexts.ControlName_FireSecondaryWeapon));
-
             MyGuiGameControlsHelpers.Add(MyControlsSpace.JUMP, new MyGuiDescriptor(MyCommonTexts.ControlName_UpOrJump));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.CROUCH, new MyGuiDescriptor(MyCommonTexts.ControlName_DownOrCrouch));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SWITCH_WALK, new MyGuiDescriptor(MyCommonTexts.ControlName_SwitchWalk));
@@ -395,12 +390,10 @@ namespace Sandbox
             MyGuiGameControlsHelpers.Add(MyControlsSpace.THRUSTS, new MyGuiDescriptor(MySpaceTexts.ControlName_Jetpack));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.BROADCASTING, new MyGuiDescriptor(MySpaceTexts.ControlName_Broadcasting));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.HELMET, new MyGuiDescriptor(MySpaceTexts.ControlName_Helmet));
-
             MyGuiGameControlsHelpers.Add(MyControlsSpace.USE, new MyGuiDescriptor(MyCommonTexts.ControlName_UseOrInteract));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.TOGGLE_REACTORS, new MyGuiDescriptor(MySpaceTexts.ControlName_PowerSwitchOnOff));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.TERMINAL, new MyGuiDescriptor(MySpaceTexts.ControlName_TerminalOrInventory));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.INVENTORY, new MyGuiDescriptor(MySpaceTexts.Inventory));
-
             MyGuiGameControlsHelpers.Add(MyControlsSpace.HELP_SCREEN, new MyGuiDescriptor(MyCommonTexts.ControlName_Help));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SUICIDE, new MyGuiDescriptor(MyCommonTexts.ControlName_Suicide));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.PAUSE_GAME, new MyGuiDescriptor(MyCommonTexts.ControlName_PauseGame, MyCommonTexts.ControlDescPauseGame));
@@ -408,16 +401,13 @@ namespace Sandbox
             MyGuiGameControlsHelpers.Add(MyControlsSpace.ROTATION_RIGHT, new MyGuiDescriptor(MySpaceTexts.ControlName_RotationRight));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.ROTATION_UP, new MyGuiDescriptor(MySpaceTexts.ControlName_RotationUp));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.ROTATION_DOWN, new MyGuiDescriptor(MySpaceTexts.ControlName_RotationDown));
-
             MyGuiGameControlsHelpers.Add(MyControlsSpace.CAMERA_MODE, new MyGuiDescriptor(MyCommonTexts.ControlName_FirstOrThirdPerson));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.HEADLIGHTS, new MyGuiDescriptor(MySpaceTexts.ControlName_ToggleHeadlights));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.CHAT_SCREEN, new MyGuiDescriptor(MySpaceTexts.Chat_screen));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.CONSOLE, new MyGuiDescriptor(MySpaceTexts.ControlName_Console));
-
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SCREENSHOT, new MyGuiDescriptor(MyCommonTexts.ControlName_Screenshot));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.LOOKAROUND, new MyGuiDescriptor(MyCommonTexts.ControlName_HoldToLookAround));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.LANDING_GEAR, new MyGuiDescriptor(MySpaceTexts.ControlName_LandingGear));
-
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SWITCH_LEFT, new MyGuiDescriptor(MyCommonTexts.ControlName_PreviousColor));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SWITCH_RIGHT, new MyGuiDescriptor(MyCommonTexts.ControlName_NextColor));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.BUILD_SCREEN, new MyGuiDescriptor(MyCommonTexts.ControlName_ToolbarConfig));
@@ -431,7 +421,6 @@ namespace Sandbox
             MyGuiGameControlsHelpers.Add(MyControlsSpace.CUBE_COLOR_CHANGE, new MyGuiDescriptor(MyCommonTexts.ControlName_CubeColorChange));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SYMMETRY_SWITCH, new MyGuiDescriptor(MySpaceTexts.ControlName_SymmetrySwitch));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.USE_SYMMETRY, new MyGuiDescriptor(MySpaceTexts.ControlName_UseSymmetry));
-
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SLOT1, new MyGuiDescriptor(MyCommonTexts.ControlName_Slot1));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SLOT2, new MyGuiDescriptor(MyCommonTexts.ControlName_Slot2));
             MyGuiGameControlsHelpers.Add(MyControlsSpace.SLOT3, new MyGuiDescriptor(MyCommonTexts.ControlName_Slot3));
@@ -465,10 +454,8 @@ namespace Sandbox
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Navigation, MyControlsSpace.ROLL_LEFT, null, MyKeys.Q);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Navigation, MyControlsSpace.ROLL_RIGHT, null, MyKeys.E);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Navigation, MyControlsSpace.SPRINT, null, MyKeys.LeftShift);
-
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.ToolsOrWeapons, MyControlsSpace.PRIMARY_TOOL_ACTION, MyMouseButtonsEnum.Left, null);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.ToolsOrWeapons, MyControlsSpace.SECONDARY_TOOL_ACTION, MyMouseButtonsEnum.Right, null);
-
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Navigation, MyControlsSpace.USE, null, MyKeys.F);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Navigation, MyControlsSpace.JUMP, null, MyKeys.Space);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Navigation, MyControlsSpace.CROUCH, null, MyKeys.C);
@@ -477,7 +464,6 @@ namespace Sandbox
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems2, MyControlsSpace.THRUSTS, null, MyKeys.X);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems2, MyControlsSpace.BROADCASTING, null, MyKeys.O);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems2, MyControlsSpace.HELMET, null, MyKeys.J);
-
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems1, MyControlsSpace.TERMINAL, null, MyKeys.K);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems1, MyControlsSpace.INVENTORY, null, MyKeys.I);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems2, MyControlsSpace.TOGGLE_HUD, null, MyKeys.Tab);
@@ -509,7 +495,6 @@ namespace Sandbox
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems3, MyControlsSpace.CUBE_COLOR_CHANGE, MyMouseButtonsEnum.Middle, null);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems3, MyControlsSpace.SYMMETRY_SWITCH, null, MyKeys.M);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems3, MyControlsSpace.USE_SYMMETRY, null, MyKeys.N);
-
             //AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems3, MyControlsSpace.VOXEL_HAND_SETTINGS, null, MyKeys.H);
             AddDefaultGameControl(defaultGameControls, MyGuiControlTypeEnum.Systems3, MyControlsSpace.CONTROL_MENU);
             if (MyFakes.ENABLE_MISSION_TRIGGERS)
@@ -537,7 +522,6 @@ namespace Sandbox
 
 
             MyInput.Initialize(IsDedicated
-
                 ? (VRage.Input.IMyInput)new MyNullInput()
                 : (VRage.Input.IMyInput)new MyDirectXInput(m_bufferedInputSource, new MyKeysToString(), defaultGameControls, !MyFinalBuildConstants.IS_OFFICIAL));
 
@@ -558,18 +542,15 @@ namespace Sandbox
             MySteamWorkshop.Init(
                 modCategories: new MySteamWorkshop.Category[]
                 {
-
                     new MySteamWorkshop.Category { Id = "block", LocalizableName = MyCommonTexts.WorkshopTag_Block, },
                     new MySteamWorkshop.Category { Id = "skybox", LocalizableName = MyCommonTexts.WorkshopTag_Skybox, },
                     new MySteamWorkshop.Category { Id = "character", LocalizableName = MyCommonTexts.WorkshopTag_Character, },
                     new MySteamWorkshop.Category { Id = "animation", LocalizableName = MyCommonTexts.WorkshopTag_Animation, },
                     new MySteamWorkshop.Category { Id = "respawn ship", LocalizableName = MySpaceTexts.WorkshopTag_RespawnShip, },
                     new MySteamWorkshop.Category { Id = "production", LocalizableName = MySpaceTexts.WorkshopTag_Production, },
-
                     new MySteamWorkshop.Category { Id = "script", LocalizableName = MyCommonTexts.WorkshopTag_Script, },
                     new MySteamWorkshop.Category { Id = "modpack", LocalizableName = MyCommonTexts.WorkshopTag_ModPack, },
                     new MySteamWorkshop.Category { Id = "asteroid", LocalizableName = MySpaceTexts.WorkshopTag_Asteroid, },
-
                     new MySteamWorkshop.Category { Id = "planet", LocalizableName = MySpaceTexts.WorkshopTag_Planet, },
                     new MySteamWorkshop.Category { Id = "other", LocalizableName = MyCommonTexts.WorkshopTag_Other, },
                 },
@@ -656,8 +637,6 @@ namespace Sandbox
                 {
                     case MyQuickLaunchType.LAST_SANDBOX:
                     case MyQuickLaunchType.NEW_SANDBOX:
-
-
                         MyGuiSandbox.AddScreen(new MyGuiScreenStartQuickLaunch(quickLaunch.Value, MyCommonTexts.StartGameInProgressPleaseWait));
                         break;
                     default:
@@ -715,7 +694,6 @@ namespace Sandbox
                         }
                         else
                         {
-
                             MyLog.Default.WriteLineAndConsole(MyTexts.Get(MyCommonTexts.DialogTextIncompatibleWorldVersion).ToString());
                         }
                     }
@@ -753,7 +731,6 @@ namespace Sandbox
                             }
                             else
                             {
-
                                 MyLog.Default.WriteLineAndConsole(MyTexts.Get(MyCommonTexts.DialogTextIncompatibleWorldVersion).ToString());
                             }
                         }
@@ -818,7 +795,6 @@ namespace Sandbox
                 }
             }
 
-
             if (ConnectToServer != null && MySandboxGame.Services.SteamService.SteamAPI!=null)
             {
                 MySandboxGame.Services.SteamService.SteamAPI.PingServer(MySandboxGame.ConnectToServer.Address.ToIPv4NetworkOrder(), (ushort)MySandboxGame.ConnectToServer.Port);
@@ -859,7 +835,6 @@ namespace Sandbox
         /// </summary>
         private void InitMultithreading()
         {
-
             if (MyFakes.FORCE_SINGLE_WORKER)
                 Parallel.Scheduler = new FixedPriorityScheduler(1, ThreadPriority.Normal);
             else
@@ -1010,7 +985,6 @@ namespace Sandbox
 
             if (MySector.MainCamera != null)
             {
-
                 MySector.MainCamera.UpdateScreenSize(MySandboxGame.ScreenViewport);
             }
             ProfilerShort.End();
@@ -1111,7 +1085,6 @@ namespace Sandbox
 
             Sandbox.Engine.Physics.MyPhysicsDebugDraw.DebugGeometry = new HkGeometry();
 
-
             //VRage.Game.Models.MyModels.LoadData();
 
             ProfilerShort.Begin("MySandboxGame::LoadData");
@@ -1119,7 +1092,6 @@ namespace Sandbox
             MySandboxGame.Log.IncreaseIndent();
 
             ProfilerShort.Begin("MyDefinitionManager.LoadSounds");
-
             MyDefinitionManager.Static.PreloadDefinitions();
 
             ProfilerShort.BeginNextBlock("MyAudio.LoadData");
@@ -1148,7 +1120,6 @@ namespace Sandbox
             MyAudio.Static.VolumeVoiceChat = Config.VoiceChatVolume;
             MyAudio.Static.EnableVoiceChat = Config.EnableVoiceChat;
             MyGuiAudio.HudWarnings = Config.HudWarnings;
-
             Config.MusicVolume = MyAudio.Static.VolumeMusic;
             Config.GameVolume = MyAudio.Static.VolumeGame;
             MyGuiSoundManager.Audio = MyGuiAudio.Static;
@@ -1185,7 +1156,6 @@ namespace Sandbox
 
         private BoundingFrustumD GetCameraFrustum()
         {
-          
             return MySector.MainCamera != null ? MySector.MainCamera.BoundingFrustumFar : new BoundingFrustumD(MatrixD.Identity);            
         }
 
@@ -1238,7 +1208,6 @@ namespace Sandbox
         {
             Log.IncreaseIndent();
 
-
             if (GameCustomInitialization != null)
             {
                 GameCustomInitialization.InitIlCompilerOptions();
@@ -1264,7 +1233,6 @@ namespace Sandbox
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(MyObjectBuilder_SessionSettings));
             IlChecker.AllowNamespaceOfTypeCommon(typeof(TerminalActionExtensions));
 
-
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(SerializableBlockOrientation));
             IlChecker.AllowNamespaceOfTypeCommon(typeof(Sandbox.ModAPI.Ingame.IMyCubeBlock));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(Sandbox.ModAPI.IMySession));
@@ -1272,8 +1240,6 @@ namespace Sandbox
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(VRage.ModAPI.IMyEntity));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(IMyEntities));
 
-
-            IlChecker.AllowNamespaceOfTypeModAPI(typeof(Sandbox.ModAPI.MySerialOut));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(VRage.Game.Entity.MyEntity));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(Sandbox.Game.Entities.MyEntityExtensions));
 
@@ -1294,17 +1260,14 @@ namespace Sandbox
             IlChecker.AllowNamespaceOfTypeCommon(typeof(MyObjectBuilder_Base));
             IlChecker.AllowNamespaceOfTypeCommon(typeof(MyDefinitionBase));
             IlChecker.AllowNamespaceOfTypeCommon(typeof(Sandbox.Common.ObjectBuilders.MyObjectBuilder_AirVent));
-
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(MyObjectBuilder_VoxelMap));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(MyStatLogic));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(VRage.Game.ObjectBuilders.MyObjectBuilder_EntityStatRegenEffect));
-
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(MyEntityStat));
             IlChecker.AllowedOperands.Add(typeof(MyCharacterMovement), null);
 
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(SerializableDefinitionId));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(SerializableVector3));
-
 
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(MyDefinitionId));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(Sandbox.Definitions.MyDefinitionManager));
@@ -1315,13 +1278,15 @@ namespace Sandbox
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(VRage.MyFixedPoint));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(VRage.Collections.ListReader<>));
 
-
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(VRage.Voxels.MyStorageData));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(VRage.Utils.MyEventArgs));
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(VRage.Library.Utils.MyGameTimer));
             IlChecker.AllowNamespaceOfTypeCommon(typeof(IMyInventoryItem));
 
             IlChecker.AllowNamespaceOfTypeModAPI(typeof(Sandbox.Game.Lights.MyLight));
+			
+			//Added by Geneticus for MicroController support
+			IlChecker.AllowNamespaceOfTypeModAPI(typeof(Sandbox.ModAPI.MySerialOut));
 
             var serializerType = typeof(MyObjectBuilderSerializer);
             IlChecker.AllowedOperands[serializerType] = new List<MemberInfo>()
@@ -1341,7 +1306,6 @@ namespace Sandbox
             IlChecker.AllowedOperands.Add(typeof(ParallelTasks.Task), null);
             IlChecker.AllowedOperands.Add(typeof(ParallelTasks.WorkOptions), null);
             IlChecker.AllowedOperands.Add(typeof(Sandbox.ModAPI.Interfaces.ITerminalAction), null);
-
             IlChecker.AllowedOperands.Add(typeof(IMyInventoryOwner), null);
             IlChecker.AllowedOperands.Add(typeof(IMyInventory), null);
             IlChecker.AllowedOperands.Add(typeof(IMyInventoryItem), null);
@@ -1451,7 +1415,6 @@ namespace Sandbox
             MySandboxGame.Log.WriteLine("MySandboxGame.UnloadData() - END");
             ProfilerShort.End();
 
-
             VRage.Game.Models.MyModels.UnloadData();
 
             MyGuiSandbox.UnloadContent();
@@ -1478,25 +1441,19 @@ namespace Sandbox
         static bool m_isPaused;
         public static bool IsPaused
         {
-
             get 
             { 
                 if(Sync.MultiplayerActive == false || (Sync.MultiplayerActive && Sync.IsServer == true  && Sync.Clients.Count < 2)) 
                 {
-
                     return m_isPaused;
                 }
-
                 else
                 {
-
                     if (m_isPaused)
                     {
-
                         m_isPaused = false;
                         MyAudio.Static.ResumeGameSounds();
                     }
-
                 }
                 return false;
             }
@@ -1507,7 +1464,6 @@ namespace Sandbox
                 {
                     if (m_isPaused != value)
                     {
-
                         ProfilerShort.Begin("MySandboxGame::IsPaused_set");
                         m_isPaused = value;
                         if (IsPaused)
@@ -1524,7 +1480,6 @@ namespace Sandbox
                         }
                         ProfilerShort.End();
                     }
-
                 }
                 else
                 {
@@ -1583,7 +1538,6 @@ namespace Sandbox
             {
                 ShowIsBetterGCAvailableNotification = false;
                 MyGuiSandbox.AddScreen(MyGuiSandbox.CreateMessageBox(
-
                     messageText: MyTexts.Get(MyCommonTexts.BetterGCIsAvailable),
                     messageCaption: MyTexts.Get(MyCommonTexts.MessageBoxCaptionWarning)));
             }
@@ -1592,7 +1546,6 @@ namespace Sandbox
             {
                 ShowGpuUnderMinimumNotification = false;
                 MyGuiSandbox.AddScreen(MyGuiSandbox.CreateMessageBox(
-
                     messageText: MyTexts.Get(MyCommonTexts.GpuUnderMinimumNotification),
                     messageCaption: MyTexts.Get(MyCommonTexts.MessageBoxCaptionWarning)));
             }
@@ -1604,7 +1557,6 @@ namespace Sandbox
             {
                 ProcessInvoke();
             }
-
 
             ProfilerShort.Begin("NetworkStats");
             MyNetworkStats.Static.LogNetworkStats();
@@ -1645,7 +1597,6 @@ namespace Sandbox
             using (Stats.Generic.Measure("GuiUpdate"))
             {
                 ProfilerShort.Begin("GuiManager");
-
                 MyGuiSandbox.Update(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_MILLISECONDS);
                 ProfilerShort.End();
             }
@@ -1663,7 +1614,6 @@ namespace Sandbox
                         MySession.Static.HandleInput();
                     ProfilerShort.End();
                 }
-
             }
 
             using (Stats.Generic.Measure("GameLogic"))
@@ -1673,7 +1623,6 @@ namespace Sandbox
                 {
                     bool canUpdate = true;
                     if (IsDedicated && ConfigDedicated.PauseGameWhenEmpty)
-
                         canUpdate = Sync.Clients.Count > 1 || !MySession.Static.Ready; //there is always DS itself
 
                     if (canUpdate)
@@ -1706,7 +1655,6 @@ namespace Sandbox
                 VRageMath.Vector3 up = VRageMath.Vector3.Up;
                 VRageMath.Vector3 forward = VRageMath.Vector3.Forward;
                 GetListenerLocation(ref position, ref up, ref forward);
-
                 MyAudio.Static.Update(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_MILLISECONDS, position, up, forward);
                 ProfilerShort.End();
 
@@ -1875,7 +1823,6 @@ namespace Sandbox
         /// </summary>
         public static void ProcessRenderOutput()
         {
-
             VRageRender.MyRenderMessageBase message;
             while (VRageRender.MyRenderProxy.OutputQueue.TryDequeue(out message))
             {
@@ -1894,7 +1841,6 @@ namespace Sandbox
                             MyRenderComponentVoxelMap render;
                             if (MySession.Static.VoxelMaps.TryGetRenderComponent(rMessage.ClipmapId, out render))
                             {
-
                                 render.OnCellRequest(rMessage.Cell, rMessage.Priority, rMessage.DebugDraw);
                             }
                             break;
@@ -1954,7 +1900,6 @@ namespace Sandbox
 
                             if (rMessage.ShowNotification)
                             {
-
                                 var screenshotNotification = new MyHudNotification(rMessage.Success ? MyCommonTexts.ScreenshotSaved : MyCommonTexts.ScreenshotFailed, 2000);
                                 if (rMessage.Success)
                                     screenshotNotification.SetTextFormatArguments(System.IO.Path.GetFileName(rMessage.Filename));
@@ -1984,7 +1929,6 @@ namespace Sandbox
 
                     case VRageRender.MyRenderMessageEnum.RenderTextureFreed:
                         {
-
                             if (MySession.Static == null || MySession.Static.LocalCharacter == null)
                                 break;
 

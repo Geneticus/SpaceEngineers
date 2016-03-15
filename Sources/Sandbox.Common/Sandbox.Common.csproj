@@ -147,7 +147,7 @@
     <Compile Include="ModAPI\IMyProductionBlock.cs" />
     <Compile Include="ModAPI\IMyReactor.cs" />
     <Compile Include="ModAPI\IMySensorBlock.cs" />
-    <Compile Include="ModAPI\IMySerialOutAccess.cs" />
+	<Compile Include="ModAPI\IMySerialOutAccess.cs" />
     <Compile Include="ModAPI\IMyShipDrill.cs" />
     <Compile Include="ModAPI\IMyShipWelder.cs" />
     <Compile Include="ModAPI\IMySpaceBall.cs" />
