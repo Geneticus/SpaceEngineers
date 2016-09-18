@@ -1,13 +1,13 @@
-﻿using SharpDX;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
+﻿using SharpDX.Direct3D;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using VRage.Generics;
+using VRage.Profiler;
+using VRage.Render11.Common;
+using VRage.Render11.RenderContext;
+using VRage.Render11.Resources;
 using VRage.Utils;
-using VRageRender.Resources;
+
 using Matrix = VRageMath.Matrix;
 
 namespace VRageRender
@@ -58,13 +58,28 @@ namespace VRageRender
         }
     }
 
+    struct MyMergeInstancingConstants
+    {
+        public static readonly MyMergeInstancingConstants Default;
+
+        static MyMergeInstancingConstants()
+        {
+            Default = new MyMergeInstancingConstants() { InstanceIndex = -1 };
+        }
+
+        public int InstanceIndex;
+        public int StartIndex;
+    }
+
     abstract class MyRenderingPass
     {
         #region Local
-        internal MyRenderContext m_RC;
+        private MyRenderContext m_rc;
         internal MyPassLocals Locals;
         internal MyPassStats Stats;
         internal bool m_joined;
+
+        internal long Elapsed;
 
         int m_currentProfilingBlock_renderableType = -1;
         string m_currentProfilingBlock_renderableMaterial = string.Empty;
@@ -77,7 +92,6 @@ namespace VRageRender
         internal string DebugName;
         #endregion
 
-        internal DeviceContext Context { get { return RC.DeviceContext; } }
         internal int ProcessingMask { get; set; }
 
         internal MyRenderContext RC
@@ -85,7 +99,7 @@ namespace VRageRender
             get
             {
                 Debug.Assert(!m_isImmediate || (MyRenderProxy.RenderThread.SystemThread == Thread.CurrentThread));
-                return m_isImmediate ? MyImmediateRC.RC : m_RC;
+                return m_isImmediate ? MyImmediateRC.RC : m_rc;
             }
         }
 
@@ -96,13 +110,13 @@ namespace VRageRender
 
         internal void SetContext(MyRenderContext rc)
         {
-            Debug.Assert(!m_isImmediate && m_RC == null);
-            m_RC = rc;
+            Debug.Assert(!m_isImmediate && m_rc == null);
+            m_rc = rc;
         }
 
         internal virtual void Cleanup()
         {
-            m_RC = null;
+            m_rc = null;
             if(Locals != null)
                 Locals.Clear();
             Stats.Clear();
@@ -134,28 +148,28 @@ namespace VRageRender
             //}
 
             var viewProjTranspose = Matrix.Transpose(ViewProjection);
-            var mapping = MyMapping.MapDiscard(RC.DeviceContext, MyCommon.ProjectionConstants);
+            var mapping = MyMapping.MapDiscard(RC, MyCommon.ProjectionConstants);
             mapping.WriteAndPosition(ref viewProjTranspose);
             mapping.Unmap();
 
             // common settings
-            Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            Context.Rasterizer.SetViewport(Viewport.OffsetX, Viewport.OffsetY, Viewport.Width, Viewport.Height);
+            RC.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
+            RC.SetViewport(Viewport.OffsetX, Viewport.OffsetY, Viewport.Width, Viewport.Height);
 
-            Context.PixelShader.SetSamplers(0, MyRender11.StandardSamplers);
+            RC.PixelShader.SetSamplers(0, MySamplerStateManager.StandardSamplers);
 
-            RC.SetCB(MyCommon.FRAME_SLOT, MyCommon.FrameConstants);
-            RC.SetCB(MyCommon.PROJECTION_SLOT, MyCommon.ProjectionConstants);
-            RC.SetCB(MyCommon.ALPHAMASK_VIEWS_SLOT, MyCommon.AlphamaskViewsConstants);
+            RC.AllShaderStages.SetConstantBuffer(MyCommon.FRAME_SLOT, MyCommon.FrameConstants);
+            RC.AllShaderStages.SetConstantBuffer(MyCommon.PROJECTION_SLOT, MyCommon.ProjectionConstants);
+            RC.AllShaderStages.SetConstantBuffer(MyCommon.ALPHAMASK_VIEWS_SLOT, MyCommon.AlphamaskViewsConstants);
 
-            Context.PixelShader.SetShaderResource(MyCommon.DITHER_8X8_SLOT, MyTextures.Views[MyTextures.Dithering8x8TexId.Index]);
+            RC.PixelShader.SetSrv(MyCommon.DITHER_8X8_SLOT, MyGeneratedTextureManager.Dithering8x8Tex);
 
-            if (MyBigMeshTable.Table.m_IB != null)
+            if (MyBigMeshTable.Table.m_IB != StructuredBufferId.NULL)
             {
                 var slotcounter = MyCommon.BIG_TABLE_INDICES;
-                RC.VSBindSRV(slotcounter++, MyBigMeshTable.Table.m_IB.Srv);
-                RC.VSBindSRV(slotcounter++, MyBigMeshTable.Table.m_VB_positions.Srv);
-                RC.VSBindSRV(slotcounter++, MyBigMeshTable.Table.m_VB_rest.Srv);
+                RC.VertexShader.SetRawSrv(slotcounter++, MyBigMeshTable.Table.m_IB.Srv);
+                RC.VertexShader.SetRawSrv(slotcounter++, MyBigMeshTable.Table.m_VB_positions.Srv);
+                RC.VertexShader.SetRawSrv(slotcounter++, MyBigMeshTable.Table.m_VB_rest.Srv);
             }
         }
 
@@ -176,7 +190,7 @@ namespace VRageRender
             }
         }
 
-        [Conditional(VRage.ProfilerShort.PerformanceProfilingSymbol)]
+        [Conditional(ProfilerShort.PerformanceProfilingSymbol)]
         internal void FeedProfiler(ulong nextSortingKey)
         {
             int type = (int)MyRenderableComponent.ExtractTypeFromSortingKey(nextSortingKey);
@@ -215,19 +229,21 @@ namespace VRageRender
             }
         }
 
-        internal void RecordCommands(MyRenderableProxy proxy, int section = -1)
+        internal void RecordCommands(MyRenderableProxy proxy)
         {
-            RecordCommandsInternal(proxy, section);
+            RecordCommandsInternal(proxy);
         }
 
-        protected virtual void RecordCommandsInternal(MyRenderableProxy proxy, int section)
-        {
-
-        }
-
-        internal virtual void RecordCommands(ref MyRenderableProxy_2 proxy)
+        protected virtual void RecordCommandsInternal(MyRenderableProxy proxy)
         {
         }
+
+        internal void RecordCommands(ref MyRenderableProxy_2 proxy, int instance = -1, int section = -1)
+        {
+            RecordCommandsInternal(ref proxy, instance, section);
+        }
+
+        protected virtual void RecordCommandsInternal(ref MyRenderableProxy_2 proxy, int instance, int section) { }
 
         internal virtual void End()
         {
@@ -243,19 +259,54 @@ namespace VRageRender
             }
         }
 
-        protected void SetProxyConstants(MyRenderableProxy proxy)
+        protected unsafe void SetProxyConstants(ref MyRenderableProxy_2 proxy, MyMergeInstancingConstants? arg = null)
         {
-            RC.SetCB(MyCommon.OBJECT_SLOT, proxy.ObjectBuffer);
+            MyMergeInstancingConstants constants = arg ?? MyMergeInstancingConstants.Default;
 
-            FillBuffers(proxy, RC.DeviceContext);
+            int version = constants.GetHashCode();
+            if (constants.GetHashCode() != proxy.ObjectConstants.Version)
+            {
+                int size = sizeof(MyMergeInstancingConstants);
+                var buffer = new byte[sizeof(MyMergeInstancingConstants)];
+
+                proxy.ObjectConstants = new MyConstantsPack()
+                {
+                    BindFlag = MyBindFlag.BIND_VS,
+                    CB = MyCommon.GetObjectCB(size),
+                    Version = version,
+                    Data = buffer
+                };
+
+
+                fixed (byte* dstPtr = buffer)
+                {
+#if XB1
+                    SharpDX.Utilities.CopyMemory(new IntPtr(dstPtr), new IntPtr(&constants), size);
+#else // !XB1
+                    MyMemory.CopyMemory(new IntPtr(dstPtr), new IntPtr(&constants), (uint)size);
+#endif // !XB1
+                }
+            }
+
+            MyRenderUtils.MoveConstants(RC, ref proxy.ObjectConstants);
+            MyRenderUtils.SetConstants(RC, ref proxy.ObjectConstants, MyCommon.OBJECT_SLOT);
 
             ++Stats.ObjectConstantsChanges;
         }
 
-        internal static unsafe void FillBuffers(MyRenderableProxy proxy, DeviceContext deviceContext)
+        protected void SetProxyConstants(MyRenderableProxy proxy)
+        {
+            RC.AllShaderStages.SetConstantBuffer(MyCommon.OBJECT_SLOT, proxy.ObjectBuffer);
+
+            FillBuffers(proxy, RC);
+
+            ++Stats.ObjectConstantsChanges;
+        }
+
+        internal static unsafe void FillBuffers(MyRenderableProxy proxy, MyRenderContext rc)
         {
             MyMapping mapping;
-            mapping = MyMapping.MapDiscard(deviceContext, proxy.ObjectBuffer);
+            mapping = MyMapping.MapDiscard(rc, proxy.ObjectBuffer);
             if(proxy.NonVoxelObjectData.IsValid)
             {
                 mapping.WriteAndPosition(ref proxy.NonVoxelObjectData);
@@ -283,7 +334,7 @@ namespace VRageRender
             mapping.Unmap();
         }
 
-        internal static void BindProxyGeometry(MyRenderableProxy proxy, MyRenderContext renderContext)
+        internal static void BindProxyGeometry(MyRenderableProxy proxy, MyRenderContext rc)
         {
             MyMeshBuffers buffers;
             
@@ -292,39 +343,22 @@ namespace VRageRender
             else
                 buffers = proxy.MergedMesh.Buffers;
 
-            bool firstChanged = renderContext.UpdateVB(0, buffers.VB0.Buffer, buffers.VB0.Stride);
-            bool secondChanged = renderContext.UpdateVB(1, buffers.VB1.Buffer, buffers.VB1.Stride);
-            
-            if (firstChanged && secondChanged)
-            {
-                renderContext.DeviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(buffers.VB0.Buffer, buffers.VB0.Stride, 0));
-                renderContext.DeviceContext.InputAssembler.SetVertexBuffers(1, new VertexBufferBinding(buffers.VB1.Buffer, buffers.VB1.Stride, 0));
-                renderContext.Stats.SetVB++;
-            }
-            else if (firstChanged)
-            {
-                renderContext.DeviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(buffers.VB0.Buffer, buffers.VB0.Stride, 0));
-                renderContext.Stats.SetVB++;
-            }
-            else if (secondChanged)
-            {
-                renderContext.DeviceContext.InputAssembler.SetVertexBuffers(1, new VertexBufferBinding(buffers.VB1.Buffer, buffers.VB1.Stride, 0));
-                renderContext.Stats.SetVB++;
-            }
+            rc.SetVertexBuffer(0, buffers.VB0.Buffer, buffers.VB0.Stride);
+            rc.SetVertexBuffer(1, buffers.VB1.Buffer, buffers.VB1.Stride);
             
             if (proxy.InstancingEnabled && proxy.Instancing.VB.Index != -1)
             {
-                renderContext.DeviceContext.InputAssembler.SetVertexBuffers(2, new VertexBufferBinding(proxy.Instancing.VB.Buffer, proxy.Instancing.VB.Stride, 0));
-                renderContext.Stats.SetVB++;
+                rc.SetVertexBuffer(2, proxy.Instancing.VB.Buffer, proxy.Instancing.VB.Stride);
+
             }
-            renderContext.SetIB(buffers.IB.Buffer, buffers.IB.Format);
+            rc.SetIndexBuffer(buffers.IB.Buffer, buffers.IB.Format);
         }
 
         internal virtual MyRenderingPass Fork()
         {
             var renderPass = (MyRenderingPass)MyObjectPoolManager.Allocate(this.GetType());
 
-            renderPass.m_RC = m_RC;
+            renderPass.m_rc = m_rc;
             if(renderPass.Locals != null)
                 renderPass.Locals.Clear();
             renderPass.Stats = default(MyPassStats);

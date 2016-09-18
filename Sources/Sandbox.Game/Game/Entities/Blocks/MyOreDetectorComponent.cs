@@ -4,18 +4,16 @@ using ParallelTasks;
 using Sandbox.Definitions;
 using Sandbox.Engine.Voxels;
 using Sandbox.Game.Gui;
-using Sandbox.Game.World;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using VRage;
 using VRage.Collections;
-using VRage;
 using VRage.Generics;
+using VRage.Profiler;
 using VRage.Utils;
 using VRage.Voxels;
 using VRageMath;
+using VRageRender.Utils;
 
 #endregion
 
@@ -346,7 +344,7 @@ namespace Sandbox.Game.Entities.Cube
             get { return WorkPriority.VeryLow; }
         }
 
-        void IWork.DoWork()
+        void IWork.DoWork(WorkData workData = null)
         {
             ProfilerShort.Begin("MyDepositQuery.DoWork");
             try

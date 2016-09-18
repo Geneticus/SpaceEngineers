@@ -9,13 +9,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using VRage.Game.ModAPI;
 using VRage.Network;
 using VRage.ObjectBuilders;
+using VRage.Scripting;
 using MyMultiplayerMain = Sandbox.Engine.Multiplayer.MyMultiplayer;
+using Sandbox.Game.Gui;
 
 namespace Sandbox.ModAPI
 {
-    [StaticEventOwner]
     public static class MyModAPIHelper
     {
         public static void OnSessionLoaded()
@@ -25,14 +27,18 @@ namespace Sandbox.ModAPI
             MyAPIGateway.Entities = new MyEntitiesHelper_ModAPI();
             MyAPIGateway.Players = Sync.Players;
             MyAPIGateway.CubeBuilder = MyCubeBuilder.Static;
+            MyAPIGateway.IngameScripting = MyIngameScripting.Static;
             MyAPIGateway.TerminalActionsHelper = MyTerminalControlFactoryHelper.Static;
             MyAPIGateway.Utilities = MyAPIUtilities.Static;
             MyAPIGateway.Parallel = MyParallelTask.Static;
+            MyAPIGateway.Physics = Physics.MyPhysics.Static;
             MyAPIGateway.Multiplayer = MyMultiplayer.Static;
             MyAPIGateway.PrefabManager = MyPrefabManager.Static;
             MyAPIGateway.Input = (VRage.ModAPI.IMyInput)VRage.Input.MyInput.Static;
+            MyAPIGateway.TerminalControls = MyTerminalControls.Static;
         }
 
+        [StaticEventOwner]
         public class MyMultiplayer : IMyMultiplayer
         {
 
@@ -94,9 +100,9 @@ namespace Sandbox.ModAPI
                     return false;
 
                 if (reliable)
-                    MyMultiplayerMain.RaiseStaticEvent(s => MyMultiplayer.ModMessageClientReliable, id, message, Sync.ServerId);
+                    MyMultiplayerMain.RaiseStaticEvent(s => MyMultiplayer.ModMessageServerReliable, id, message, Sync.ServerId);
                 else
-                    MyMultiplayerMain.RaiseStaticEvent(s => MyMultiplayer.ModMessageClientUnreliable, id, message, Sync.ServerId);
+                    MyMultiplayerMain.RaiseStaticEvent(s => MyMultiplayer.ModMessageServerUnreliable, id, message, Sync.ServerId);
 
                 return true;
             }
@@ -161,6 +167,18 @@ namespace Sandbox.ModAPI
                 {
                     actionList.Remove(messageHandler);
                 }     
+            }
+
+            [Event, Reliable, Server]
+            static void ModMessageServerReliable(ushort id, byte[] message, ulong recipient)
+            {
+                HandleMessageClient(id, message, recipient);
+            }
+
+            [Event, Server]
+            static void ModMessageServerUnreliable(ushort id, byte[] message, ulong recipient)
+            {
+                HandleMessageClient(id, message, recipient);
             }
 
             [Event, Reliable, Server, Client]

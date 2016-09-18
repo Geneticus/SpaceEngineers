@@ -16,7 +16,6 @@ using Sandbox.Game.World;
 using Sandbox.Gui.RichTextLabel;
 using Sandbox.Graphics;
 using Sandbox.Graphics.GUI;
-using Sandbox.Graphics.Render;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using System;
@@ -25,6 +24,7 @@ using System.Linq;
 using System.Text;
 using VRage;
 using VRage.Game;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 

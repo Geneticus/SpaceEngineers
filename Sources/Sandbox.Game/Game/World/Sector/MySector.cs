@@ -13,6 +13,11 @@ using VRage.Game;
 using VRage.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.Game.Utils;
+using VRageRender;
+using System.IO;
+using VRage.FileSystem;
+using VRageRender.Messages;
+using Sandbox.Game.SessionComponents;
 
 namespace Sandbox.Game.World
 {
@@ -26,73 +31,99 @@ namespace Sandbox.Game.World
             SetDefaults();
         }
 
+        public static Vector3 SunRotationAxis;
         public static MySunProperties SunProperties;
         public static MyFogProperties FogProperties;
+        public static MySSAOSettings SSAOSettings;
+        public static MyHBAOData HBAOSettings;
+        public static MyShadowsSettings ShadowSettings = new MyShadowsSettings();
+
         internal static MyParticleDustProperties ParticleDustProperties;
-        internal static MyGodRaysProperties GodRaysProperties;
         public static VRageRender.MyImpostorProperties[] ImpostorProperties;
-        public static string BackgroundTexture;
-        public static Quaternion BackgroundOrientation;
         public static bool UseGenerator = false;
         public static List<int> PrimaryMaterials;
         public static List<int> SecondaryMaterials;
 
-        public static MyCamera MainCamera;
+        public static MyEnvironmentDefinition EnvironmentDefinition;
 
+        public static MyCamera MainCamera;
 
         public static void SetDefaults()
         {
-            SunProperties = new MySunProperties(MySunProperties.Default);
+            SunProperties = MySunProperties.Default;
             FogProperties = MyFogProperties.Default;
             ImpostorProperties = new VRageRender.MyImpostorProperties[1];
             ParticleDustProperties = new MyParticleDustProperties();
-            GodRaysProperties = new MyGodRaysProperties();
-            BackgroundTexture = "BackgroundCube";
         }
 
         public static Vector3 DirectionToSunNormalized
         {
-            get
-            {
-                return SunProperties.SunDirectionNormalized;
-            }
+            get { return SunProperties.SunDirectionNormalized; }
         }
 
-        public static float DistanceToSun;
         public static float DayTime;
         public static bool ResetEyeAdaptation;
 
         public static void InitEnvironmentSettings(MyObjectBuilder_EnvironmentSettings environmentBuilder = null)
         {
-            var environment = MyDefinitionManager.Static.EnvironmentDefinition;
-            var o = environment.BackgroundOrientation;
-            BackgroundTexture        = environment.BackgroundTexture;
-            BackgroundOrientation    = Quaternion.CreateFromYawPitchRoll(o.Yaw, o.Pitch, o.Roll);
-            DistanceToSun            = environment.DistanceToSun;
+            if (environmentBuilder != null)
+            {
+                EnvironmentDefinition = MyDefinitionManager.Static.GetDefinition<MyEnvironmentDefinition>(environmentBuilder.EnvironmentDefinition);
+            }
+            else if (EnvironmentDefinition == null)
+            {
+                // Fallback
+                EnvironmentDefinition = MyDefinitionManager.Static.GetDefinition<MyEnvironmentDefinition>(MyStringHash.GetOrCompute("Default"));
+            }
 
-            SunProperties = new MySunProperties(environment.SunProperties);
+            var environment = EnvironmentDefinition;
+            SunProperties = environment.SunProperties;
             FogProperties = environment.FogProperties;
+            SSAOSettings = environment.SSAOSettings;
+            HBAOSettings = environment.HBAOSettings;
+            ShadowSettings.CopyFrom(environment.ShadowSettings);
+            SunRotationAxis = SunProperties.SunRotationAxis;
+
+            MyRenderProxy.UpdateShadowsSettings(ShadowSettings);
+
+            // TODO: Delete MyPostprocessSettingsWrapper and move to have bundled
+            // settings in MySector and change all references to point here
+            MyPostprocessSettingsWrapper.Settings = environment.PostProcessSettings;
+            MyPostprocessSettingsWrapper.PlanetSettings = environment.PostProcessSettings;
 
             if (environmentBuilder != null)
             {
                 Vector3 sunDirection;
                 Vector3.CreateFromAzimuthAndElevation(environmentBuilder.SunAzimuth, environmentBuilder.SunElevation, out sunDirection);
+                sunDirection.Normalize();
 
                 SunProperties.BaseSunDirectionNormalized = sunDirection;
-                
                 SunProperties.SunDirectionNormalized = sunDirection;
-                SunProperties.SunIntensity = environmentBuilder.SunIntensity;
+                //SunProperties.SunIntensity = environmentBuilder.SunIntensity;
 
                 FogProperties.FogMultiplier = environmentBuilder.FogMultiplier;
                 FogProperties.FogDensity = environmentBuilder.FogDensity;
                 FogProperties.FogColor = new Color(environmentBuilder.FogColor);
-                FogProperties.FogColor.A = 255;
             }
+        }
+
+        public static void SaveEnvironmentDefinition()
+        {
+            EnvironmentDefinition.SunProperties = SunProperties;
+            EnvironmentDefinition.FogProperties = FogProperties;
+            EnvironmentDefinition.SSAOSettings = SSAOSettings;
+            EnvironmentDefinition.HBAOSettings = HBAOSettings;
+            EnvironmentDefinition.PostProcessSettings = MyPostprocessSettingsWrapper.Settings;
+            EnvironmentDefinition.ShadowSettings.CopyFrom(ShadowSettings);
+
+            var save = new MyObjectBuilder_Definitions();
+            save.Environments = new MyObjectBuilder_EnvironmentDefinition[] { (MyObjectBuilder_EnvironmentDefinition)EnvironmentDefinition.GetObjectBuilder() };
+            save.Save(Path.Combine(MyFileSystem.ContentPath, "Data", "Environment.sbc"));
         }
 
         public static MyObjectBuilder_EnvironmentSettings GetEnvironmentSettings()
         {
-            if (SunProperties.Equals(MyDefinitionManager.Static.EnvironmentDefinition.SunProperties) && FogProperties.Equals(MyDefinitionManager.Static.EnvironmentDefinition.FogProperties))
+            if (SunProperties.Equals(EnvironmentDefinition.SunProperties) && FogProperties.Equals(EnvironmentDefinition.FogProperties))
             {
                 return null;
             }
@@ -103,11 +134,13 @@ namespace Sandbox.Game.World
             Vector3.GetAzimuthAndElevation(SunProperties.BaseSunDirectionNormalized, out azimuth, out elevation);
             objectBuilder.SunAzimuth = azimuth;
             objectBuilder.SunElevation = elevation;
-            objectBuilder.SunIntensity = SunProperties.SunIntensity;
+            //objectBuilder.SunIntensity = SunProperties.SunIntensity;
 
             objectBuilder.FogMultiplier = FogProperties.FogMultiplier;
             objectBuilder.FogDensity = FogProperties.FogDensity;
-            objectBuilder.FogColor = FogProperties.FogColor.ToVector3();
+            objectBuilder.FogColor = FogProperties.FogColor;
+
+            objectBuilder.EnvironmentDefinition = EnvironmentDefinition.Id;
 
             return objectBuilder;
         }
@@ -128,9 +161,6 @@ namespace Sandbox.Game.World
 
         public override void UpdateBeforeSimulation()
         {
-            if ( MainCamera != null )
-                MainCamera.Update(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_SECONDS);
-
             MyEntities.UpdateBeforeSimulation();
 
             base.UpdateBeforeSimulation();

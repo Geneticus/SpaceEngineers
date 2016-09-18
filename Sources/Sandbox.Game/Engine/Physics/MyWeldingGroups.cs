@@ -9,10 +9,11 @@ using System.Text;
 using System.Threading;
 using VRage.Game.Entity;
 using VRage.Groups;
+using VRage.Profiler;
 
 namespace Sandbox.Engine.Physics
 {
-    class MyWeldingGroups : MyGroups<MyEntity, MyWeldGroupData>, IMySceneComponent
+    public class MyWeldingGroups : MyGroups<MyEntity, MyWeldGroupData>, IMySceneComponent
     {
         static MyWeldingGroups m_static;
 
@@ -46,7 +47,7 @@ namespace Sandbox.Engine.Physics
         /// <returns>chosen new parent</returns>
         public static MyEntity ReplaceParent(Group group, MyEntity oldParent, MyEntity newParent)
         {
-            VRage.ProfilerShort.Begin("WeldGroup.ReplaceParent");
+            ProfilerShort.Begin("WeldGroup.ReplaceParent");
 
             if (oldParent.Physics != null)
                 oldParent.GetPhysicsBody().UnweldAll(false);
@@ -97,7 +98,7 @@ namespace Sandbox.Engine.Physics
             {
                 newParent.Physics.Activate();
             }
-            VRage.ProfilerShort.End();
+            ProfilerShort.End();
             return newParent;
         }
 

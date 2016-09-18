@@ -23,14 +23,17 @@ namespace Sandbox.Game.Replication
     {
         MyPropertySyncStateGroup m_propertySync;
         MyEntityInventoryStateGroup m_stateGroup;
-        HashSet<ulong> m_clientList;
+        MyExternalReplicable m_parent;
 
         public MyInventory Inventory { get { return Instance; } }
         Action<MyEntity> m_destroyEntity;
 
+        MyEntity m_owner = null;
+
         public MyInventoryReplicable()
         {
             m_destroyEntity = (entity) => RaiseDestroyed();
+
         }
 
         protected override void OnHook()
@@ -48,36 +51,28 @@ namespace Sandbox.Game.Replication
         public override IMyReplicable GetDependency()
         {
             Debug.Assert(!((MyEntity)Inventory.Owner).Closed, "Sending inventory of closed entity");
-            if (Inventory.Owner is MyCharacter)
-            {
-                return MyExternalReplicable.FindByObject(Inventory.Owner);
-            }
-
+         
             if (Inventory.Owner is MyCubeBlock)
             {
                 return MyExternalReplicable.FindByObject((Inventory.Owner as MyCubeBlock).CubeGrid);
             }
 
-            return null;
+            return MyExternalReplicable.FindByObject(Inventory.Owner);
         }
 
-        public override float GetPriority(MyClientInfo client)
+        public override float GetPriority(MyClientInfo client,bool cached)
         {
-            if (m_clientList == null)
-            {
-                m_clientList = new HashSet<ulong>();
-            }
-
-            if (m_clientList.Contains(client.EndpointId.Value))
-            {
-                return 1.0f;
-            }
-
+            Debug.Assert(!IsChild);
             MyEntity owner = Inventory.Owner.GetTopMostParent();
-            var parent = MyExternalReplicable.FindByObject(owner);
-            if (parent != null && client.HasReplicable(parent))
+
+            if (owner != m_owner)
             {
-                m_clientList.Add(client.EndpointId.Value);
+                m_owner = owner;
+                m_parent = MyExternalReplicable.FindByObject(owner);
+            }
+
+            if (m_parent != null && client.HasReplicable(m_parent))
+            {
                 return 1.0f;
             }
 
@@ -168,5 +163,9 @@ namespace Sandbox.Game.Replication
             }
         }
 
+        public override bool IsChild
+        {
+            get { return !(Inventory.Owner is MyCharacter); }
+        }
     }
 }

@@ -10,18 +10,19 @@ using Sandbox.Engine.Utils;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Components;
 using Sandbox.Game.EntityComponents;
-using Sandbox.ModAPI.Ingame;
+using Sandbox.ModAPI;
 using Sandbox.Game.Localization;
 using VRage;
 using VRage.Game;
 using VRage.Utils;
 using VRage.ModAPI;
 using VRage.Game.Gui;
+using VRage.Sync;
 
 namespace Sandbox.Game.Entities.Cube
 {
     [MyCubeBlockType(typeof(MyObjectBuilder_Beacon))]
-    class MyBeacon : MyFunctionalBlock, IMyBeacon
+    public class MyBeacon : MyFunctionalBlock, IMyBeacon
     {
         private static readonly Color COLOR_ON = new Color(255, 255, 128);
         private static readonly Color COLOR_OFF  = new Color(30, 30, 30);
@@ -47,6 +48,11 @@ namespace Sandbox.Game.Entities.Cube
 
         public MyBeacon()
         {
+#if XB1 // XB1_SYNC_NOREFLECTION
+            m_radius = SyncType.CreateAndAddProp<float>();
+#endif // XB1
+            CreateTerminalControls();
+
             m_radius.ValueChanged += (obj) => ChangeRadius();
         }
 
@@ -55,19 +61,17 @@ namespace Sandbox.Game.Entities.Cube
             RadioBroadcaster.BroadcastRadius = m_radius;
         }
 
-        static MyBeacon()
+        static void CreateTerminalControls()
         {
-            MyTerminalControlFactory.RemoveBaseClass<MyBeacon, MyTerminalBlock>();
+            if (MyTerminalControlFactory.AreControlsCreated<MyBeacon>())
+                return;
 
-            var show = new MyTerminalControlOnOffSwitch<MyBeacon>("ShowInTerminal", MySpaceTexts.Terminal_ShowInTerminal, MySpaceTexts.Terminal_ShowInTerminalToolTip);
-            show.Getter = (x) => x.ShowInTerminal;
-            show.Setter = (x, v) => x.ShowInTerminal= v;
-            MyTerminalControlFactory.AddControl(show);
+            //MyTerminalControlFactory.RemoveBaseClass<MyBeacon, MyTerminalBlock>(); // this removed also controls shared with other blocks
 
-            var showConfig = new MyTerminalControlOnOffSwitch<MyBeacon>("ShowInToolbarConfig", MySpaceTexts.Terminal_ShowInToolbarConfig, MySpaceTexts.Terminal_ShowInToolbarConfigToolTip);
-            showConfig.Getter = (x) => x.ShowInToolbarConfig;
-            showConfig.Setter = (x, v) => x.ShowInToolbarConfig = v;
-            MyTerminalControlFactory.AddControl(showConfig);
+            //removed unnecessary controls
+            var controlList = MyTerminalControlFactory.GetList(typeof(MyBeacon)).Controls;
+            controlList.Remove(controlList[4]);//name
+            controlList.Remove(controlList[4]);//show on HUD
 
             var customName = new MyTerminalControlTextbox<MyBeacon>("CustomName", MyCommonTexts.Name, MySpaceTexts.Blank);
             customName.Getter = (x) => x.CustomName;
@@ -388,7 +392,7 @@ namespace Sandbox.Game.Entities.Cube
             MyValueFormatter.AppendWorkInBestUnit(ResourceSink.IsPowered ? ResourceSink.RequiredInput : 0, DetailedInfo);
             RaisePropertiesChanged();
         }
-        float IMyBeacon.Radius
+        float ModAPI.Ingame.IMyBeacon.Radius
         {
             get { return RadioBroadcaster.BroadcastRadius; }
         }

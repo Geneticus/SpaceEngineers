@@ -4,6 +4,7 @@ using SharpDX.XAudio2;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using VRage.Data.Audio;
 using VRage.Utils;
 
 namespace VRage.Audio
@@ -44,10 +45,41 @@ namespace VRage.Audio
         public MySourceVoicePool Owner { get { return m_owner; } }
         public float FrequencyRatio
         {
-            get { return m_frequencyRatio; }
-            set { m_frequencyRatio = value; }
+            get 
+            {
+                return m_frequencyRatio;
+            }
+            set
+            { 
+                m_frequencyRatio = value;
+                MySoundData soundData = MyAudio.Static.GetCue(m_cueId);
+                if (soundData != null && soundData.DisablePitchEffects)
+                    return;
+                if (m_voice != null && m_voice.IsValid()){
+                    try
+                    {
+                        VoiceState state = m_voice.State;//this sometimes fails - not sure why since we already check for null and IsValid
+                        if (state.BuffersQueued > 0)
+                            m_voice.SetFrequencyRatio(FrequencyRatio);
+                    }
+                    catch (NullReferenceException)
+                    {
+                    }
+                }
+            }
         }
-        public float Volume { get { return IsValid ? Voice.Volume : 0; } }
+        private float m_volumeBase = 1f;
+        public float Volume { get { return IsValid ? m_volumeBase : 0; } }
+        private float m_volumeMultiplier = 1f;
+        public float VolumeMultiplier
+        { 
+            get { return IsValid ? m_volumeMultiplier : 1f; }
+            set 
+            {
+                m_volumeMultiplier = value;
+                SetVolume(m_volumeBase);
+            } 
+        }
         public bool Silent = false;
         public bool IsBuffered { get { return m_buffered; } }
 
@@ -118,10 +150,8 @@ namespace VRage.Audio
         {
             if (!skipIntro)
                 SubmitSourceBuffer(m_loopBuffers[(int)MyCueBank.CuePart.Start]);
-            else
-                Debug.Assert(m_isLoopable, "Only loops should skip intro. Make sure cue has <Loop> defined in sbc");
 
-            if (m_isLoopable)
+            if (m_isLoopable || skipToEnd)
             {
                 if(!skipToEnd)
                     SubmitSourceBuffer(m_loopBuffers[(int)MyCueBank.CuePart.Loop]);
@@ -221,8 +251,17 @@ namespace VRage.Audio
 
         public void SetVolume(float volume)
         {
+            m_volumeBase = volume;
             if (IsValid)
-                m_voice.SetVolume(volume);
+            {
+                try
+                {
+                    m_voice.SetVolume(m_volumeBase * m_volumeMultiplier);
+                }
+                catch (NullReferenceException)
+                {
+                }
+            }
         }
 
         public void SetOutputVoices(VoiceSendDescriptor[] descriptors)

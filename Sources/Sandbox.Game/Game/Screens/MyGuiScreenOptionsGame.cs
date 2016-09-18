@@ -4,11 +4,14 @@ using Sandbox.Game.Localization;
 using Sandbox.Game.Screens;
 using Sandbox.Graphics.GUI;
 using System.Text;
+using Sandbox.Definitions;
+using Sandbox.Definitions.GUI;
 using VRage;
 using VRage.Library.Utils;
 using VRage.Utils;
 using VRageMath;
 using Sandbox.Engine.Utils;
+using Sandbox.Game.GUI;
 using VRage.Game;
 
 namespace Sandbox.Game.Gui
@@ -19,8 +22,11 @@ namespace Sandbox.Game.Gui
         {
             public MyLanguagesEnum Language;
             public MyCubeBuilder.BuildingModeEnum BuildingMode;
+            public MyStringId SkinId;
             public bool ControlHints;
             public bool RotationHints;
+            public bool AnimatedRotation;
+            public bool ShowBuildingSizeHint;
             public bool ShowCrosshair;
             public bool DisableHeadbob;
             public bool CompressSaveGames;
@@ -31,9 +37,12 @@ namespace Sandbox.Game.Gui
         }
 
         MyGuiControlCombobox m_languageCombobox;
+        MyGuiControlCombobox m_skinCombobox;
         MyGuiControlCombobox m_buildingModeCombobox;
         MyGuiControlCheckbox m_controlHintsCheckbox;
         MyGuiControlCheckbox m_rotationHintsCheckbox;
+        MyGuiControlCheckbox m_animatedRotationCheckbox;
+        MyGuiControlCheckbox m_showBuildingSizeHintCheckbox;
         MyGuiControlCheckbox m_crosshairCheckbox;
         MyGuiControlCheckbox m_disableHeadbobCheckbox;
         MyGuiControlCheckbox m_compressSavesCheckbox;
@@ -42,6 +51,8 @@ namespace Sandbox.Game.Gui
         MyGuiControlSlider m_UIOpacitySlider;
         MyGuiControlSlider m_UIBkOpacitySlider;
         private MyGuiControlButton m_localizationWebButton;
+        private MyGuiControlLabel m_skinLabel;
+        private MyGuiControlLabel m_skinWarningLabel;
         private MyGuiControlLabel m_localizationWarningLabel;
         private OptionsGameSettings m_settings = new OptionsGameSettings() { UIOpacity = 1.0f, UIBkOpacity = 1.0f };
 
@@ -62,8 +73,8 @@ namespace Sandbox.Game.Gui
 
             var leftAlign = MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_CENTER;
             var rightAlign = MyGuiDrawAlignEnum.HORISONTAL_RIGHT_AND_VERTICAL_CENTER;
-            Vector2 controlsOriginLeft = new Vector2(-m_size.Value.X / 2.0f + 0.025f, -m_size.Value.Y / 2.0f + 0.125f);
-            Vector2 controlsOriginRight = new Vector2(m_size.Value.X / 2.0f - 0.025f, -m_size.Value.Y / 2.0f + 0.125f);
+            Vector2 controlsOriginLeft = new Vector2(-m_size.Value.X / 2.0f + 0.025f, -m_size.Value.Y / 2.0f + 0.1f);
+            Vector2 controlsOriginRight = new Vector2(m_size.Value.X / 2.0f - 0.025f, -m_size.Value.Y / 2.0f + 0.1f);
             Vector2 controlsDelta = new Vector2(0, 0.0525f);
             float rowIndex = 0;
 
@@ -96,7 +107,6 @@ namespace Sandbox.Game.Gui
                text: MyTexts.Get(MyCommonTexts.ScreenOptionsGame_MoreInfo),
                textScale: MyGuiConstants.DEFAULT_TEXT_SCALE * 0.85f * 0.85f,
                onButtonClick: LocalizationWebButtonClicked,
-               implementedFeature: true,
                originAlign: rightAlign);
             m_localizationWebButton.VisualStyle = MyGuiControlButtonStyleEnum.ClickableText;
             var tmp = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ScreenOptionsGame_MoreInfo), textScale: MyGuiConstants.DEFAULT_TEXT_SCALE * 0.85f * 0.85f);
@@ -106,6 +116,33 @@ namespace Sandbox.Game.Gui
                 OriginAlign = rightAlign,
             };
             rowIndex += 0.8f;
+
+            if (MyFakes.ENABLE_NON_PUBLIC_GUI_ELEMENTS && MyGuiSkinManager.Static.SkinCount > 0)
+            {
+                m_skinLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ScreenOptionsGame_Skin))
+                {
+                    Position = controlsOriginLeft + rowIndex * controlsDelta,
+                    OriginAlign = leftAlign,
+                };
+                m_skinCombobox = new MyGuiControlCombobox()
+                {
+                    Position = controlsOriginRight + rowIndex * controlsDelta,
+                    OriginAlign = rightAlign,
+                };
+                foreach (var skin in MyGuiSkinManager.Static.AvailableSkins)
+                {
+                    m_skinCombobox.AddItem(skin.Key, skin.Value.DisplayNameText);
+                }
+                m_skinCombobox.SelectItemByKey(MyGuiSkinManager.Static.CurrentSkinId);
+                rowIndex += 0.65f;
+                m_skinWarningLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ScreenOptionsGame_SkinWarning),
+                    textScale: MyGuiConstants.DEFAULT_TEXT_SCALE * 0.85f * 0.85f)
+                {
+                    Position = controlsOriginRight + rowIndex * controlsDelta,
+                    OriginAlign = rightAlign,
+                };
+                rowIndex += 0.8f;
+            }
 
             var buildingModeLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ScreenOptionsGame_BuildingMode))
             {
@@ -140,19 +177,47 @@ namespace Sandbox.Game.Gui
             MyGuiControlLabel rotationHintsLabel = null;
             if (MyFakes.ENABLE_ROTATION_HINTS)
             {
+                rowIndex++;
+                rotationHintsLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ShowRotationHints))
+                {
+                    Position = controlsOriginLeft + rowIndex * controlsDelta,
+                    OriginAlign = leftAlign
+                };
+                m_rotationHintsCheckbox = new MyGuiControlCheckbox(toolTip: MyTexts.GetString(MyCommonTexts.ToolTipGameOptionsShowRotationHints))
+                {
+                    Position = controlsOriginRight + rowIndex * controlsDelta,
+                    OriginAlign = rightAlign,
+                };
+                m_rotationHintsCheckbox.IsCheckedChanged += checkboxChanged;
+            }
+
+            //  Animated Gizmo Rotation
             rowIndex++;
-            rotationHintsLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ShowRotationHints))
+            var animatedRotationLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.AnimatedRotation))
             {
                 Position = controlsOriginLeft + rowIndex * controlsDelta,
                 OriginAlign = leftAlign
             };
-            m_rotationHintsCheckbox = new MyGuiControlCheckbox(toolTip: MyTexts.GetString(MyCommonTexts.ToolTipGameOptionsShowRotationHints))
+            m_animatedRotationCheckbox = new MyGuiControlCheckbox(toolTip: MyTexts.GetString(MyCommonTexts.AnimatedRotation))
             {
                 Position = controlsOriginRight + rowIndex * controlsDelta,
                 OriginAlign = rightAlign,
             };
-            m_rotationHintsCheckbox.IsCheckedChanged += checkboxChanged;
-            }
+            m_animatedRotationCheckbox.IsCheckedChanged += checkboxChanged;
+
+            //  Building Size Hints
+            rowIndex++;
+            var buildingSizeHintLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.BuildingSizeHint))
+            {
+                Position = controlsOriginLeft + rowIndex * controlsDelta,
+                OriginAlign = leftAlign
+            };
+            m_showBuildingSizeHintCheckbox = new MyGuiControlCheckbox(toolTip: MyTexts.GetString(MyCommonTexts.BuildingSizeHint))
+            {
+                Position = controlsOriginRight + rowIndex * controlsDelta,
+                OriginAlign = rightAlign,
+            };
+            m_showBuildingSizeHintCheckbox.IsCheckedChanged += checkboxChanged;
 
             //  Show crosshair?
             rowIndex++;
@@ -223,12 +288,12 @@ namespace Sandbox.Game.Gui
             m_releasingAltResetsCameraCheckbox.IsCheckedChanged += checkboxChanged;
 
             rowIndex++;
-			var UIOpacityLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ScreenOptionsGame_UIOpacity))
+            var UIOpacityLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ScreenOptionsGame_UIOpacity))
             {
                 Position = controlsOriginLeft + rowIndex * controlsDelta,
                 OriginAlign = leftAlign
             };
-			m_UIOpacitySlider = new MyGuiControlSlider(toolTip: MyTexts.GetString(MyCommonTexts.ToolTipGameOptionsUIOpacity), minValue: 0.1f, maxValue: 1.0f, defaultValue: 1.0f)
+            m_UIOpacitySlider = new MyGuiControlSlider(toolTip: MyTexts.GetString(MyCommonTexts.ToolTipGameOptionsUIOpacity), minValue: 0.1f, maxValue: 1.0f, defaultValue: 1.0f)
             {
                 Position = controlsOriginRight + rowIndex * controlsDelta,
                 OriginAlign = rightAlign,
@@ -236,12 +301,12 @@ namespace Sandbox.Game.Gui
             m_UIOpacitySlider.ValueChanged += sliderChanged;
 
             rowIndex++;
-			var UIBkOpacityLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ScreenOptionsGame_UIBkOpacity))
+            var UIBkOpacityLabel = new MyGuiControlLabel(text: MyTexts.GetString(MyCommonTexts.ScreenOptionsGame_UIBkOpacity))
             {
                 Position = controlsOriginLeft + rowIndex * controlsDelta,
                 OriginAlign = leftAlign
             };
-			m_UIBkOpacitySlider = new MyGuiControlSlider(toolTip: MyTexts.GetString(MyCommonTexts.ToolTipGameOptionsUIBkOpacity), minValue: 0, maxValue: 1.0f, defaultValue: 1.0f)
+            m_UIBkOpacitySlider = new MyGuiControlSlider(toolTip: MyTexts.GetString(MyCommonTexts.ToolTipGameOptionsUIBkOpacity), minValue: 0, maxValue: 1.0f, defaultValue: 1.0f)
             {
                 Position = controlsOriginRight + rowIndex * controlsDelta,
                 OriginAlign = rightAlign,
@@ -254,7 +319,7 @@ namespace Sandbox.Game.Gui
             var buttonOk = new MyGuiControlButton(text: MyTexts.Get(MyCommonTexts.Ok), onButtonClick: OnOkClick);
             var buttonCancel = new MyGuiControlButton(text: MyTexts.Get(MyCommonTexts.Cancel), onButtonClick: OnCancelClick);
             float buttonX = 0.01f;
-            float buttonY = m_size.Value.Y / 2.0f - (buttonOk.Size.Y + 0.03f);
+            float buttonY = m_size.Value.Y / 2.0f - (buttonOk.Size.Y + 0.03f)+0.025f;
             buttonOk.Position = new Vector2(-buttonX, buttonY);
             buttonOk.OriginAlign = rightAlign;
             buttonCancel.Position = new Vector2(buttonX, buttonY);
@@ -264,6 +329,12 @@ namespace Sandbox.Game.Gui
             Controls.Add(m_languageCombobox);
             Controls.Add(m_localizationWebButton);
             Controls.Add(m_localizationWarningLabel);
+            if (MyFakes.ENABLE_NON_PUBLIC_GUI_ELEMENTS && MyGuiSkinManager.Static.SkinCount > 0)
+            {
+                Controls.Add(m_skinLabel);
+                Controls.Add(m_skinCombobox);
+                Controls.Add(m_skinWarningLabel);
+            }
             Controls.Add(buildingModeLabel);
             Controls.Add(m_buildingModeCombobox);
             Controls.Add(controlHintsLabel);
@@ -272,6 +343,10 @@ namespace Sandbox.Game.Gui
             Controls.Add(m_controlHintsCheckbox);
             if (m_rotationHintsCheckbox != null)
                 Controls.Add(m_rotationHintsCheckbox);
+            Controls.Add(animatedRotationLabel);
+            Controls.Add(m_animatedRotationCheckbox);
+            Controls.Add(buildingSizeHintLabel);
+            Controls.Add(m_showBuildingSizeHintCheckbox);
             Controls.Add(crosshairLabel);
             Controls.Add(m_crosshairCheckbox);
             Controls.Add(headbobLabel);
@@ -312,6 +387,10 @@ namespace Sandbox.Game.Gui
                 m_settings.ShowPlayerNamesOnHud = obj.IsChecked;
             else if (obj == m_releasingAltResetsCameraCheckbox)
                 m_settings.ReleasingAltResetsCamera = obj.IsChecked;
+            else if (obj == m_animatedRotationCheckbox)
+                m_settings.AnimatedRotation = obj.IsChecked;
+            else if (obj == m_showBuildingSizeHintCheckbox)
+                m_settings.ShowBuildingSizeHint = obj.IsChecked;
         }
 
         private void sliderChanged(MyGuiControlSlider obj)
@@ -381,6 +460,8 @@ namespace Sandbox.Game.Gui
                 m_controlHintsCheckbox.IsChecked = MySandboxGame.Config.ControlsHints;
                 if (m_rotationHintsCheckbox != null)
                     m_rotationHintsCheckbox.IsChecked = MySandboxGame.Config.RotationHints;
+                m_animatedRotationCheckbox.IsChecked = MySandboxGame.Config.AnimatedRotation;
+                m_showBuildingSizeHintCheckbox.IsChecked = MySandboxGame.Config.ShowBuildingSizeHint;
                 m_crosshairCheckbox.IsChecked = MySandboxGame.Config.ShowCrosshair;
                 m_disableHeadbobCheckbox.IsChecked = MySandboxGame.Config.DisableHeadbob;
                 m_compressSavesCheckbox.IsChecked = MySandboxGame.Config.CompressSaveGames;
@@ -396,6 +477,8 @@ namespace Sandbox.Game.Gui
                 m_controlHintsCheckbox.IsChecked = m_settings.ControlHints;
                 if (m_rotationHintsCheckbox != null)
                     m_rotationHintsCheckbox.IsChecked = m_settings.RotationHints;
+                m_animatedRotationCheckbox.IsChecked = m_settings.AnimatedRotation;
+                m_showBuildingSizeHintCheckbox.IsChecked = m_settings.ShowBuildingSizeHint;
                 m_crosshairCheckbox.IsChecked = m_settings.ShowCrosshair;
                 m_disableHeadbobCheckbox.IsChecked = m_settings.DisableHeadbob;
                 m_compressSavesCheckbox.IsChecked = m_settings.CompressSaveGames;
@@ -409,16 +492,20 @@ namespace Sandbox.Game.Gui
         void DoChanges()
         {
             MyLanguage.CurrentLanguage = (MyLanguagesEnum)m_languageCombobox.GetSelectedKey();
+            if (m_skinCombobox != null)
+                MyGuiSkinManager.Static.SelectSkin((int)m_skinCombobox.GetSelectedKey());
             MyScreenManager.RecreateControls();
             MyCubeBuilder.BuildingMode = (MyCubeBuilder.BuildingModeEnum)m_buildingModeCombobox.GetSelectedKey();
             MySandboxGame.Config.ControlsHints = m_controlHintsCheckbox.IsChecked;
             if (m_rotationHintsCheckbox != null)
                 MySandboxGame.Config.RotationHints = m_rotationHintsCheckbox.IsChecked;
+            MySandboxGame.Config.AnimatedRotation = m_animatedRotationCheckbox.IsChecked;
+            MySandboxGame.Config.ShowBuildingSizeHint = m_showBuildingSizeHintCheckbox.IsChecked;
             MySandboxGame.Config.ShowCrosshair = m_crosshairCheckbox.IsChecked;
             MySandboxGame.Config.DisableHeadbob = m_disableHeadbobCheckbox.IsChecked;
             MySandboxGame.Config.CompressSaveGames = m_compressSavesCheckbox.IsChecked;
             MySandboxGame.Config.ShowPlayerNamesOnHud = m_showPlayerNamesCheckbox.IsChecked;
-            MySandboxGame.Config.ReleasingAltResetsCamera = m_releasingAltResetsCameraCheckbox.IsChecked;            
+            MySandboxGame.Config.ReleasingAltResetsCamera = m_releasingAltResetsCameraCheckbox.IsChecked;
             MySandboxGame.Config.UIOpacity = m_UIOpacitySlider.Value;
             MySandboxGame.Config.UIBkOpacity = m_UIBkOpacitySlider.Value;
             MySandboxGame.Config.Save();

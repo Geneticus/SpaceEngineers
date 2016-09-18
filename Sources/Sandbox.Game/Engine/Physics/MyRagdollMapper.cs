@@ -11,7 +11,7 @@ using Sandbox.Common;
 using Sandbox.Game.Entities;
 using Sandbox.Definitions;
 using VRage.Utils;
-using VRage.Animations;
+using VRageRender.Animations;
 
 namespace Sandbox.Engine.Physics
 {
@@ -1082,7 +1082,7 @@ namespace Sandbox.Engine.Physics
             } 
             if (changed && MyFakes.ENABLE_RAGDOLL_CLIENT_SYNC)
             {
-                m_character.SyncObject.SendRagdollTransforms(worldTransform, m_ragdollRigidBodiesAbsoluteTransforms);
+                m_character.SendRagdollTransforms(worldTransform, m_ragdollRigidBodiesAbsoluteTransforms);
                 m_lastSyncedWorldMatrix = worldTransform;
             }
         }

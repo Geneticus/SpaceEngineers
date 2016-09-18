@@ -5,6 +5,7 @@ using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Lights;
 using Sandbox.Game.World;
+using Sandbox.Game.Weapons;
 using Sandbox.Graphics;
 using System;
 using System.Collections.Generic;
@@ -18,8 +19,9 @@ using Sandbox.Game.Entities.Character;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.Utils;
 using VRage.ModAPI;
-using VRage.Animations;
+using VRageRender.Animations;
 using VRage.Game;
+using VRageRender;
 
 namespace Sandbox.Game.Components
 {
@@ -194,22 +196,18 @@ namespace Sandbox.Game.Components
             var dot = Vector3.Dot(Vector3.Normalize(MySector.MainCamera.Position - glarePosition), forwardVector);
             float angle = 1 - Math.Abs(dot);
             float alphaGlareAlphaBlended = (float)Math.Pow(1 - angle, 2);
-            float alphaGlareAdditive = (float)Math.Pow(1 - angle, 2);
             float alphaCone = (1 - (float)Math.Pow(1 - angle, 30)) * 0.5f;
 
             float reflectorRadiusForAlphaBlended = MathHelper.Lerp(0.1f, 0.5f, alphaGlareAlphaBlended); //3.5f;
 
             //  Multiply alpha by reflector level (and not the color), because if we multiply the color and let alpha unchanged, reflector cune will be drawn as very dark cone, but still visible
             var reflectorLevel = character.CurrentLightPower;
-            m_light.ReflectorIntensity = reflectorLevel;
-
             alphaCone *= reflectorLevel * 0.2f;
             alphaGlareAlphaBlended *= reflectorLevel * 0.1f;
-            alphaGlareAdditive *= reflectorLevel * 0.8f;
 
             float distance = Vector3.Distance(character.PositionComp.GetPosition(), MySector.MainCamera.Position);
 
-            if (!character.IsInFirstPersonView && distance < MyCharacter.LIGHT_GLARE_MAX_DISTANCE && reflectorLevel > 0)
+            if ((character != MySession.Static.LocalCharacter || !character.IsInFirstPersonView)&& distance < MyCharacter.LIGHT_GLARE_MAX_DISTANCE && reflectorLevel > 0)
             {
                 float alpha = MathHelper.Clamp((MyCharacter.LIGHT_GLARE_MAX_DISTANCE - 10.0f) / distance, 0, 1);
 
@@ -278,7 +276,11 @@ namespace Sandbox.Game.Components
                 }
             }
 
-            if (MySession.Static.ControlledEntity == character)
+            //Maybe this check is not needed at all? In every case we want the DrawBlood effect when damaged
+            if ( MySession.Static.ControlledEntity == character ||
+                 MySession.Static.ControlledEntity is MyCockpit && ((MyCockpit)MySession.Static.ControlledEntity).Pilot == character ||
+                 MySession.Static.ControlledEntity is MyLargeTurretBase && ((MyLargeTurretBase)MySession.Static.ControlledEntity).Pilot == character
+                )
             {
                 if (character.IsDead && character.CurrentRespawnCounter > 0)
                 {
@@ -319,7 +321,7 @@ namespace Sandbox.Game.Components
             Rectangle? source = null;
 
             VRageRender.MyRenderProxy.DrawSprite("Textures\\Gui\\Blood.dds", ref dest, false, ref source, new Color(new Vector4(1, 1, 1, alpha)), 0,
-                new Vector2(1, 0), ref Vector2.Zero, VRageRender.Graphics.SpriteEffects.None, 0);
+                new Vector2(1, 0), ref Vector2.Zero, SpriteEffects.None, 0);
         }
 
         #region character lights
@@ -346,7 +348,7 @@ namespace Sandbox.Game.Components
             {
 	            Vector3D position = Vector3D.Zero;
 
-                if ((jetpack.TurnedOn && jetpack.IsPowered) && !character.IsInFirstPersonView)
+                if ((jetpack.TurnedOn && jetpack.IsPowered) && (!character.IsInFirstPersonView ||character != MySession.Static.LocalCharacter))
                 {
                     var thrustMatrix = (MatrixD)thrust.ThrustMatrix * Container.Entity.PositionComp.WorldMatrix;
                     Vector3D forward = Vector3D.TransformNormal(thrust.Forward, thrustMatrix);
@@ -469,13 +471,25 @@ namespace Sandbox.Game.Components
 
             m_lightGlareSize = definition.LightGlareSize;
 
-            m_light.Start(MyLight.LightTypeEnum.PointLight | MyLight.LightTypeEnum.Spotlight, 1.5f);
-            m_light.ShadowDistance = 20;
-            m_light.ReflectorFalloff = 5;
-            m_light.LightOwner = MyLight.LightOwnerEnum.SmallShip;
+            m_light.Start(MyLight.LightTypeEnum.PointLight | MyLight.LightTypeEnum.Spotlight, 0.5f);
+
+            /// todo: defaults should be supplied from Environemnt.sbc
+            m_light.GlossFactor = 0;
+            m_light.DiffuseFactor = 3.14f;
             m_light.UseInForwardRender = true;
-            m_light.ReflectorTexture = definition.ReflectorTexture;
-            m_light.Range = 1;
+            m_light.LightOwner = MyLight.LightOwnerEnum.SmallShip;
+            m_light.ShadowDistance = 20;
+            m_light.ReflectorFalloff = 10;
+
+            m_light.ReflectorTexture = "Textures\\Lights\\dual_reflector_2.dds";
+            m_light.ReflectorColor = MyCharacter.REFLECTOR_COLOR;
+            m_light.ReflectorConeMaxAngleCos = MyCharacter.REFLECTOR_CONE_ANGLE;
+            m_light.ReflectorRange = MyCharacter.REFLECTOR_RANGE;
+            m_light.ReflectorGlossFactor = MyCharacter.REFLECTOR_GLOSS_FACTOR;
+            m_light.ReflectorDiffuseFactor = MyCharacter.REFLECTOR_DIFFUSE_FACTOR;
+            m_light.Color = MyCharacter.POINT_COLOR;
+            m_light.SpecularColor = new Vector3(MyCharacter.POINT_COLOR_SPECULAR);
+            m_light.Range = MyCharacter.POINT_LIGHT_RANGE;
 
             MyCharacterBone leftGlareBone = null;
             if (definition.LeftLightBone != String.Empty) leftGlareBone = m_skinnedEntity.AnimationController.FindBone(definition.LeftLightBone, out m_leftLightIndex);
@@ -512,13 +526,7 @@ namespace Sandbox.Game.Components
         {
             if (m_light != null)
             {
-                m_light.ReflectorRange = MyCharacter.REFLECTOR_RANGE;
-                m_light.ReflectorColor = MyCharacter.REFLECTOR_COLOR;
                 m_light.ReflectorIntensity = MyCharacter.REFLECTOR_INTENSITY * currentLightPower;
-
-                m_light.Color = MyCharacter.POINT_COLOR;
-                m_light.SpecularColor = new Vector3(MyCharacter.POINT_COLOR_SPECULAR);
-                m_light.Range = MyCharacter.POINT_LIGHT_RANGE;
                 m_light.Intensity = MyCharacter.POINT_LIGHT_INTENSITY * currentLightPower;
 
                 //MyTrace.Send(TraceWindow.Default, m_currentLightPower.ToString());
@@ -558,9 +566,6 @@ namespace Sandbox.Game.Components
 
                 m_light.ReflectorDirection = Vector3.Transform(headMatrix.Forward, m_reflectorAngleMatrix);
                 m_light.ReflectorUp = headMatrix.Up;
-                m_light.ReflectorTexture = "Textures\\Lights\\dual_reflector_2.dds";
-                m_light.ReflectorColor = MyCharacter.REFLECTOR_COLOR;
-                m_light.UpdateReflectorRangeAndAngle(MyCharacter.REFLECTOR_CONE_ANGLE, MyCharacter.REFLECTOR_RANGE);
                 m_light.Position = Vector3D.Transform(m_lightLocalPosition, headMatrixAnim);
                 m_light.UpdateLight();
 
@@ -599,6 +604,9 @@ namespace Sandbox.Game.Components
 
         public void UpdateLight(float lightPower, bool updateRenderObject)
         {
+            if (m_light == null)
+                return;
+
             if (lightPower <= 0.0f)
             {
                 m_light.ReflectorOn = false;
@@ -615,16 +623,13 @@ namespace Sandbox.Game.Components
                 UpdateLightPosition();
 
                 VRageRender.MyRenderProxy.UpdateModelProperties(
-                RenderObjectIDs[0],
-                0,
-                Model.AssetName,
-                -1,
-                "Light",
-                null,
-                null,
-                null,
-                null,
-                lightPower);
+                    RenderObjectIDs[0],
+                    0,
+                    -1,
+                    "Light",
+                    null,
+                    null,
+                    null);
 
                 UpdateLightProperties(lightPower);
             }

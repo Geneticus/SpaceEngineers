@@ -16,6 +16,9 @@ using VRage.Input;
 using VRage.Library.Utils;
 using VRage.Utils;
 using VRage.Utils;
+using Sandbox.Game.Weapons;
+using VRage.Profiler;
+using VRageRender.Utils;
 
 namespace Sandbox.Game.Screens.Helpers
 {
@@ -98,36 +101,13 @@ namespace Sandbox.Game.Screens.Helpers
         {
             if (!AutoUpdate)
                 return;
-            var shipController = MySession.Static.ControlledEntity as MyShipController;
 
-            if (shipController == null)
+            if (MySession.Static.ControlledEntity != null && MySession.Static.ControlledEntity.Toolbar != null && m_instance.m_currentToolbar != MySession.Static.ControlledEntity.Toolbar)
             {
-                if(m_instance.m_currentToolbar != m_instance.m_universalCharacterToolbar)
-                {
-                    m_instance.m_currentToolbar = m_instance.m_universalCharacterToolbar;
-                    if (CurrentToolbarChanged != null)
-                        CurrentToolbarChanged();
-                }
+                m_instance.m_currentToolbar = MySession.Static.ControlledEntity.Toolbar;
+                if (CurrentToolbarChanged != null)
+                    CurrentToolbarChanged();
             }
-            else
-                if (shipController.BuildingMode)
-                {
-                    if (m_instance.m_currentToolbar != shipController.BuildToolbar)
-                    {
-                        m_instance.m_currentToolbar = shipController.BuildToolbar;
-                        if (CurrentToolbarChanged != null)
-                            CurrentToolbarChanged();
-                    }
-                }
-                else
-                {
-                    if (m_instance.m_currentToolbar != shipController.Toolbar)
-                    {
-                        m_instance.m_currentToolbar = shipController.Toolbar;
-                        if (CurrentToolbarChanged != null)
-                            CurrentToolbarChanged();
-                    }
-                }
         }
 
         public static bool GlobalBuilding

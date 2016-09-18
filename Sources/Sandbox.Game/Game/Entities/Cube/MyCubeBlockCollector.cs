@@ -16,6 +16,7 @@ using VRage;
 using Sandbox.Common;
 using VRage;
 using VRage.Game;
+using VRage.Profiler;
 
 namespace Sandbox.Game.Entities.Cube
 {
@@ -330,6 +331,8 @@ namespace Sandbox.Game.Entities.Cube
                         Quaternion blockOrientation;
                         block.Orientation.GetQuaternion(out blockOrientation);
 
+                        Vector3 scale = Vector3.One * block.FatBlock.ModelCollision.ScaleFactor;
+
                         if (shapes.Length == 1 && shapes[0].ShapeType == HkShapeType.List)
                         {
                             HkListShape list = (HkListShape)shapes[0];
@@ -337,7 +340,7 @@ namespace Sandbox.Game.Entities.Cube
                             {
                                 HkShape child = list.GetChildByIndex(i);
                                 System.Diagnostics.Debug.Assert(child.IsConvex, "Children in the list must be convex!");
-                                Shapes.Add(new HkConvexTransformShape((HkConvexShape)child, ref blockPos, ref blockOrientation, ref Vector3.One, HkReferencePolicy.None));
+                                Shapes.Add(new HkConvexTransformShape((HkConvexShape)child, ref blockPos, ref blockOrientation, ref scale, HkReferencePolicy.None));
                             }
                         }
                         else
@@ -348,14 +351,14 @@ namespace Sandbox.Game.Entities.Cube
                                 {
                                     HkShape child = list.ShapeCollection.GetShape((uint)i, null);
                                     System.Diagnostics.Debug.Assert(child.IsConvex, "Children in the list must be convex!");
-                                    Shapes.Add(new HkConvexTransformShape((HkConvexShape)child, ref blockPos, ref blockOrientation, ref Vector3.One, HkReferencePolicy.None));
+                                    Shapes.Add(new HkConvexTransformShape((HkConvexShape)child, ref blockPos, ref blockOrientation, ref scale, HkReferencePolicy.None));
                                 }
                             }
                             else
 
                             for (int i = 0; i < shapes.Length; i++)
                             {
-                                Shapes.Add(new HkConvexTransformShape((HkConvexShape)shapes[i], ref blockPos, ref blockOrientation, ref Vector3.One, HkReferencePolicy.None));
+                                Shapes.Add(new HkConvexTransformShape((HkConvexShape)shapes[i], ref blockPos, ref blockOrientation, ref scale, HkReferencePolicy.None));
                             }
                         ShapeInfos.Add(new ShapeInfo() { Count = shapes.Length, Min = block.Min, Max = block.Max });
                     }
@@ -763,6 +766,8 @@ namespace Sandbox.Game.Entities.Cube
                     m_tmpHelperVerts.Add(GetPointPos(new Vector3I(1, 1, 1), block, applySkeleton));
                     m_tmpHelperVerts.Add(GetPointPos(new Vector3I(1, 1, -1), block, applySkeleton));
                     m_tmpHelperVerts.Add(GetPointPos(new Vector3I(1, -1, 1), block, applySkeleton));
+                    m_tmpHelperVerts.Add(GetPointPos(new Vector3I(1, 0, -1), block, applySkeleton));
+                    m_tmpHelperVerts.Add(GetPointPos(new Vector3I(0, -1, -1), block, applySkeleton));
                     m_tmpHelperVerts.Add(GetPointPos(new Vector3I(-1, 1, 1), block, applySkeleton));
                     m_tmpHelperVerts.Add(GetPointPos(new Vector3I(-1, 1, -1), block, applySkeleton));
                     m_tmpHelperVerts.Add(GetPointPos(new Vector3I(-1, -1, 1), block, applySkeleton));

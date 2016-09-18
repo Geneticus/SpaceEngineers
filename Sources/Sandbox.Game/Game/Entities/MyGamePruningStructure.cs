@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using VRageMath;
 using Sandbox.Engine.Utils;
 using VRage;
+using VRage.Profiler;
 
 namespace Sandbox.Game.Entities
 {
@@ -153,7 +154,7 @@ namespace Sandbox.Game.Entities
         {
             if (entity.Parent != null)
                 return;
-            VRage.ProfilerShort.Begin(string.Format("Move:{0}", (entity.GetTopMostParent() == entity ? "Topmost" : "Child")));
+            ProfilerShort.Begin(string.Format("Move:{0}", (entity.GetTopMostParent() == entity ? "Topmost" : "Child")));
             if (entity.TopMostPruningProxyId != MyVRageConstants.PRUNING_PROXY_ID_UNITIALIZED)
             {
                 BoundingBoxD bbox = GetEntityAABB(entity);
@@ -161,7 +162,7 @@ namespace Sandbox.Game.Entities
                 if (bbox.Size == Vector3D.Zero)  // remove entities with zero bounding boxes
                 {
                     Remove(entity);
-                    VRage.ProfilerShort.End();
+                    ProfilerShort.End();
                     return;
                 }
 
@@ -199,7 +200,7 @@ namespace Sandbox.Game.Entities
                     }
                 }
             }
-            VRage.ProfilerShort.End();
+            ProfilerShort.End();
         }
 
         private static void Update()
@@ -345,6 +346,19 @@ namespace Sandbox.Game.Entities
             VRageRender.MyRenderProxy.GetRenderProfiler().StartProfilingBlock("MyGamePruningStructure::GetAllVoxelMapsInBox");
             m_voxelMapsTree.OverlapAllBoundingBox<MyVoxelBase>(ref box, result, 0, false);
             VRageRender.MyRenderProxy.GetRenderProfiler().EndProfilingBlock();
+        }
+
+        /**
+         * Get the closest planet overlapping a position.
+         * 
+         * This will not return anything if the position is not within the bounding box of the planet.
+         */
+
+        public static MyPlanet GetClosestPlanet(Vector3D position)
+        {
+            var bb = new BoundingBoxD(position, position);
+
+            return GetClosestPlanet(ref bb);
         }
 
         public static MyPlanet GetClosestPlanet(ref BoundingBoxD box)

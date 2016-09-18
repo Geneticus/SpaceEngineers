@@ -22,13 +22,16 @@ using VRage.ObjectBuilders;
 using Sandbox.Engine.Networking;
 using VRage.Game;
 using VRage.Game.Entity;
+using Sandbox.Game.Audio;
+using Sandbox.ModAPI;
+using Sandbox.ModAPI.Weapons;
 
 #endregion
 
 namespace Sandbox.Game.Weapons
 {
     [MyEntityType(typeof(MyObjectBuilder_Welder))]
-    public class MyWelder : MyEngineerToolBase
+    public class MyWelder : MyEngineerToolBase, IMyWelder
     {
         private MySoundPair weldSoundIdle = new MySoundPair("ToolPlayWeldIdle");
         private MySoundPair weldSoundWeld = new MySoundPair("ToolPlayWeldMetal");
@@ -50,11 +53,11 @@ namespace Sandbox.Game.Weapons
 
         public struct ProjectionRaycastData
         {
-            public MyProjectorBase.BuildCheckResult raycastResult;
+            public BuildCheckResult raycastResult;
             public MySlimBlock hitCube;
             public MyProjectorBase cubeProjector;
 
-            public ProjectionRaycastData(MyProjectorBase.BuildCheckResult result, MySlimBlock cubeBlock, MyProjectorBase projector)
+            public ProjectionRaycastData(BuildCheckResult result, MySlimBlock cubeBlock, MyProjectorBase projector)
             {
                 raycastResult = result;
                 hitCube = cubeBlock;
@@ -66,7 +69,7 @@ namespace Sandbox.Game.Weapons
             : base(250)
         {
             HasCubeHighlight = true;
-            HighlightColor = Color.Green * 0.45f;
+            HighlightColor = Color.Green * 0.75f;
 			HighlightMaterial = "GizmoDrawLine";
 
             SecondaryLightIntensityLower = 0.4f;
@@ -158,7 +161,7 @@ namespace Sandbox.Game.Weapons
 
             MyHud.BlockInfo.MissingComponentIndex = 0;
             MyHud.BlockInfo.BlockName = block.BlockDefinition.DisplayNameText;
-            MyHud.BlockInfo.BlockIcon = block.BlockDefinition.Icon;
+            MyHud.BlockInfo.BlockIcons = block.BlockDefinition.Icons;
             MyHud.BlockInfo.BlockIntegrity = 0.01f;
             MyHud.BlockInfo.CriticalIntegrity = block.BlockDefinition.CriticalIntegrityRatio;
             MyHud.BlockInfo.CriticalComponentIndex = block.BlockDefinition.CriticalGroup;
@@ -173,7 +176,7 @@ namespace Sandbox.Game.Weapons
                 var component = new MyHudBlockInfo.ComponentInfo();
                 component.DefinitionId = info.Component.Id;
                 component.ComponentName = info.Component.DisplayNameText;
-                component.Icon = info.Component.Icon;
+                component.Icons = info.Component.Icons;
                 component.TotalCount = info.TotalCount;
                 component.MountedCount = 0;
                 component.StockpileCount = 0;
@@ -209,7 +212,7 @@ namespace Sandbox.Game.Weapons
             if (block == null)
             {
                 var info = FindProjectedBlock();
-                if (info.raycastResult == MyProjectorBase.BuildCheckResult.OK)
+                if (info.raycastResult == BuildCheckResult.OK)
                 {
                     return true;
                 }
@@ -237,7 +240,7 @@ namespace Sandbox.Game.Weapons
 
             {
                 var info = FindProjectedBlock();
-                if (info.raycastResult == MyProjectorBase.BuildCheckResult.OK)
+                if (info.raycastResult == BuildCheckResult.OK)
                 {
                     return true;
                 }
@@ -278,11 +281,11 @@ namespace Sandbox.Game.Weapons
             return null;
         }
 
-        public override void Shoot(MyShootActionEnum action, Vector3 direction, string gunAction)
+        public override void Shoot(MyShootActionEnum action, Vector3 direction, Vector3D? overrideWeaponPos, string gunAction)
         {
             MyAnalyticsHelper.ReportActivityStartIf(!m_activated, this.Owner, "Welding", "Character", "HandTools","Welder",true);
 
-            base.Shoot(action, direction, gunAction);
+            base.Shoot(action, direction, overrideWeaponPos, gunAction);
 
             if (action == MyShootActionEnum.PrimaryAction/* && IsPreheated*/  )
             {
@@ -297,9 +300,9 @@ namespace Sandbox.Game.Weapons
                 else if (Owner == MySession.Static.LocalCharacter)
                 {
                     var info = FindProjectedBlock();
-                    if (info.raycastResult == MyProjectorBase.BuildCheckResult.OK)
+                    if (info.raycastResult == BuildCheckResult.OK)
                     {
-                        if (MySession.Static.CreativeMode || MyBlockBuilderBase.SpectatorIsBuilding || Owner.CanStartConstruction(info.hitCube.BlockDefinition)||MySession.Static.IsAdminModeEnabled)
+                        if (MySession.Static.CreativeMode || MyBlockBuilderBase.SpectatorIsBuilding || Owner.CanStartConstruction(info.hitCube.BlockDefinition) || MySession.Static.IsAdminModeEnabled(Sync.MyId))
                         {
                             info.cubeProjector.Build(info.hitCube, Owner.ControllerInfo.Controller.Player.Identity.IdentityId, Owner.EntityId);
                         }
@@ -415,7 +418,11 @@ namespace Sandbox.Game.Weapons
                 {
                     float maxAllowedBoneMovement = WELDER_MAX_REPAIR_BONE_MOVEMENT_SPEED * ToolCooldownMs * 0.001f;
                     if (Owner != null && Owner.ControllerInfo != null)
+                    {
                         block.IncreaseMountLevel(WeldAmount, Owner.ControllerInfo.ControllingIdentityId, CharacterInventory, maxAllowedBoneMovement);
+                        if (MySession.Static != null && Owner == MySession.Static.LocalCharacter && MyMusicController.Static != null)
+                            MyMusicController.Static.Building(250);
+                    }
                 }
             }
             
@@ -449,9 +456,9 @@ namespace Sandbox.Game.Weapons
             }
 
             var info = FindProjectedBlock();
-            if (info.raycastResult != MyProjectorBase.BuildCheckResult.NotFound)
+            if (info.raycastResult != BuildCheckResult.NotFound)
             {
-                if (info.raycastResult == MyProjectorBase.BuildCheckResult.OK)
+                if (info.raycastResult == BuildCheckResult.OK)
                 {
                     MyCubeBuilder.DrawSemiTransparentBox(info.hitCube.CubeGrid, info.hitCube, Color.Green.ToVector4(), true);
                     m_targetProjectionCube = info.hitCube.Position;
@@ -459,11 +466,11 @@ namespace Sandbox.Game.Weapons
 
                     return;
                 }
-                else if (info.raycastResult == MyProjectorBase.BuildCheckResult.IntersectedWithGrid || info.raycastResult == MyProjectorBase.BuildCheckResult.IntersectedWithSomethingElse)
+                else if (info.raycastResult == BuildCheckResult.IntersectedWithGrid || info.raycastResult == BuildCheckResult.IntersectedWithSomethingElse)
                 {
                     MyCubeBuilder.DrawSemiTransparentBox(info.hitCube.CubeGrid, info.hitCube, Color.Red.ToVector4(), true);
                 }
-                else if (info.raycastResult == MyProjectorBase.BuildCheckResult.NotConnected)
+                else if (info.raycastResult == BuildCheckResult.NotConnected)
                 {
                     MyCubeBuilder.DrawSemiTransparentBox(info.hitCube.CubeGrid, info.hitCube, Color.Yellow.ToVector4(), true);
                 }
@@ -501,7 +508,7 @@ namespace Sandbox.Game.Weapons
                         {
                             var projectionBlock = blocks[i];
                             var canBuild = projector.CanBuild(projectionBlock.CubeBlock, true);
-                            if (canBuild == MyProjectorBase.BuildCheckResult.OK)
+                            if (canBuild == BuildCheckResult.OK)
                             {
                                 farthestVisibleBlock = new ProjectionRaycastData
                                 {
@@ -510,7 +517,7 @@ namespace Sandbox.Game.Weapons
                                     cubeProjector = projector,
                                 };
                             }
-                            else if (canBuild == MyProjectorBase.BuildCheckResult.AlreadyBuilt)
+                            else if (canBuild == BuildCheckResult.AlreadyBuilt)
                             {
                                 farthestVisibleBlock = null;
                             }
@@ -525,7 +532,7 @@ namespace Sandbox.Game.Weapons
             }
             return new ProjectionRaycastData
             {
-                raycastResult = MyProjectorBase.BuildCheckResult.NotFound,
+                raycastResult = BuildCheckResult.NotFound,
             };
         }
 

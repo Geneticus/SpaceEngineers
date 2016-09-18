@@ -17,13 +17,15 @@ using System.Diagnostics;
 using System.Threading;
 
 using Sandbox.Game.Entities;
-using Sandbox.Common.Components;
+
 using VRage;
 using VRage.Import;
 using VRage.Game.Components;
 using VRage.ModAPI;
 using VRage.Game.Models;
 using VRage.Game;
+using VRage.Profiler;
+using VRageRender.Import;
 
 namespace Sandbox.Game.Components
 {
@@ -49,7 +51,8 @@ namespace Sandbox.Game.Components
                  m_colorMaskHsv,
                  Transparency,
                  maxViewDistance: float.MaxValue,
-                 depthBias: DepthBias
+                 depthBias: DepthBias,
+                 rescale: m_model.ScaleFactor
                 ));
         }
 
@@ -98,6 +101,9 @@ namespace Sandbox.Game.Components
         /// </summary>
         public override void Draw()
         {
+            if (!MyRenderProxy.DebugOverrides.BillboardsStatic)
+                return;
+
             ProfilerShort.Begin("MyRenderComponent::Draw");
 
             var objToCameraSq = Vector3.DistanceSquared(MySector.MainCamera.Position, Container.Entity.PositionComp.GetPosition());

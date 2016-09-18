@@ -8,10 +8,11 @@ using System.Text;
 using VRage;
 using VRage.Game.Entity;
 using VRage.Groups;
+using VRage.Profiler;
 
 namespace Sandbox.Engine.Physics
 {
-    class MyWeldGroupData : IGroupData<MyEntity>
+    public class MyWeldGroupData : IGroupData<MyEntity>
     {
         MyGroups<MyEntity, MyWeldGroupData>.Group m_group;
         MyEntity m_weldParent;

@@ -76,30 +76,36 @@ namespace Sandbox.Engine.Multiplayer
             get { return MyFakes.MULTIPLAYER_REPLICATION_TEST ? 100 : MySession.Static.Settings.ViewDistance; }
         }
 
-        private static MyReplicationLayerBase ReplicationLayer
+        public static void InitOfflineReplicationLayer()
+        {
+            if (m_replicationOffline == null)
+            {
+                m_replicationOffline = new MyReplicationSingle(new EndpointId(Sync.MyId));
+                m_replicationOffline.RegisterFromGameAssemblies();
+            }
+        }
+
+        public static MyReplicationLayerBase ReplicationLayer
         {
             get
             {
                 if (Static == null)
                 {
-                    if (m_replicationOffline == null)
-                    {
-                        m_replicationOffline = new MyReplicationSingle(new EndpointId(Sync.MyId));
-                        m_replicationOffline.RegisterFromGameAssemblies();
-                    }
+                    InitOfflineReplicationLayer();
                     return m_replicationOffline;
                 }
                 return Static.ReplicationLayer;
             }
         }
-
+        
         public static MyMultiplayerHostResult HostLobby(LobbyTypeEnum lobbyType, int maxPlayers, MySyncLayer syncLayer)
         {
             System.Diagnostics.Debug.Assert(syncLayer != null);
             MyTrace.Send(TraceWindow.Multiplayer, "Host game");
 
             MyMultiplayerHostResult ret = new MyMultiplayerHostResult();
-            SteamSDK.Lobby.Create(lobbyType, maxPlayers, (lobby, result) =>
+#if !XB1
+			SteamSDK.Lobby.Create(lobbyType, maxPlayers, (lobby, result) =>
             {
                 if (!ret.Cancelled)
                 {
@@ -114,13 +120,15 @@ namespace Sandbox.Engine.Multiplayer
                     ret.RaiseDone(result, result == Result.OK ? MyMultiplayer.Static = new MyMultiplayerLobby(lobby, syncLayer) : null);
                 }
             });
-            return ret;
+#endif
+			return ret;
         }
 
         public static MyMultiplayerJoinResult JoinLobby(ulong lobbyId)
         {
             MyTrace.Send(TraceWindow.Multiplayer, "Join game");
             MyMultiplayerJoinResult ret = new MyMultiplayerJoinResult();
+#if !XB1
             Lobby.Join(lobbyId, (info, result) =>
             {
                 if (!ret.Cancelled)
@@ -137,7 +145,9 @@ namespace Sandbox.Engine.Multiplayer
                     ret.RaiseJoined(result, info, success ? MyMultiplayer.Static = new MyMultiplayerLobbyClient(info.Lobby, new MySyncLayer(new MyTransportLayer(MyMultiplayer.GameEventChannel))) : null);
                 }
             });
-            return ret;
+#endif
+
+			return ret;
         }
 
         /// <summary>
@@ -147,7 +157,11 @@ namespace Sandbox.Engine.Multiplayer
         /// <param name="targetEndpoint">Target of the event. When broadcasting, it's exclude endpoint.</param>
         public static void RaiseStaticEvent(Func<IMyEventOwner, Action> action, EndpointId targetEndpoint = default(EndpointId))
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent((IMyEventOwner)null, (IMyEventOwner)null, action, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(null).Invoke();
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -157,7 +171,11 @@ namespace Sandbox.Engine.Multiplayer
         /// <param name="targetEndpoint">Target of the event. When broadcasting, it's exclude endpoint.</param>
         public static void RaiseStaticEvent<T2>(Func<IMyEventOwner, Action<T2>> action, T2 arg2, EndpointId targetEndpoint = default(EndpointId))
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent((IMyEventOwner)null, (IMyEventOwner)null, action, arg2, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(null).Invoke(arg2);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -167,7 +185,11 @@ namespace Sandbox.Engine.Multiplayer
         /// <param name="targetEndpoint">Target of the event. When broadcasting, it's exclude endpoint.</param>
         public static void RaiseStaticEvent<T2, T3>(Func<IMyEventOwner, Action<T2, T3>> action, T2 arg2, T3 arg3, EndpointId targetEndpoint = default(EndpointId))
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent((IMyEventOwner)null, (IMyEventOwner)null, action, arg2, arg3, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(null).Invoke(arg2, arg3);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -177,7 +199,11 @@ namespace Sandbox.Engine.Multiplayer
         /// <param name="targetEndpoint">Target of the event. When broadcasting, it's exclude endpoint.</param>
         public static void RaiseStaticEvent<T2, T3, T4>(Func<IMyEventOwner, Action<T2, T3, T4>> action, T2 arg2, T3 arg3, T4 arg4, EndpointId targetEndpoint = default(EndpointId))
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent((IMyEventOwner)null, (IMyEventOwner)null, action, arg2, arg3, arg4, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(null).Invoke(arg2, arg3, arg4);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -187,7 +213,11 @@ namespace Sandbox.Engine.Multiplayer
         /// <param name="targetEndpoint">Target of the event. When broadcasting, it's exclude endpoint.</param>
         public static void RaiseStaticEvent<T2, T3, T4, T5>(Func<IMyEventOwner, Action<T2, T3, T4, T5>> action, T2 arg2, T3 arg3, T4 arg4, T5 arg5, EndpointId targetEndpoint = default(EndpointId))
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent((IMyEventOwner)null, (IMyEventOwner)null, action, arg2, arg3, arg4, arg5, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(null).Invoke(arg2, arg3, arg4, arg5);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -197,7 +227,11 @@ namespace Sandbox.Engine.Multiplayer
         /// <param name="targetEndpoint">Target of the event. When broadcasting, it's exclude endpoint.</param>
         public static void RaiseStaticEvent<T2, T3, T4, T5, T6>(Func<IMyEventOwner, Action<T2, T3, T4, T5, T6>> action, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, EndpointId targetEndpoint = default(EndpointId))
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent((IMyEventOwner)null, (IMyEventOwner)null, action, arg2, arg3, arg4, arg5, arg6, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(null).Invoke(arg2, arg3, arg4, arg5, arg6);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -207,7 +241,11 @@ namespace Sandbox.Engine.Multiplayer
         /// <param name="targetEndpoint">Target of the event. When broadcasting, it's exclude endpoint.</param>
         public static void RaiseStaticEvent<T2, T3, T4, T5, T6, T7>(Func<IMyEventOwner, Action<T2, T3, T4, T5, T6, T7>> action, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, EndpointId targetEndpoint = default(EndpointId))
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent((IMyEventOwner)null, (IMyEventOwner)null, action, arg2, arg3, arg4, arg5, arg6, arg7, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(null).Invoke(arg2, arg3, arg4, arg5, arg6, arg7);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -217,7 +255,11 @@ namespace Sandbox.Engine.Multiplayer
         public static void RaiseEvent<T1>(T1 arg1, Func<T1, Action> action, EndpointId targetEndpoint = default(EndpointId))
             where T1 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, (IMyEventOwner)null, action, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke();
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -228,7 +270,11 @@ namespace Sandbox.Engine.Multiplayer
             where T1 : IMyEventOwner
             where T2 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, arg2, action, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke();
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -238,7 +284,11 @@ namespace Sandbox.Engine.Multiplayer
         public static void RaiseEvent<T1, T2>(T1 arg1, Func<T1, Action<T2>> action, T2 arg2, EndpointId targetEndpoint = default(EndpointId))
             where T1 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, (IMyEventOwner)null, action, arg2, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -249,7 +299,11 @@ namespace Sandbox.Engine.Multiplayer
             where T1 : IMyEventOwner
             where T3 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, arg3, action, arg2, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -259,7 +313,11 @@ namespace Sandbox.Engine.Multiplayer
         public static void RaiseEvent<T1, T2, T3>(T1 arg1, Func<T1, Action<T2, T3>> action, T2 arg2, T3 arg3, EndpointId targetEndpoint = default(EndpointId))
             where T1 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, (IMyEventOwner)null, action, arg2, arg3, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -270,7 +328,11 @@ namespace Sandbox.Engine.Multiplayer
             where T1 : IMyEventOwner
             where T4 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, arg4, action, arg2, arg3, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -280,7 +342,11 @@ namespace Sandbox.Engine.Multiplayer
         public static void RaiseEvent<T1, T2, T3, T4>(T1 arg1, Func<T1, Action<T2, T3, T4>> action, T2 arg2, T3 arg3, T4 arg4, EndpointId targetEndpoint = default(EndpointId))
             where T1 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, (IMyEventOwner)null, action, arg2, arg3, arg4, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3, arg4);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -291,7 +357,11 @@ namespace Sandbox.Engine.Multiplayer
             where T1 : IMyEventOwner
             where T5 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, arg5, action, arg2, arg3, arg4, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3, arg4);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -301,7 +371,11 @@ namespace Sandbox.Engine.Multiplayer
         public static void RaiseEvent<T1, T2, T3, T4, T5>(T1 arg1, Func<T1, Action<T2, T3, T4, T5>> action, T2 arg2, T3 arg3, T4 arg4, T5 arg5, EndpointId targetEndpoint = default(EndpointId))
             where T1 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, (IMyEventOwner)null, action, arg2, arg3, arg4, arg5, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3, arg4, arg5);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -312,7 +386,11 @@ namespace Sandbox.Engine.Multiplayer
             where T1 : IMyEventOwner
             where T6 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, arg6, action, arg2, arg3, arg4, arg5, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3, arg4, arg5);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -322,7 +400,11 @@ namespace Sandbox.Engine.Multiplayer
         public static void RaiseEvent<T1, T2, T3, T4, T5, T6>(T1 arg1, Func<T1, Action<T2, T3, T4, T5, T6>> action, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, EndpointId targetEndpoint = default(EndpointId))
             where T1 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, (IMyEventOwner)null, action, arg2, arg3, arg4, arg5, arg6, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3, arg4, arg5, arg6);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -333,7 +415,11 @@ namespace Sandbox.Engine.Multiplayer
             where T1 : IMyEventOwner
             where T7 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, arg7, action, arg2, arg3, arg4, arg5, arg6, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3, arg4, arg5, arg6);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -343,7 +429,11 @@ namespace Sandbox.Engine.Multiplayer
         public static void RaiseEvent<T1, T2, T3, T4, T5, T6, T7>(T1 arg1, Func<T1, Action<T2, T3, T4, T5, T6, T7>> action, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, EndpointId targetEndpoint = default(EndpointId))
             where T1 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, (IMyEventOwner)null, action, arg2, arg3, arg4, arg5, arg6, arg7, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3, arg4, arg5, arg6, arg7);
+#endif // XB1_NOMULTIPLAYER
         }
 
         /// <summary>
@@ -354,7 +444,11 @@ namespace Sandbox.Engine.Multiplayer
             where T1 : IMyEventOwner
             where T8 : IMyEventOwner
         {
+#if !XB1_NOMULTIPLAYER
             ReplicationLayer.RaiseEvent(arg1, arg8, action, arg2, arg3, arg4, arg5, arg6, arg7, targetEndpoint);
+#else // XB1_NOMULTIPLAYER
+            action.Invoke(arg1).Invoke(arg2, arg3, arg4, arg5, arg6, arg7);
+#endif // XB1_NOMULTIPLAYER
         }
 
         private static MyReplicationServer GetReplicationServer()
@@ -395,6 +489,25 @@ namespace Sandbox.Engine.Multiplayer
             }
         }
 
+        public static void RefreshChild(IMyEventProxy proxy)
+        {
+            var server = GetReplicationServer();
+            if (server != null)
+            {
+                Debug.Assert(proxy != null, "Proxy cannot be null");
+                server.RefreshChildren(proxy);
+            }
+        }
+
+        public static void RefreshChild(IMyReplicable replicable)
+        {
+            var server = GetReplicationServer();
+            if (server != null)
+            {
+                server.RefreshChildren(replicable);
+            }
+        }
+
         /// <summary>
         /// This is hack for immediate replication, it's necessary because of logic dependency.
         /// E.g. Character is created on server, sent to client and respawn message sent immediatelly.
@@ -411,6 +524,8 @@ namespace Sandbox.Engine.Multiplayer
                 server.ForceReplicable(replicable, clientEndpoint);
             }
         }
+
+
 
         public static void ReplicateImmediatelly(IMyEventProxy proxy, EndpointId clientEndpoint)
         {

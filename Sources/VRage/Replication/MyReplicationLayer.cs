@@ -11,6 +11,8 @@ using VRage.Library.Utils;
 using VRage.Plugins;
 using VRage.Utils;
 using VRageMath;
+using VRage.Library;
+using VRage.Profiler;
 
 namespace VRage.Network
 {
@@ -47,6 +49,7 @@ namespace VRage.Network
             m_receiveStream.Dispose();
             m_networkIDToObject.Clear();
             m_objectToNetworkID.Clear();
+            m_proxyToTarget.Clear();
         }
 
         protected Type GetTypeByTypeId(TypeId typeId)
@@ -119,7 +122,8 @@ namespace VRage.Network
                 if (proxyTarget != null)
                 {
                     Debug.Assert(proxyTarget.Target != null, "IMyProxyTarget.Target is null!");
-                    if (proxyTarget.Target != null)
+                    Debug.Assert(!m_proxyToTarget.ContainsKey(proxyTarget.Target), "Proxy is already added to list!");
+                    if (proxyTarget.Target != null && !m_proxyToTarget.ContainsKey(proxyTarget.Target))
                     {
                         m_proxyToTarget.Add(proxyTarget.Target, proxyTarget);
                     }
@@ -269,7 +273,7 @@ namespace VRage.Network
         /// Returns string with current multiplayer status. Use only for debugging.
         /// </summary>
         /// <returns>Already formatted string with current multiplayer status.</returns>
-        public virtual string GetMultiplayerStat() { return "Multiplayer Statistics:" + Environment.NewLine; }
+        public virtual string GetMultiplayerStat() { return "Multiplayer Statistics:" + MyEnvironment.NewLine; }
 
         #endregion
 

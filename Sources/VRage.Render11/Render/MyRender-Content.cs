@@ -1,39 +1,40 @@
-﻿using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+﻿using SharpDX.DXGI;
 using System.Collections.Generic;
 using System.Diagnostics;
+using VRage.OpenVRWrapper;
+using VRage.Render11.Common;
+using VRage.Render11.Resources;
+using VRage.Render11.Tools;
 using VRage.Utils;
-using VRage.Voxels;
-using VRageRender.Resources;
+using VRageRender.Voxels;
 
 namespace VRageRender
 {
     partial class MyRender11
     {
+        internal static unsafe void InitSubsystemsOnce()
+        {
+        }
+
         internal static unsafe void InitSubsystems()
         {
-            InitializeBlendStates();
-            InitializeRasterizerStates();
-            InitilizeSamplerStates();
-
-            MyScene.Init();
+            MyManagers.OnDeviceInit();
+            //MyRwTextures.Init();
+            MyHwBuffers.Init();
+            ResetShadows(MyShadowCascades.Settings.NewData.CascadesCount, RenderSettings.ShadowQuality.ShadowCascadeResolution());
             MyRender11.Init();
             MyCommon.Init();
-            MyPipelineStates.Init();
-            MyTextures.Init();
             MyVertexLayouts.Init();
             MyShaders.Init();
-            MyRwTextures.Init();
-            MyHwBuffers.Init();
             MyMeshes.Init(); 
-            MyMeshTableSRV.Init();
-            MyMergeInstancing.Init(); 
+            MyMeshTableSrv.Init();
             MyLightRendering.Init();
             MyLinesRenderer.Init();
             MySpritesRenderer.Init();
             MyPrimitivesRenderer.Init();
             MyOutline.Init();
             MyBlur.Init();
+            MyTransparentRendering.Init();
 
             MyFoliageComponents.Init();
 
@@ -54,31 +55,49 @@ namespace VRageRender
             MyLuminanceAverage.Init();
             MyToneMapping.Init();
             MySSAO.Init();
-            MyPlanetBlur.Init();
             MyHdrDebugTools.Init();
 
             MySceneMaterials.Init();
             MyMaterials1.Init();
             MyVoxelMaterials1.Init();
             MyMeshMaterials1.Init();
+
+            MyHBAO.Init();
+
+            try
+            {
+                if (m_settings.UseStereoRendering)
+                {
+                    var openVR = new MyOpenVR();
+                    MyStereoStencilMask.InitUsingOpenVR();
+                }
+            }
+            catch (System.Exception e)
+            {
+                if (!VRage.MyCompilationSymbols.DX11ForceStereo)
+                    throw;
+                MyStereoStencilMask.InitUsingUndefinedMask();
+            }
         }
 
         internal static void OnDeviceReset()
         {
+            MyManagers.OnDeviceReset();
+
             MyHwBuffers.OnDeviceReset();
             MyShaders.OnDeviceReset();
             MyMaterialShaders.OnDeviceReset();
-            MyPipelineStates.OnDeviceReset();
-            MyTextures.OnDeviceReset();
-            MyRwTextures.OnDeviceReset();
+            //MyRwTextures.OnDeviceReset();
 
-            ResetShadows(Settings.ShadowCascadeCount, RenderSettings.ShadowQuality.ShadowCascadeResolution());
+            MyTransparentRendering.OnDeviceReset();
+
+            ResetShadows(MyShadowCascades.Settings.NewData.CascadesCount, RenderSettings.ShadowQuality.ShadowCascadeResolution());
 
             MyBillboardRenderer.OnDeviceRestart();
             MyScreenDecals.OnDeviceReset();
 
-            MyMeshMaterials1.InvalidateMaterials();
-            MyVoxelMaterials1.InvalidateMaterials();
+            MyMeshMaterials1.OnDeviceReset();
+            MyVoxelMaterials1.OnDeviceReset();
 
             MyRenderableComponent.MarkAllDirty();
             foreach (var f in MyComponentFactory<MyFoliageComponent>.GetAll())
@@ -100,25 +119,23 @@ namespace VRageRender
 
         internal static void OnDeviceEnd()
         {
+            MyManagers.OnDeviceEnd();
+
             MyScreenDecals.OnDeviceEnd();
             MyShaders.OnDeviceEnd();
             MyMaterialShaders.OnDeviceEnd();
             MyVoxelMaterials1.OnDeviceEnd();
-            MyTextures.OnDeviceEnd();
-            MyRwTextures.OnDeviceEnd();
+            //MyRwTextures.OnDeviceEnd();
             MyHwBuffers.OnDeviceEnd();
-            MyPipelineStates.OnDeviceEnd();
-        }
-
-        internal static void OnSessionEnd()
-        {
-            UnloadData();
+            MyTransparentRendering.OnDeviceEnd();
         }
 
         #region Content load
 
         internal static void UnloadData()
         {
+            MyManagers.OnUnloadData();
+
             MyActorFactory.RemoveAll();
             // many-to-one relation, can live withput owners, deallocated separately
             // MyComponentFactory<MyInstancingComponent>.RemoveAll();
@@ -128,6 +145,9 @@ namespace VRageRender
 
 
             MyRender11.Log.WriteLine("Unloading session data");
+
+            // Remove leftover persistent debug draw messages
+            m_debugDrawMessages.Clear();
 
             MyScene.DynamicRenderablesDBVH.Clear();
             if (MyScene.SeparateGeometry)
@@ -147,10 +167,11 @@ namespace VRageRender
             MyMeshMaterials1.OnSessionEnd();
             MyScreenDecals.OnSessionEnd();
             
-            MyTextures.OnSessionEnd();
             MyBigMeshTable.Table.OnSessionEnd();
 
             MyPrimitivesRenderer.Unload();
+
+            MyTransparentRendering.OnSessionEnd();
 
             //MyAssetsLoader.ClearMeshes();
         }
@@ -159,7 +180,6 @@ namespace VRageRender
         {
             MyMeshMaterials1.OnResourcesRequesting();
             MyVoxelMaterials1.OnResourcesRequesting();
-            MyScreenDecals.OnResourcesRequesting();
         }
 
         internal static void GatherTextures()
@@ -197,54 +217,22 @@ namespace VRageRender
             return m_fontsById[id];
         }
 
+        internal static void ReloadFonts()
+        {
+            foreach (var fontIt in m_fontsById)
+            {
+                fontIt.Value.LoadContent();
+            }
+            m_debugFont.LoadContent();
+        }
+
         #endregion
-
-        private static MyUnorderedAccessTexture m_reduce0;
-        private static MyUnorderedAccessTexture m_reduce1;
-        private static MyUnorderedAccessTexture m_uav3;
-        private static MyUnorderedAccessTexture m_prevLum;
-
-        internal static MyUnorderedAccessTexture HalfScreenUavHDR;
-        internal static MyUnorderedAccessTexture QuarterScreenUavHDR;
-        internal static MyUnorderedAccessTexture EighthScreenUavHDR;
-        internal static MyUnorderedAccessTexture EighthScreenUavHDRHelper;
-
-        internal static MyUnorderedAccessTexture m_rgba8_linear;
-        internal static MyCustomTexture m_rgba8_0;
-        internal static MyRenderTarget m_rgba8_1;
-        internal static MyRenderTarget m_rgba8_2;
-        internal static MyRenderTarget m_rgba8_ms;
-
-        internal static RwTexId PostProcessedShadows = RwTexId.NULL;
-        internal static RwTexId CascadesHelper = RwTexId.NULL;
-        internal static RwTexId m_gbuffer1Copy = RwTexId.NULL;
-
+        
         internal static void RemoveScreenResources()
         {
-            if (m_reduce0 != null)
-            {
-                m_reduce0.Release();
-                m_reduce1.Release();
-                m_uav3.Release();
-                HalfScreenUavHDR.Release();
-                QuarterScreenUavHDR.Release();
-                EighthScreenUavHDR.Release();
-                EighthScreenUavHDRHelper.Release();
-                m_rgba8_linear.Release();
-                m_rgba8_0.Release();
-                m_rgba8_1.Release();
-                m_rgba8_2.Release();
-                if (m_rgba8_ms != null)
-                {
-                    m_rgba8_ms.Release();
-                    m_rgba8_ms = null;
-                }
-                m_prevLum.Release();
+            MyRwTextureManager texManager = MyManagers.RwTextures;
 
-                MyRwTextures.Destroy(ref PostProcessedShadows);
-                MyRwTextures.Destroy(ref CascadesHelper);
-                MyRwTextures.Destroy(ref m_gbuffer1Copy);
-            }
+            MyManagers.GlobalResources.Destroy();
 
             if(m_lastScreenDataResource != null && m_lastScreenDataResource != Backbuffer)
             {
@@ -273,43 +261,11 @@ namespace VRageRender
 
             RemoveScreenResources();
 
-            m_reduce0 = new MyUnorderedAccessTexture(width, height, Format.R32G32_Float);
-            m_reduce0.SetDebugName("reduce0");
-            m_reduce1 = new MyUnorderedAccessTexture(width, height, Format.R32G32_Float);
-            m_reduce1.SetDebugName("reduce1");
-            m_uav3 = new MyUnorderedAccessTexture(width, height, MyGBuffer.LBufferFormat);
+            MyRwTextureManager texManager = MyManagers.RwTextures;
+            MyManagers.GlobalResources.Create();
 
-            HalfScreenUavHDR = new MyUnorderedAccessTexture(width / 2, height / 2, MyGBuffer.LBufferFormat);
-            QuarterScreenUavHDR = new MyUnorderedAccessTexture(width / 4, height / 4, MyGBuffer.LBufferFormat);
-            EighthScreenUavHDR = new MyUnorderedAccessTexture(width / 8, height / 8, MyGBuffer.LBufferFormat);
-            EighthScreenUavHDRHelper = new MyUnorderedAccessTexture(width / 8, height / 8, MyGBuffer.LBufferFormat);
-
-            m_rgba8_linear = new MyUnorderedAccessTexture(width, height, Format.R8G8B8A8_UNorm);
-
-            m_rgba8_0 = new MyCustomTexture(width, height, BindFlags.RenderTarget | BindFlags.ShaderResource, Format.R8G8B8A8_Typeless);
-            m_rgba8_0.AddView(new MyViewKey { Fmt = Format.R8G8B8A8_UNorm, View = MyViewEnum.RtvView });
-            m_rgba8_0.AddView(new MyViewKey { Fmt = Format.R8G8B8A8_UNorm_SRgb, View = MyViewEnum.RtvView });
-            m_rgba8_0.AddView(new MyViewKey { Fmt = Format.R8G8B8A8_UNorm_SRgb, View = MyViewEnum.SrvView });
-
-            m_rgba8_1 = new MyRenderTarget(width, height, Format.R8G8B8A8_UNorm_SRgb, 1, 0);
-            m_rgba8_2 = new MyRenderTarget(width, height, Format.R8G8B8A8_UNorm_SRgb, 1, 0);
-            if (samples > 1)
-            {
-                m_rgba8_ms = new MyRenderTarget(width, height, Format.R8G8B8A8_UNorm_SRgb, samples, 0);
-            }
-            m_prevLum = new MyUnorderedAccessTexture(1, 1, Format.R32G32_Float);
-
-            Debug.Assert(PostProcessedShadows == RwTexId.NULL);
-            Debug.Assert(CascadesHelper == RwTexId.NULL);
-            PostProcessedShadows = MyRwTextures.CreateUavRenderTarget(width, height, Format.R8_UNorm);
-            CascadesHelper = MyRwTextures.CreateRenderTarget(width, height, Format.R8_UNorm);
-
-            m_gbuffer1Copy = MyRwTextures.CreateScratch2D(width, height, Format.R8G8B8A8_UNorm, samples, 0, "gbuffer 1 copy");
+            MyHBAO.InitScreenResources();
         }
 
-        internal static void CopyGbufferToScratch()
-        {
-            MyImmediateRC.RC.DeviceContext.CopyResource(MyGBuffer.Main.m_resources[(int)MyGbufferSlot.GBuffer1].m_resource, m_gbuffer1Copy.Resource);
-        }
     }
 }

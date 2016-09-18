@@ -2,12 +2,14 @@
 
 using ParallelTasks;
 using Sandbox.Common;
-using Sandbox.Common.News;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Engine.Networking;
 using Sandbox.Engine.Utils;
+using Sandbox.Game.Audio;
 using Sandbox.Game.Entities;
+#if !XB1
 using Sandbox.Game.Gui.DebugInputComponents;
+#endif // !XB1
 using Sandbox.Game.Localization;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
@@ -24,6 +26,7 @@ using VRage;
 using VRage;
 using VRage.Audio;
 using VRage.Game;
+using VRage.Game.News;
 using VRage.Input;
 using VRage.Library.Utils;
 using VRage.Utils;
@@ -41,12 +44,20 @@ namespace Sandbox.Game.Gui
         private int m_timeFromMenuLoadedMS = 0;
         private const int PLAY_MUSIC_AFTER_MENU_LOADED_MS = 1000;
         private const float TEXT_LINE_HEIGHT = 0.024f;
+#if !XB1
         private static readonly StringBuilder BUILD_DATE = new StringBuilder("Build: " + MySandboxGame.BuildDateTime.ToString("yyyy-MM-dd hh:mm", CultureInfo.InvariantCulture));
+#else // XB1
+        private static readonly StringBuilder BUILD_DATE = new StringBuilder("Build: N/A (XB1 TODO?)");
+#endif // XB1
         private static readonly StringBuilder APP_VERSION = MyFinalBuildConstants.APP_VERSION_STRING;
         private static readonly StringBuilder STEAM_INACTIVE = new StringBuilder("STEAM NOT AVAILABLE");
         private static readonly StringBuilder NOT_OBFUSCATED = new StringBuilder("NOT OBFUSCATED");
         private static readonly StringBuilder NON_OFFICIAL = new StringBuilder(" NON-OFFICIAL");
+#if XB1
+        private static readonly StringBuilder PLATFORM = new StringBuilder(" 64-bit");
+#else // !XB1
         private static readonly StringBuilder PLATFORM = new StringBuilder(Environment.Is64BitProcess ? " 64-bit" : " 32-bit");
+#endif // !XB1
         private static StringBuilder BranchName = new StringBuilder(50);
         private static StringBuilder m_stringCache = new StringBuilder(128);
 
@@ -139,11 +150,20 @@ namespace Sandbox.Game.Gui
                 // Credits
                 // Exit to windows
                 int buttonIndex = MyPerGameSettings.MultiplayerEnabled ? 8 : 7;
+                if (MyFakes.XB1_PREVIEW)
+                {
+                    buttonIndex = MyPerGameSettings.MultiplayerEnabled ? 7 : 6;
+                }
                 Controls.Add(MakeButton(leftButtonPositionOrigin - (buttonIndex--) * MyGuiConstants.MENU_BUTTONS_POSITION_DELTA, MyCommonTexts.ScreenMenuButtonNewWorld, OnClickNewWorld));
                 Controls.Add(MakeButton(leftButtonPositionOrigin - (buttonIndex--) * MyGuiConstants.MENU_BUTTONS_POSITION_DELTA, MyCommonTexts.ScreenMenuButtonLoadWorld, OnClickLoad));
                 if (MyPerGameSettings.MultiplayerEnabled)
                     Controls.Add(MakeButton(leftButtonPositionOrigin - (buttonIndex--) * MyGuiConstants.MENU_BUTTONS_POSITION_DELTA, MyCommonTexts.ScreenMenuButtonJoinWorld, OnJoinWorld));
-                Controls.Add(MakeButton(leftButtonPositionOrigin - (buttonIndex--) * MyGuiConstants.MENU_BUTTONS_POSITION_DELTA, MyCommonTexts.ScreenMenuButtonSubscribedWorlds, OnClickSubscribedWorlds, MyCommonTexts.ToolTipMenuSubscribedWorlds));
+                if (!MyFakes.XB1_PREVIEW)
+                {
+#if !XB1 // XB1_NOWORKSHOP
+                    Controls.Add(MakeButton(leftButtonPositionOrigin - (buttonIndex--) * MyGuiConstants.MENU_BUTTONS_POSITION_DELTA, MyCommonTexts.ScreenMenuButtonSubscribedWorlds, OnClickSubscribedWorlds, MyCommonTexts.ToolTipMenuSubscribedWorlds));
+#endif // !XB1
+                }
                 --buttonIndex;
                 Controls.Add(MakeButton(leftButtonPositionOrigin - (buttonIndex--) * MyGuiConstants.MENU_BUTTONS_POSITION_DELTA, MyCommonTexts.ScreenMenuButtonOptions, OnClickOptions));
                 Controls.Add(MakeButton(leftButtonPositionOrigin - (buttonIndex--) * MyGuiConstants.MENU_BUTTONS_POSITION_DELTA, MyCommonTexts.ScreenMenuButtonHelp, OnClickHelp));
@@ -290,10 +310,10 @@ namespace Sandbox.Game.Gui
                 using (StringReader stream = new StringReader(downloadedNews))
                 {
                     m_news = (MyNews)m_newsSerializer.Deserialize(stream);
-                    
-                    if (!MyFinalBuildConstants.IS_DEBUG)
+
+                    if(MyFinalBuildConstants.IS_STABLE)
                     {
-                        m_news.Entry.RemoveAll(entry => !entry.Public);
+                        m_news.Entry.RemoveAll(entry => entry.Dev);
                     }
 
                     StringBuilder text = new StringBuilder();
@@ -377,7 +397,6 @@ namespace Sandbox.Game.Gui
                 text: MyTexts.Get(text),
                 textScale: MyGuiConstants.MAIN_MENU_BUTTON_TEXT_SCALE,
                 onButtonClick: onClick,
-                implementedFeature: onClick != null,
                 originAlign: MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_BOTTOM);
 
             if (tooltip.HasValue)
@@ -400,6 +419,13 @@ namespace Sandbox.Game.Gui
             {
                 MySession.Static.Unload();
                 MySession.Static = null;
+            }
+
+            if (MyMusicController.Static != null)
+            {
+                MyMusicController.Static.Unload();
+                MyMusicController.Static = null;
+                MyAudio.Static.MusicAllowed = true;
             }
 
             if(MyMultiplayer.Static != null)
@@ -491,6 +517,7 @@ namespace Sandbox.Game.Gui
             MyGuiSandbox.AddScreen(MyGuiSandbox.CreateScreen(MyPerGameSettings.GUI.PlayersScreen));
         }
 
+#if !XB1 // XB1_NOWORKSHOP
         private void OnClickSubscribedWorlds(MyGuiControlButton obj)
         {
             if (!MyFakes.XBOX_PREVIEW)
@@ -498,6 +525,7 @@ namespace Sandbox.Game.Gui
             else
                 MyGuiSandbox.Show(MyCommonTexts.MessageBoxTextErrorFeatureNotAvailableYet, MyCommonTexts.MessageBoxCaptionError);
         }
+#endif // !XB1
 
         private void OnExitToMainMenuClick(MyGuiControlButton sender)
         {
@@ -720,8 +748,10 @@ namespace Sandbox.Game.Gui
                 m_musicPlayed = true;
             }
 
+#if !XB1
             if (MyReloadTestComponent.Enabled && State == MyGuiScreenState.OPENED)
                 MyReloadTestComponent.DoReload();
+#endif // !XB1
 
             return true;
         }

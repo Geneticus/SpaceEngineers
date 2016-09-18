@@ -4,22 +4,17 @@ using Sandbox.Engine.Utils;
 using Sandbox.Game.World;
 
 using Sandbox.Graphics.GUI;
-using Sandbox.Common;
-
-using Sandbox.Common.ObjectBuilders;
 using System;
-using Sandbox.Game.Gui;
 using Sandbox.Definitions;
-using Sandbox.Common.ObjectBuilders.Definitions;
 using System.Collections.Generic;
 using Sandbox.Game.Localization;
 using VRage;
 using VRage.Utils;
-using VRage.Voxels;
 using VRage.ObjectBuilders;
 using Sandbox.Engine.Networking;
-using Sandbox.Graphics;
 using VRage.Game;
+using VRage.Library.Utils;
+using VRage.Voxels;
 
 namespace Sandbox.Game.Gui
 {
@@ -203,10 +198,10 @@ namespace Sandbox.Game.Gui
             settings.EnableFlora = (MyPerGameSettings.Game == GameEnum.SE_GAME) && MyFakes.ENABLE_PLANETS;
             settings.EnableSunRotation = MyPerGameSettings.Game == GameEnum.SE_GAME;
             settings.VoxelGeneratorVersion = MyVoxelConstants.VOXEL_GENERATOR_VERSION;
-            settings.CargoShipsEnabled = !MyFakes.ENABLE_PLANETS;
+            settings.CargoShipsEnabled = true;
             settings.EnableOxygen = true;
             settings.EnableSpiders = false;
-            settings.EnableCyberhounds = false;
+            settings.EnableWolfs = false;
             MyWorldGenerator.SetProceduralSettings(-1, settings);
             return settings;
         }

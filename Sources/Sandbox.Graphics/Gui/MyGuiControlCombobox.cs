@@ -1,5 +1,4 @@
-﻿using Sandbox.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -1167,6 +1166,15 @@ namespace Sandbox.Graphics.GUI
             }            
             base.ShowToolTip();
             m_toolTip = tempTooltip;
+        }
+
+        public void ApplyStyle(StyleDefinition style)
+        {
+            if (style != null)
+            {
+                m_styleDef = style;
+                RefreshInternals();
+            }
         }
     }
 }

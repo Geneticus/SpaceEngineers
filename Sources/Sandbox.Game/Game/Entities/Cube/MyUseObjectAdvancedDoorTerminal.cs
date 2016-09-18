@@ -12,6 +12,7 @@ using VRageMath;
 using VRage.Generics;
 using VRage.ModAPI;
 using VRage.Game;
+using VRageRender.Import;
 
 namespace Sandbox.Game.Entities.Cube
 {
@@ -49,6 +50,11 @@ namespace Sandbox.Game.Entities.Cube
             {
                 return Door.Render.GetRenderObjectID();
             }
+        }
+
+        public override int InstanceID
+        {
+            get { return -1; }
         }
 
         public override bool ShowOverlay

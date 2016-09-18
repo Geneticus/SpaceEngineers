@@ -6,9 +6,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using VRage.Library.Utils;
+
 
 namespace VRage.Compiler
 {
@@ -16,8 +18,46 @@ namespace VRage.Compiler
     {
     }
 
+#if !XB1 // XB1_NOILINJECTOR
+#if UNSHARPER
     public class IlInjector
     {
+      
+
+
+        public static void RestartCountingInstructions(int maxInstructions)
+        {
+
+        }
+        public static void CountInstructions()
+        {
+
+        }
+        public static void RestartCountingMethods(int maxMethodCalls)
+        {
+
+        }
+        public static void CountMethodCalls()
+        {
+
+        }
+        public static Assembly InjectCodeToAssembly(string newAssemblyName, Assembly inputAssembly, MethodInfo method,MethodInfo methodToInjectMethodCheck, bool save = false)
+        {
+            return null;
+        }
+    }
+#else
+    public class IlInjector
+    {
+        public interface ICounterHandle : IDisposable
+        {
+            int InstructionCount { get; }
+            int MaxInstructionCount { get; }
+            int MethodCallCount { get; }
+            int MaxMethodCallCount { get; }
+        }
+
+        // MAL Don't Like Statics: Reusing a handle like this feels... not good...
         static InstructionCounterHandle m_instructionCounterHandle = new InstructionCounterHandle();
         static int m_numInstructions = 0;
         static int m_numMaxInstructions = 0;
@@ -27,7 +67,7 @@ namespace VRage.Compiler
             return m_instructionCounterHandle.Depth > 0;
         }
 
-        public static IDisposable BeginRunBlock(int maxInstructions, int maxMethodCalls)
+        public static ICounterHandle BeginRunBlock(int maxInstructions, int maxMethodCalls)
         {
             m_instructionCounterHandle.AddRef(maxInstructions, maxMethodCalls);
             return m_instructionCounterHandle;
@@ -39,6 +79,7 @@ namespace VRage.Compiler
             m_numMaxInstructions = maxInstructions;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CountInstructions()
         {
             m_numInstructions++;
@@ -49,22 +90,42 @@ namespace VRage.Compiler
         }
 
 		static int m_numMethodCalls = 0;
-		static int m_numMaxMethodCalls= 0;
+		static int m_maxMethodCalls= 0;
+		static int m_maxCallChainDepth = 1000;
 
 		private static void RestartCountingMethods(int maxMethodCalls)
 		{
 			m_numMethodCalls = 0;
-			m_numMaxMethodCalls = maxMethodCalls;
+			m_maxMethodCalls = maxMethodCalls;
 		}
 
-		public static void CountMethodCalls()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void CountMethodCalls()
 		{
 			m_numMethodCalls++;
-			if (m_numMethodCalls > m_numMaxMethodCalls)
+			if (m_numMethodCalls > m_maxMethodCalls)
 			{
 				throw new ScriptOutOfRangeException();
 			}
 		}
+
+        static int m_callChainDepth = 0;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void EnterMethod()
+        {
+            m_callChainDepth++;
+            if (m_callChainDepth > m_maxCallChainDepth)
+            {
+                throw new ScriptOutOfRangeException();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ExitMethod()
+        {
+            m_callChainDepth--;
+        }
 
         private static IlReader m_reader = new IlReader();
 
@@ -663,7 +724,7 @@ namespace VRage.Compiler
             generator.Emit(code, field);
         }
 
-        private class InstructionCounterHandle : IDisposable
+        private class InstructionCounterHandle : ICounterHandle
         {
             int m_runDepth;
 
@@ -689,6 +750,16 @@ namespace VRage.Compiler
                     this.m_runDepth--;
                 }
             }
+
+            // MAL Don't Like Statics: Calling static fields like this... not good. But any
+            // alternative I can think of requires a big rewrite of the ILInjector.
+            public int InstructionCount { get { return IlInjector.m_numInstructions; } }
+            public int MaxInstructionCount { get { return IlInjector.m_numMaxInstructions; } }
+            public int MethodCallCount { get { return IlInjector.m_numMethodCalls; } }
+            public int MaxMethodCallCount { get { return IlInjector.m_maxMethodCalls; } }
         }
     }
+#endif
+#endif // !XB1
 }
+

@@ -1,14 +1,16 @@
-﻿using SharpDX;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using VRage.Library.Utils;
+using SharpDX;
+using SharpDX.Mathematics;
 
 namespace VRage.Library.Collections
 {
+	[Unsharper.UnsharperDisableReflection()]
     public unsafe partial class BitStream
     {
         private const long Int64Msb = ((long)1) << 63;

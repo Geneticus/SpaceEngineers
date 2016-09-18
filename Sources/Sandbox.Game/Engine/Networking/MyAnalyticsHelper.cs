@@ -19,7 +19,9 @@ using VRageRender;
 using Sandbox.Game.Multiplayer;
 using VRage.Game;
 using VRage.Game.Entity;
+using VRage.Game.ModAPI;
 using VRage.Library.Utils;
+using VRage.Library;
 
 namespace Sandbox.Engine.Networking
 {
@@ -94,19 +96,35 @@ namespace Sandbox.Engine.Networking
                 // We're just reporting the first 
                 var cpuName = cpus.Cast<ManagementObject>().First()["Name"].ToString();
 
+#if XB1
+                System.Diagnostics.Debug.Assert(false);
+#else // !XB1
                 var memoryInfo = new WinApi.MEMORYSTATUSEX();
                 WinApi.GlobalMemoryStatusEx(memoryInfo);
+#endif // !XB1
 
                 MyAdapterInfo gpu = MyVideoSettingsManager.Adapters[MyVideoSettingsManager.CurrentDeviceSettings.AdapterOrdinal];
                 var deviceName = gpu.Name;
                 
-                data.ProcessorCount = (byte)Environment.ProcessorCount;
+                data.ProcessorCount = (byte)MyEnvironment.ProcessorCount;
+#if XB1
+                System.Diagnostics.Debug.Assert(false);
+#else // !XB1
                 data.OsVersion = Environment.OSVersion.VersionString;
+#endif // !XB1
                 data.CpuInfo = cpuName;
+#if XB1
+                System.Diagnostics.Debug.Assert(false);
+#else // !XB1
                 data.OsPlatform = Environment.Is64BitOperatingSystem ? "64bit" : "32bit";
+#endif // !XB1
                 data.HasDX11 = MyDirectXHelper.IsDx11Supported();
                 data.GameVersion = MyFinalBuildConstants.APP_VERSION_STRING.ToString();
+#if XB1
+                System.Diagnostics.Debug.Assert(false);
+#else // !XB1
                 data.TotalPhysMemBytes = memoryInfo.ullTotalPhys;
+#endif // !XB1
                 data.GpuInfo = new MyGraphicsInfo();
                 data.GpuInfo.AnisotropicFiltering = MyVideoSettingsManager.CurrentGraphicsSettings.Render.AnisotropicFiltering.ToString();
                 data.GpuInfo.AntialiasingMode = MyVideoSettingsManager.CurrentGraphicsSettings.Render.AntialiasingMode.ToString();
@@ -161,13 +179,13 @@ namespace Sandbox.Engine.Networking
                 GameMode = MySession.Static.Settings.GameMode,
                 OnlineMode = MySession.Static.OnlineMode,
                 WorldType = MySession.Static.Scenario.DisplayNameText,
-                voxelSupport = MySession.Static.Settings.EnableStationVoxelSupport,
+                voxelSupport = MySession.Static.Settings.EnableConvertToStation,
                 destructibleBlocks = MySession.Static.Settings.DestructibleBlocks,
                 destructibleVoxels = MySession.Static.Settings.EnableVoxelDestruction,
                 jetpack = MySession.Static.Settings.EnableJetpack,
                 hostility = MySession.Static.Settings.EnvironmentHostility.ToString(),
                 drones = MySession.Static.Settings.EnableDrones,
-                cyberHounds = MySession.Static.Settings.EnableCyberhounds != null ? (bool)MySession.Static.Settings.EnableCyberhounds : false,
+                Wolfs = MySession.Static.Settings.EnableWolfs != null ? (bool)MySession.Static.Settings.EnableWolfs : false,
                 spaceSpiders = MySession.Static.Settings.EnableSpiders != null ? (bool)MySession.Static.Settings.EnableSpiders : false,
                 encounters = MySession.Static.Settings.EnableEncounters,
                 oxygen = MySession.Static.Settings.EnableOxygen,
@@ -224,13 +242,13 @@ namespace Sandbox.Engine.Networking
                 TotalBlocksCreated = MySession.Static.TotalBlocksCreated,
                 TotalPlayTime = (uint)MySession.Static.ElapsedPlayTime.TotalSeconds,
                 Scenario = (bool)MySession.Static.IsScenario,
-                voxelSupport = MySession.Static.Settings.EnableStationVoxelSupport,
+                voxelSupport = MySession.Static.Settings.EnableConvertToStation,
                 destructibleBlocks = MySession.Static.Settings.DestructibleBlocks,
                 destructibleVoxels = MySession.Static.Settings.EnableVoxelDestruction,
                 jetpack = MySession.Static.Settings.EnableJetpack,
                 hostility = MySession.Static.Settings.EnvironmentHostility.ToString(),
                 drones = MySession.Static.Settings.EnableDrones,
-                cyberHounds = MySession.Static.Settings.EnableCyberhounds != null ? (bool)MySession.Static.Settings.EnableCyberhounds : false,
+                Wolfs = MySession.Static.Settings.EnableWolfs != null ? (bool)MySession.Static.Settings.EnableWolfs : false,
                 spaceSpiders = MySession.Static.Settings.EnableSpiders != null ? (bool)MySession.Static.Settings.EnableSpiders : false,
                 encounters = MySession.Static.Settings.EnableEncounters,
                 oxygen = MySession.Static.Settings.EnableOxygen,
@@ -426,7 +444,7 @@ namespace Sandbox.Engine.Networking
                 }
                 analytics.ReportServerStatus(MyMultiplayer.Static.MemberCount,MyMultiplayer.Static.MemberLimit,Sync.ServerSimulationRatio,entities.Count,gridCount,blockCount,movingGrids,MyMultiplayer.Static.HostName);
 
-                MyLog.Default.WriteLine("Analytics helper server status reported");
+                //MyLog.Default.WriteLine("Analytics helper server status reported");
             }
             catch (Exception exception)
             {
@@ -670,9 +688,10 @@ namespace Sandbox.Engine.Networking
         public static MyPlanetNamesData GetPlanetNames(Vector3D position)
         {
             MyPlanetNamesData returnData = new MyPlanetNamesData();
-            if (Sandbox.Game.GameSystems.MyGravityProviderSystem.CalculateNaturalGravityInPoint(position).LengthSquared() > 0f)
+
+            var planet = MyGamePruningStructure.GetClosestPlanet(position);
+            if (planet != null)
             {
-                MyPlanet planet = Sandbox.Game.GameSystems.MyGravityProviderSystem.GetStrongestGravityWell(position);
                 returnData.planetName = planet.StorageName;
                 returnData.planetType = planet.Generator.FolderName;
             }

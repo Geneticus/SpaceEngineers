@@ -1,5 +1,4 @@
 ﻿using Sandbox.Common;
-using Sandbox.Common.News;
 using Sandbox.Game.Localization;
 using Sandbox.Graphics.GUI;
 using Sandbox.Gui;
@@ -9,12 +8,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+#if !XB1
 using System.Text.RegularExpressions;
+#endif // !XB1
 using System.Xml.Serialization;
 using VRage;
 using VRage.Game;
+using VRage.Game.News;
 using VRage.Library.Utils;
-using VRage.Utils;
 using VRage.Utils;
 using VRageMath;
 

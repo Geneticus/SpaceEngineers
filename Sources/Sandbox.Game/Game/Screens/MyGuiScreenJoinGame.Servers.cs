@@ -16,7 +16,7 @@ using VRage;
 using VRage.Input;
 using VRage.Utils;
 using System.Globalization;
-
+using VRage.Game;
 
 #endregion
 
@@ -146,7 +146,7 @@ namespace Sandbox.Game.Gui
                     itemText = MyCommonTexts.JoinGame_Favorites_Add;
                 }
 
-                m_contextMenu.AddItem(MyTexts.Get(itemText), userData: new ContextMenuFavoriteActionItem() { Server = server, Action = action });
+                m_contextMenu.AddItem(MyTexts.Get(itemText), userData: new ContextMenuFavoriteActionItem() { Server = server, _Action = action });
                 m_contextMenu.Activate();
             }
             else
@@ -289,14 +289,40 @@ namespace Sandbox.Game.Gui
         private void AddServerHeaders()
         {
             int colCounter = 0;
-            m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_World));
-            m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_GameMode));
-            m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_Server));
+            int numCollumns = m_gamesTable.ColumnsCount;
+            if (colCounter < numCollumns)
+            {
+                m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_World));
+            }
+
+            if (colCounter < numCollumns)
+            {
+                m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_GameMode));
+            }
+
+            if (colCounter < numCollumns)
+            {
+                m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_Server));
+            }
             if (MyFakes.ENABLE_JOIN_SCREEN_REMAINING_TIME)
-                m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_RemainingTime));
-            m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_Players));
-            m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_Ping));
-            m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_Mods));
+            {
+                if (colCounter < numCollumns)
+                {
+                    m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_RemainingTime));
+                }
+            }
+            if (colCounter < numCollumns)
+            {
+                m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_Players));
+            }
+            if (colCounter < numCollumns)
+            {
+                m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_Ping));
+            }
+            if (colCounter < numCollumns)
+            {
+                m_gamesTable.SetColumnName(colCounter++, MyTexts.Get(MyCommonTexts.JoinGame_ColumnTitle_Mods));
+            }
         }
 
         private void RefreshServerGameList()

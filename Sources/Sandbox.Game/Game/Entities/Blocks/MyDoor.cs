@@ -30,6 +30,7 @@ using VRage;
 using Sandbox.Engine.Multiplayer;
 using VRage.Network;
 using VRage.Game;
+using VRage.Sync;
 
 namespace Sandbox.Game.Entities
 {
@@ -41,7 +42,7 @@ namespace Sandbox.Game.Entities
         private MySoundPair m_openSound;
         private MySoundPair m_closeSound;
 
-        private float m_currOpening;
+        private readonly Sync<float> m_currOpening;
         private float m_currSpeed;
         private int m_lastUpdateTime;
 
@@ -61,13 +62,21 @@ namespace Sandbox.Game.Entities
         {
             get
             {
-                return base.DisassembleRatio * (Open ? 1.0f : CLOSED_DISSASEMBLE_RATIO);
+                //for now have the same dissasemble ratio maybe change again in the future
+                return base.DisassembleRatio * CLOSED_DISSASEMBLE_RATIO/* * (Open ? 1.0f : CLOSED_DISSASEMBLE_RATIO) */;
             }
         }
 
         public MyDoor()
         {
-            m_currOpening = 0f;
+#if XB1 // XB1_SYNC_NOREFLECTION
+            m_currOpening = SyncType.CreateAndAddProp<float>();
+            m_open = SyncType.CreateAndAddProp<bool>();
+#endif // XB1
+            CreateTerminalControls();
+
+            m_currOpening.ValidateNever();
+            m_currOpening.Value = 0f;
             m_currSpeed = 0f;
             m_open.ValidateNever();
             m_open.ValueChanged += x => OnStateChange();
@@ -110,8 +119,11 @@ namespace Sandbox.Game.Entities
             get { return m_currOpening/MaxOpen; }
         }
 
-        static MyDoor()
+        static void CreateTerminalControls()
         {
+            if (MyTerminalControlFactory.AreControlsCreated<MyDoor>())
+                return;
+
             var open = new MyTerminalControlOnOffSwitch<MyDoor>("Open", MySpaceTexts.Blank, on: MySpaceTexts.BlockAction_DoorOpen, off: MySpaceTexts.BlockAction_DoorClosed);
             open.Getter = (x) => x.Open;
             open.Setter = (x, v) => x.SetOpenRequest(v, x.OwnerId);
@@ -119,7 +131,6 @@ namespace Sandbox.Game.Entities
             open.EnableOnOffActions();
             MyTerminalControlFactory.AddControl(open);
         }
-
 
         public void SetOpenRequest(bool open, long identityId)
         {
@@ -133,7 +144,7 @@ namespace Sandbox.Game.Entities
 
             if (relation.IsFriendly())
             {
-                m_open.Value = open;
+                Open = open;
             }
         }
 
@@ -187,15 +198,15 @@ namespace Sandbox.Game.Entities
             m_open.Value = ob.State;
             if (ob.Opening == -1)
             {
-                m_currOpening = IsFunctional ? 0 : MaxOpen;
+                m_currOpening.Value = IsFunctional ? 0 : MaxOpen;
                 m_open.Value = !IsFunctional;
             }
             else
-                m_currOpening = ob.Opening;
+                m_currOpening.Value = ob.Opening;
 
 		
 			if (!Enabled || !ResourceSink.IsPowered)
-                UpdateSlidingDoorsPosition(true);
+                UpdateSlidingDoorsPosition();
 
             OnStateChange();
 
@@ -203,7 +214,7 @@ namespace Sandbox.Game.Entities
             {
                 // required when reinitializing a door after the armor beneath it is destroyed
                 if (Open && (m_currOpening == MaxOpen))
-                    UpdateSlidingDoorsPosition(true);
+                    UpdateSlidingDoorsPosition();
             }
             sinkComp.Update();
             SlimBlock.ComponentStack.IsFunctionalChanged += ComponentStack_IsFunctionalChanged;
@@ -267,9 +278,12 @@ namespace Sandbox.Game.Entities
             float speed = ((MyDoorDefinition)BlockDefinition).OpeningSpeed;
             m_currSpeed = m_open ? speed : -speed;
 
-            NeedsUpdate |= MyEntityUpdateEnum.EACH_FRAME | MyEntityUpdateEnum.EACH_100TH_FRAME;
+            NeedsUpdate |= MyEntityUpdateEnum.EACH_FRAME;
             m_lastUpdateTime = MySandboxGame.TotalGamePlayTimeInMilliseconds;
-            UpdateCurrentOpening();
+            if (Sync.IsServer)
+            {
+                UpdateCurrentOpening();
+            }
             UpdateSlidingDoorsPosition();
             var handle = DoorStateChanged;
             if (handle != null) handle(m_open);
@@ -279,18 +293,11 @@ namespace Sandbox.Game.Entities
         {
             if (m_soundEmitter == null)
                 return;
-            if ((m_soundEmitter.Sound != null) && (m_soundEmitter.Sound.IsPlaying) && (m_soundEmitter.SoundId == cuePair.SoundId))
+            if ((m_soundEmitter.Sound != null) && (m_soundEmitter.Sound.IsPlaying) && (m_soundEmitter.SoundId == cuePair.Arcade || m_soundEmitter.SoundId == cuePair.Realistic))
                 return;
 
             m_soundEmitter.StopSound(true);
             m_soundEmitter.PlaySingleSound(cuePair, true);
-        }
-
-        public override void UpdateBeforeSimulation100()
-        {
-            base.UpdateBeforeSimulation100();
-            if (m_soundEmitter != null)
-                m_soundEmitter.Update();
         }
 
         public override void UpdateAfterSimulation()
@@ -300,18 +307,18 @@ namespace Sandbox.Game.Entities
                 return;
 
             // Don't need to update the door when nothing is happening
-            if (m_currOpening == 0 || m_currOpening >= MaxOpen)
+            if (m_currOpening == 0 || m_currOpening > MaxOpen)
                 return;
 
             //Update door position because of inaccuracies in high velocities
-            UpdateSlidingDoorsPosition(this.CubeGrid.Physics.LinearVelocity.LengthSquared() > 10f);
+            UpdateSlidingDoorsPosition();
         }
 
         public override void UpdateBeforeSimulation()
         {
             if ((Open && (m_currOpening == MaxOpen)) || (!Open && (m_currOpening == 0f)))
             {
-                if (m_soundEmitter != null && m_soundEmitter.IsPlaying && m_soundEmitter.Loop)
+                if (m_soundEmitter != null && m_soundEmitter.IsPlaying && m_soundEmitter.Loop && (BlockDefinition.DamagedSound == null || m_soundEmitter.SoundId != BlockDefinition.DamagedSound.SoundId))
                     m_soundEmitter.StopSound(false);
                 return;
             }
@@ -325,7 +332,10 @@ namespace Sandbox.Game.Entities
             }
 
             base.UpdateBeforeSimulation();
-            UpdateCurrentOpening();
+            if (Sync.IsServer)
+            {
+                UpdateCurrentOpening();
+            }
 
             m_lastUpdateTime = MySandboxGame.TotalGamePlayTimeInMilliseconds;
         }
@@ -336,11 +346,11 @@ namespace Sandbox.Game.Entities
             {
                 float timeDelta = (MySandboxGame.TotalGamePlayTimeInMilliseconds - m_lastUpdateTime) / 1000f;
                 float deltaPos = m_currSpeed * timeDelta;
-                m_currOpening = MathHelper.Clamp(m_currOpening + deltaPos, 0f, MaxOpen);
+                m_currOpening.Value = MathHelper.Clamp(m_currOpening + deltaPos, 0f, MaxOpen);
             }
         }
 
-        private void UpdateSlidingDoorsPosition(bool forceUpdate = false)
+        private void UpdateSlidingDoorsPosition()
         {
             if (this.CubeGrid.Physics == null)
                 return;
@@ -350,12 +360,12 @@ namespace Sandbox.Game.Entities
             if (m_leftSubpart != null && m_leftSubpart.Physics != null)
             {
                 m_leftSubpart.PositionComp.LocalMatrix = Matrix.CreateTranslation(new Vector3(-opening, 0f, 0f));
-                if (m_leftSubpart.Physics.LinearVelocity != this.CubeGrid.Physics.LinearVelocity)
+                if (m_leftSubpart.Physics.LinearVelocity.Equals(CubeGrid.Physics.LinearVelocity, 0.01f) == false)
                 {
                     m_leftSubpart.Physics.LinearVelocity = this.CubeGrid.Physics.LinearVelocity;
                 }
 
-                if (m_leftSubpart.Physics.AngularVelocity != this.CubeGrid.Physics.AngularVelocity)
+                if (m_leftSubpart.Physics.AngularVelocity.Equals(this.CubeGrid.Physics.AngularVelocity, 0.01f) == false)
                 {
                     m_leftSubpart.Physics.AngularVelocity = this.CubeGrid.Physics.AngularVelocity;
                 }
@@ -364,12 +374,12 @@ namespace Sandbox.Game.Entities
             if (m_rightSubpart != null && m_rightSubpart.Physics != null)
             {
                 m_rightSubpart.PositionComp.LocalMatrix = Matrix.CreateTranslation(new Vector3(opening, 0f, 0f));
-                if (m_rightSubpart.Physics.LinearVelocity != this.CubeGrid.Physics.LinearVelocity)
+                if (m_rightSubpart.Physics.LinearVelocity.Equals(CubeGrid.Physics.LinearVelocity, 0.01f) == false)
                 {
                     m_rightSubpart.Physics.LinearVelocity = this.CubeGrid.Physics.LinearVelocity;
                 }
 
-                if (m_rightSubpart.Physics.AngularVelocity != this.CubeGrid.Physics.AngularVelocity)
+                if (m_rightSubpart.Physics.AngularVelocity.Equals(this.CubeGrid.Physics.AngularVelocity, 0.01f) == false)
                 {
                     m_rightSubpart.Physics.AngularVelocity = this.CubeGrid.Physics.AngularVelocity;
                 }

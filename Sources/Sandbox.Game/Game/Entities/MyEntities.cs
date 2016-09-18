@@ -2,7 +2,7 @@
 
 using Havok;
 using Sandbox.Common;
-using Sandbox.Common.Components;
+
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Engine.Physics;
 using Sandbox.Engine.Utils;
@@ -36,6 +36,8 @@ using ParallelTasks;
 using Sandbox.Definitions;
 using VRage.Game.Entity;
 using VRage.Game;
+using VRage.Library;
+using VRage.Profiler;
 
 #endregion
 
@@ -91,10 +93,14 @@ namespace Sandbox.Game.Entities
 
         static MyEntities()
         {
+#if XB1 // XB1_ALLINONEASSEMBLY
+            MyEntityFactory.RegisterDescriptorsFromAssembly(MyAssembly.AllInOneAssembly);
+#else // !XB1
             MyEntityFactory.RegisterDescriptorsFromAssembly(Assembly.GetCallingAssembly());
             MyEntityFactory.RegisterDescriptorsFromAssembly(MyPlugins.GameAssembly);
             MyEntityFactory.RegisterDescriptorsFromAssembly(MyPlugins.SandboxAssembly);
             MyEntityFactory.RegisterDescriptorsFromAssembly(MyPlugins.UserAssembly);
+#endif // !XB1
 
             // ------------------ PLEASE READ -------------------------
             // VRAGE TODO: Delegates in MyEntity help us to get rid of sandbox. There are too many dependencies and this was the easy way to cut MyEntity out of sandbox.
@@ -309,6 +315,31 @@ namespace Sandbox.Game.Entities
             }
         }
 
+        public static Vector3D? TestPlaceInSpace(Vector3D basePos, float radius)
+        {
+            List<MyVoxelBase> voxels = new List<MyVoxelBase>();
+
+            Vector3D currentPos = basePos;
+            Quaternion rot = Quaternion.Identity;
+            HkShape sphere = new HkSphereShape(radius);
+            try
+            {
+                if (MyEntities.IsInsideWorld(currentPos) && !IsShapePenetrating(sphere, ref currentPos, ref rot))
+                {
+                    BoundingSphereD boundingSphere = new BoundingSphereD(currentPos, radius);
+                    MySession.Static.VoxelMaps.GetAllOverlappingWithSphere(ref boundingSphere, voxels);
+
+                    if (voxels.Count == 0)
+                        return currentPos;
+                }
+                return null;
+            }
+            finally
+            {
+                sphere.RemoveReference();
+            }
+        }
+
         /// <returns>True if it a safe position is found</returns>
         private static bool FindFreePlaceVoxelMap(Vector3D currentPos, float radius, ref HkShape shape, ref Vector3D ret)
         {
@@ -494,6 +525,12 @@ namespace Sandbox.Game.Entities
         {
             MyGamePruningStructure.GetAllEntitiesInBox(ref boundingBox, foundElements);
         }
+
+        public static void GetTopMostEntitiesInBox(ref BoundingBoxD boundingBox, List<MyEntity> foundElements, MyEntityQueryType qtype = MyEntityQueryType.Both)
+        {
+            MyGamePruningStructure.GetAllTopMostStaticEntitiesInBox(ref boundingBox, foundElements, qtype);
+        }
+
 
         // Helper list for storing results of various operations, mostly used in intersections
         [ThreadStatic]
@@ -745,7 +782,6 @@ namespace Sandbox.Game.Entities
         /// Removes the specified entity from scene
         /// </summary>
         /// <param name="entity">The entity.</param>
-        /// <param name="skipIfNotExist">if set to <c>true</c> [skip if not exist].</param>
         public static void Remove(MyEntity entity)
         {
             System.Diagnostics.Debug.Assert(entity != null);
@@ -1851,9 +1887,21 @@ namespace Sandbox.Game.Entities
 
             MyEntity retVal = CreateFromObjectBuilder(objectBuilder);
 
+            
             if (retVal != null)
             {
-                Add(retVal, insertIntoScene);
+                //by Gregory: added Check if Entity.Id == 0.
+                //means that save is corrupted and not all entities will be loaded but at least the save game will run with warning message.
+                //Mostly for compatibility with old save games
+                if (retVal.EntityId == 0)
+                {
+                    //If set to null a waning will be printed disabled that now cause got a lot fo Entities with EntityId = 0.
+                    //retVal = null;
+                }
+                else
+                {
+                    Add(retVal, insertIntoScene);
+                }
             }
 
             VRageRender.MyRenderProxy.GetRenderProfiler().EndProfilingBlock();
@@ -1905,8 +1953,15 @@ namespace Sandbox.Game.Entities
         {
             get
             {
-                if (!Environment.Is64BitProcess && MySandboxGame.Config.MemoryLimits)
+                if (!MyEnvironment.Is64BitProcess && MySandboxGame.Config.MemoryLimits)
+#if !XB1
                     return GC.GetTotalMemory(false) > EntityManagedMemoryLimit || WinApi.WorkingSet > EntityNativeMemoryLimit;
+#else // XB1
+                {
+                    System.Diagnostics.Debug.Assert(false, "XB1 TODO?");
+                    return false;
+                }
+#endif // XB1
                 else
                     return false;
             }
@@ -2035,6 +2090,7 @@ namespace Sandbox.Game.Entities
                         //continue;
 
                         var temporaryEntity = MyEntities.CreateFromObjectBuilderAndAdd(objectBuilder);
+
                         allEntitiesAdded &= temporaryEntity != null;
                     }
                 }
@@ -2212,6 +2268,34 @@ namespace Sandbox.Game.Entities
                     }
 
                     var entity = MyEntities.CreateFromObjectBuilderAndAdd(ob);
+                    Debug.Assert(entity != null, "Entity wasn't created!");
+                    return entity;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Fail("Entity Creation Error: Couldn't create an object builder and cast is as MyObjectBuilder_EntityBase");
+                }
+
+                return null;
+            }
+            return null;
+        }
+
+        public static MyEntity CreateEntity(MyDefinitionId entityContainerId, bool setPosAndRot = false, Vector3? position = null, Vector3? up = null, Vector3? forward = null)
+        {
+            MyContainerDefinition definition;
+            if (MyDefinitionManager.Static.TryGetContainerDefinition(entityContainerId, out definition))
+            {
+                var ob = MyObjectBuilderSerializer.CreateNewObject(entityContainerId) as MyObjectBuilder_EntityBase;
+
+                if (ob != null)
+                {
+                    if (setPosAndRot)
+                    {
+                        ob.PositionAndOrientation = new VRage.MyPositionAndOrientation(position.HasValue ? position.Value : Vector3.Zero, forward.HasValue ? forward.Value : Vector3.Forward, up.HasValue ? up.Value : Vector3.Up);
+                    }
+
+                    var entity = MyEntities.CreateFromObjectBuilder(ob);
                     Debug.Assert(entity != null, "Entity wasn't created!");
                     return entity;
                 }

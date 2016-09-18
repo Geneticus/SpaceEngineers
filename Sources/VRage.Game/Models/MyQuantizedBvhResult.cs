@@ -44,7 +44,7 @@ namespace VRage.Game.Models
         {
             System.Diagnostics.Debug.Assert((int)m_flags != 0);
 
-            MyTriangle_Vertexes triangle;
+            MyTriangle_Vertices triangle;
             MyTriangleVertexIndices triangleIndices = m_model.Triangles[triangleIndex];
 
             m_model.GetVertex(triangleIndices.I0, triangleIndices.I2, triangleIndices.I1, out triangle.Vertex0, out triangle.Vertex1, out triangle.Vertex2);
@@ -63,7 +63,8 @@ namespace VRage.Game.Models
             if ((distance != null) && ((m_result == null) || (distance.Value < m_result.Value.Distance)))
             {
                 //  We need to remember original triangleVertexes coordinates (not transformed by world matrix)
-                m_result = new MyIntersectionResultLineTriangle(ref triangle, ref calculatedTriangleNormal, distance.Value);
+                MyTriangle_BoneIndicesWeigths? boneWeights = m_model.GetBoneIndicesWeights(triangleIndex);
+                m_result = new MyIntersectionResultLineTriangle(ref triangle, ref boneWeights, ref calculatedTriangleNormal, distance.Value);
                 return distance.Value;
             }
             return null;
@@ -113,7 +114,7 @@ namespace VRage.Game.Models
         {
             System.Diagnostics.Debug.Assert((int)m_flags != 0);
 
-            MyTriangle_Vertexes triangle;
+            MyTriangle_Vertices triangle;
             MyTriangleVertexIndices triangleIndices = m_model.Triangles[triangleIndex];
 
             m_model.GetVertex(triangleIndices.I0, triangleIndices.I2, triangleIndices.I1, out triangle.Vertex0, out triangle.Vertex1, out triangle.Vertex2);
@@ -130,7 +131,8 @@ namespace VRage.Game.Models
 
             if (distance.HasValue)
             {
-                var result = new MyIntersectionResultLineTriangle(ref triangle, ref calculatedTriangleNormal, distance.Value);
+                MyTriangle_BoneIndicesWeigths? boneWeights = m_model.GetBoneIndicesWeights(triangleIndex);
+                var result = new MyIntersectionResultLineTriangle(ref triangle, ref boneWeights, ref calculatedTriangleNormal, distance.Value);
                 m_result.Add(result);
             }
 

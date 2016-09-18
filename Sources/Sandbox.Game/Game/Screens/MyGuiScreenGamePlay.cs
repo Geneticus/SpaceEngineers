@@ -16,7 +16,6 @@ using Sandbox.Game.VoiceChat;
 using Sandbox.Game.World;
 using Sandbox.Graphics;
 using Sandbox.Graphics.GUI;
-using Sandbox.Graphics.Render;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using System;
@@ -33,6 +32,12 @@ using VRageRender;
 using VRage.Game.Entity;
 using VRage.Data.Audio;
 using VRage.Game;
+using VRage.Game.ModAPI.Interfaces;
+using Sandbox.Game.Audio;
+using Sandbox.Game.SessionComponents.Clipboard;
+using VRage.Profiler;
+using VRageRender.Messages;
+using VRageRender.Utils;
 
 #endregion
 
@@ -54,7 +59,7 @@ namespace Sandbox.Game.Gui
         {
             get
             {
-                if (!MyCubeBuilder.Static.Clipboard.AllowSwitchCameraMode || !MySession.Static.Settings.Enable3rdPersonView)
+                if (!MyClipboardComponent.Static.Clipboard.AllowSwitchCameraMode || !MySession.Static.Settings.Enable3rdPersonView)
                     return false;
                 MyCameraControllerEnum cameraControllerEnum = MySession.Static.GetCameraControllerEnum();
                 bool isValidController = (cameraControllerEnum == MyCameraControllerEnum.Entity || cameraControllerEnum == MyCameraControllerEnum.ThirdPersonSpectator);
@@ -71,7 +76,7 @@ namespace Sandbox.Game.Gui
                 if (MySession.Static == null)
                     return false;
 
-                if(MySession.Static.IsAdminModeEnabled)
+                if (MySession.Static.IsAdminModeEnabled(Sync.MyId))
                 {
                     return true;
                 }
@@ -181,8 +186,13 @@ namespace Sandbox.Game.Gui
             MySandboxGame.Log.IncreaseIndent();
 
             base.UnloadContent();
-            if (MyAudio.Static != null)
-                MyAudio.Static.ReloadData();
+
+            MyXAudio2 audio = MyAudio.Static as MyXAudio2;
+            if (audio != null)
+            {
+                MyEntity3DSoundEmitter.ClearEntityEmitters();
+                audio.ClearSounds();
+            }
 
             //  Do GC collect as last step. Reason is that after we loaded new level, a lot of garbage is created and we want to clear it now and not wait until GC decides so.
             GC.Collect();
@@ -200,7 +210,15 @@ namespace Sandbox.Game.Gui
         public override void HandleInput(bool receivedFocusInThisUpdate)
         {
             bool handled = false;
-            if (MyCubeBuilder.Static != null)
+
+            if (MyClipboardComponent.Static != null)
+            {
+                ProfilerShort.Begin("CubeBuilder input");
+                handled = MyClipboardComponent.Static.HandleGameInput();
+                ProfilerShort.End();
+            }
+
+            if (!handled && MyCubeBuilder.Static != null)
             {
                 ProfilerShort.Begin("CubeBuilder input");
                 handled = MyCubeBuilder.Static.HandleGameInput();
@@ -224,17 +242,24 @@ namespace Sandbox.Game.Gui
         private static void SetAudioVolumes()
         {
             MyAudio.Static.StopMusic();
-            //MyAudio.Static.PlayMusic();
-            MyAudio.Static.PlayMusic(new MyMusicTrack() { TransitionCategory = MyStringId.GetOrCompute("Default") });
             MyAudio.Static.VolumeMusic = MySandboxGame.Config.MusicVolume;
             MyAudio.Static.VolumeGame = MySandboxGame.Config.GameVolume;
             MyAudio.Static.VolumeHud = MySandboxGame.Config.GameVolume;
+
+            if (MyPerGameSettings.UseMusicController && MyFakes.ENABLE_MUSIC_CONTROLLER && MySandboxGame.Config.EnableDynamicMusic && MySandboxGame.IsDedicated == false)
+                MyMusicController.Static = new MyMusicController(MyAudio.Static.GetAllMusicCues());
+
+            MyAudio.Static.MusicAllowed = (MyMusicController.Static == null);
+            if (MyMusicController.Static != null)
+                MyMusicController.Static.Active = true;
+            else
+                MyAudio.Static.PlayMusic(new MyMusicTrack() { TransitionCategory = MyStringId.GetOrCompute("Default") });
         }
 
         //  This method is called every update (but only if application has focus)
         public override void HandleUnhandledInput(bool receivedFocusInThisUpdate)
         {
-            if (MyInput.Static.ENABLE_DEVELOPER_KEYS || (MySession.Static != null && MySession.Static.Settings.EnableSpectator) || (MyMultiplayer.Static != null && MySession.Static.LocalHumanPlayer != null && (MyMultiplayer.Static.IsAdmin(MySession.Static.LocalHumanPlayer.Id.SteamId) || MySession.Static.IsAdminModeEnabled)))
+            if (MyInput.Static.ENABLE_DEVELOPER_KEYS || (MySession.Static != null && MySession.Static.Settings.EnableSpectator) || (MyMultiplayer.Static != null && MySession.Static.LocalHumanPlayer != null && (MyMultiplayer.Static.IsAdmin(MySession.Static.LocalHumanPlayer.Id.SteamId) || MySession.Static.IsAdminModeEnabled(MySession.Static.LocalHumanPlayer.Id.SteamId))))
             {
                 //Set camera to player
                 if (MyInput.Static.IsNewGameControlPressed(MyControlsSpace.SPECTATOR_NONE))
@@ -286,8 +311,8 @@ namespace Sandbox.Game.Gui
                             }
 
                             // We could have activated the cube builder in spectator, so deactivate it now
-                            if (MyCubeBuilder.Static.IsActivated && !(MySession.Static.ControlledEntity is MyCharacter))
-                                MyCubeBuilder.Static.Deactivate();
+                            if (!(MySession.Static.ControlledEntity is MyCharacter))
+                                MySession.Static.GameFocusManager.Clear();//MyCubeBuilder.Static.Deactivate();
                         }
                     }
                 }
@@ -313,11 +338,7 @@ namespace Sandbox.Game.Gui
                         }
                         else if (MyInput.Static.IsAnyShiftKeyPressed())
                         {
-                            if (MyFakes.ENABLE_DEVELOPER_SPECTATOR_CONTROLS)
-                            {
-                                MyFakes.ENABLE_SPECTATOR_ROLL_MOVEMENT = !MyFakes.ENABLE_SPECTATOR_ROLL_MOVEMENT;
-                            }
-                            MyFakes.ENABLE_DEVELOPER_SPECTATOR_CONTROLS = !MyFakes.ENABLE_DEVELOPER_SPECTATOR_CONTROLS;
+                            MySpectatorCameraController.Static.AlignSpectatorToGravity = !MySpectatorCameraController.Static.AlignSpectatorToGravity;
                         }
 
                         if (MyInput.Static.IsAnyCtrlKeyPressed() && MySession.Static.ControlledEntity != null)
@@ -345,11 +366,11 @@ namespace Sandbox.Game.Gui
                 }
 
                 // This was added because planets, CTG testers were frustrated from testing, because they can't move in creative
-                if (MySession.Static != null && (MySession.Static.CreativeMode || MySession.Static.IsAdminModeEnabled )&& MyInput.Static.IsNewKeyPressed(MyKeys.Space) && MyInput.Static.IsAnyCtrlKeyPressed())
+                if (MySession.Static != null && (MySession.Static.CreativeMode || MySession.Static.IsAdminModeEnabled(Sync.MyId)) && MyInput.Static.IsNewKeyPressed(MyKeys.Space) && MyInput.Static.IsAnyCtrlKeyPressed())
                 {
                     if (MySession.Static.CameraController == MySpectator.Static && MySession.Static.ControlledEntity != null)
                     {
-                        MySession.Static.ControlledEntity.Entity.PositionComp.SetPosition(MySpectator.Static.Position);
+                        MySession.Static.ControlledEntity.Teleport(MySpectator.Static.Position);
                     }
                 }
 
@@ -367,8 +388,8 @@ namespace Sandbox.Game.Gui
             }
 
             // Switch view - cockpit on/off, third person
-            if ((MyInput.Static.IsNewGameControlPressed(MyControlsSpace.CAMERA_MODE) 
-                || MyControllerHelper.IsControl(MyControllerHelper.CX_CHARACTER, MyControlsSpace.CAMERA_MODE)) 
+            if ((MyInput.Static.IsNewGameControlPressed(MyControlsSpace.CAMERA_MODE)
+                || MyControllerHelper.IsControl(MyControllerHelper.CX_CHARACTER, MyControlsSpace.CAMERA_MODE))
                 && CanSwitchCamera)
             {
                 MyGuiAudio.PlaySound(MyGuiSounds.HudClick);
@@ -439,6 +460,17 @@ namespace Sandbox.Game.Gui
             {
                 if (!MySandboxGame.IsPaused)
                 {
+                    if (MyFakes.ENABLE_NON_PUBLIC_GUI_ELEMENTS && MyInput.Static.IsNewKeyPressed(MyKeys.F2))
+                    {
+                        if (MyInput.Static.IsAnyShiftKeyPressed() && !MyInput.Static.IsAnyCtrlKeyPressed() && !MyInput.Static.IsAnyAltKeyPressed())
+                        {
+                            if (MySession.Static.Settings.GameMode == VRage.Library.Utils.MyGameModeEnum.Creative)
+                                MySession.Static.Settings.GameMode = VRage.Library.Utils.MyGameModeEnum.Survival;
+                            else
+                                MySession.Static.Settings.GameMode = VRage.Library.Utils.MyGameModeEnum.Creative;
+                        }
+                    }
+
                     if (context == MySpaceBindingCreator.CX_BUILD_MODE || context == MySpaceBindingCreator.CX_CHARACTER || context == MySpaceBindingCreator.CX_SPACESHIP)
                     {
                         if (MyControllerHelper.IsControl(context, MyControlsSpace.PRIMARY_TOOL_ACTION, MyControlStateType.NEW_PRESSED))
@@ -493,6 +525,28 @@ namespace Sandbox.Game.Gui
                         {
                             controlledObject.UseFinished();
                         }
+                        
+                        if (MyControllerHelper.IsControl(context, MyControlsSpace.PICK_UP, MyControlStateType.NEW_PRESSED))
+                        {
+                            // Key press
+                            if (currentCameraController != null)
+                            {
+                                if (!currentCameraController.HandlePickUp())
+                                    controlledObject.PickUp();
+                            }
+                            else
+                            {
+                                controlledObject.PickUp();
+                            }
+                        }
+                        else if (MyControllerHelper.IsControl(context, MyControlsSpace.PICK_UP, MyControlStateType.PRESSED))
+                        {
+                            controlledObject.PickUpContinues();
+                        }
+                        else if (MyControllerHelper.IsControl(context, MyControlsSpace.PICK_UP, MyControlStateType.NEW_RELEASED))
+                        {
+                            controlledObject.PickUpFinished();
+                        }
 
                         //Temp fix until spectators are implemented as entities
                         //Prevents controlled object from getting input while spectator mode is enabled
@@ -545,7 +599,8 @@ namespace Sandbox.Game.Gui
                         }
                         if (MyControllerHelper.IsControl(context, MyControlsSpace.THRUSTS, MyControlStateType.NEW_PRESSED))
                         {
-                            MyGuiAudio.PlaySound(MyGuiSounds.HudClick);
+                            if (controlledObject is MyCharacter == false)
+                                MyGuiAudio.PlaySound(MyGuiSounds.HudClick);
                             controlledObject.SwitchThrusts();
                         }
                         if (MyControllerHelper.IsControl(context, MyControlsSpace.HEADLIGHTS, MyControlStateType.NEW_PRESSED))
@@ -568,7 +623,6 @@ namespace Sandbox.Game.Gui
                         }
                         if (MyControllerHelper.IsControl(context, MyControlsSpace.LANDING_GEAR, MyControlStateType.NEW_PRESSED))
                         {
-                            MyGuiAudio.PlaySound(MyGuiSounds.HudClick);
                             controlledObject.SwitchLeadingGears();
                         }
                         if (MyControllerHelper.IsControl(context, MyControlsSpace.SUICIDE, MyControlStateType.NEW_PRESSED))
@@ -584,7 +638,6 @@ namespace Sandbox.Game.Gui
 
                 if (MySandboxGame.IsPaused == false)
                 {
-                    //no terminal when paused
                     if (MyControllerHelper.IsControl(context, MyControlsSpace.TERMINAL, MyControlStateType.NEW_PRESSED) && MyGuiScreenGamePlay.ActiveGameplayScreen == null)
                     {
                         MyGuiAudio.PlaySound(MyGuiSounds.HudClick);
@@ -604,7 +657,7 @@ namespace Sandbox.Game.Gui
                     }
                 }
             }
-            if ((!MyCompilationSymbols.ProfileFromStart || !VRageRender.Profiler.MyRenderProfiler.ProfilerProcessingEnabled) && MyControllerHelper.IsControl(context, MyControlsSpace.CHAT_SCREEN, MyControlStateType.NEW_PRESSED))
+            if (!VRage.Profiler.MyRenderProfiler.ProfilerVisible && MyControllerHelper.IsControl(context, MyControlsSpace.CHAT_SCREEN, MyControlStateType.NEW_PRESSED))
             {
                 if (MyGuiScreenChat.Static == null)
                 {
@@ -678,7 +731,7 @@ namespace Sandbox.Game.Gui
                 || MyControllerHelper.IsControl(context, MyControlsGUI.MAIN_MENU, MyControlStateType.NEW_PRESSED))
             {
                 MyGuiAudio.PlaySound(MyGuiSounds.HudMouseClick);
-  
+
                 //Allow changing video options from game in DX version
                 MyGuiScreenMainMenu.AddMainMenu(MySandboxGame.IsPaused == false);
             }
@@ -698,9 +751,9 @@ namespace Sandbox.Game.Gui
             {
                 //if (MyToolbarComponent.CurrentToolbar.SelectedItem == null || (MyToolbarComponent.CurrentToolbar.SelectedItem != null && MyToolbarComponent.CurrentToolbar.SelectedItem.GetType() != typeof(MyToolbarItemVoxelHand)))
                 //{
-                    MyGuiAudio.PlaySound(MyGuiSounds.HudMouseClick);
-                    var screen = MyGuiSandbox.CreateScreen(MyPerGameSettings.GUI.FactionScreen);
-                    MyScreenManager.AddScreenNow(screen);
+                MyGuiAudio.PlaySound(MyGuiSounds.HudMouseClick);
+                var screen = MyGuiSandbox.CreateScreen(MyPerGameSettings.GUI.FactionScreen);
+                MyScreenManager.AddScreenNow(screen);
                 //}
             }
 
@@ -735,13 +788,12 @@ namespace Sandbox.Game.Gui
                     if (MyInput.Static.IsAnyAltKeyPressed())
                     {
                         // ALT + F10
-                        if (MySession.Static.IsAdminMenuEnabled &&
-                           (MyPerGameSettings.Game == GameEnum.SE_GAME || MyPerGameSettings.Game == GameEnum.ME_GAME))
+                        if (MySession.Static.IsAdminMenuEnabled && MyPerGameSettings.Game != GameEnum.UNKNOWN_GAME)
                             MyGuiSandbox.AddScreen(MyGuiSandbox.CreateScreen(MyPerGameSettings.GUI.AdminMenuScreen));
                         else
                             MyHud.Notifications.Add(MyNotificationSingletons.AdminMenuNotAvailable);
                     }
-                    else if (MyPerGameSettings.GUI.VoxelMapEditingScreen != null && (MySession.Static.IsAdminModeEnabled || MySession.Static.CreativeMode) && MyInput.Static.IsAnyShiftKeyPressed())
+                    else if (MyPerGameSettings.GUI.VoxelMapEditingScreen != null && (MySession.Static.IsAdminModeEnabled(Sync.MyId) || MySession.Static.CreativeMode) && MyInput.Static.IsAnyShiftKeyPressed())
                     {
                         // Shift + F10
                         MyGuiSandbox.AddScreen(MyGuiSandbox.CreateScreen(MyPerGameSettings.GUI.VoxelMapEditingScreen));
@@ -757,7 +809,7 @@ namespace Sandbox.Game.Gui
                                 Debug.Fail("No battle blueprint screen");
                         }
                         else
-                            MyGuiSandbox.AddScreen(new MyGuiBlueprintScreen(MyCubeBuilder.Static.Clipboard));
+                            MyGuiSandbox.AddScreen(new MyGuiBlueprintScreen(MyClipboardComponent.Static.Clipboard, MySession.Static.CreativeMode || MySession.Static.IsAdminModeEnabled(Sync.MyId)));
                     }
                 }
             }
@@ -821,10 +873,18 @@ namespace Sandbox.Game.Gui
                     }
                     else
                     {
-                        if (MySession.Static.ControlledEntity is MyRemoteControl) // Stop the remotely controlled entity from rolling when the character tries to in freelook mode
+                        // Stop the controlled entity from rolling when the character tries to in freelook mode
+                        if (MySession.Static.ControlledEntity is MyRemoteControl )
+                        {
+                            rotationIndicator = Vector2.Zero;
                             rollIndicator = 0f;
+                        }
+                        else if (MySession.Static.ControlledEntity is MyCockpit || !MySession.Static.CameraController.IsInFirstPersonView)
+                        {
+                            rotationIndicator = Vector2.Zero;
+                        }
 
-                        MySession.Static.ControlledEntity.MoveAndRotate(moveIndicator, Vector2.Zero, rollIndicator);
+                        MySession.Static.ControlledEntity.MoveAndRotate(moveIndicator, rotationIndicator, rollIndicator);
                         if (!MySession.Static.CameraController.IsInFirstPersonView)
                             MyThirdPersonSpectator.Static.SaveSettings();
                     }
@@ -861,10 +921,10 @@ namespace Sandbox.Game.Gui
             if (MySession.Static.GetCameraControllerEnum() == MyCameraControllerEnum.ThirdPersonSpectator)
             {
                 MyEntityCameraSettings settings = null;
-                if (MySession.Static.LocalHumanPlayer != null && MySession.Static.ControlledEntity!=null)
+                if (MySession.Static.LocalHumanPlayer != null && MySession.Static.ControlledEntity != null)
                 {
                     if (MySession.Static.Cameras.TryGetCameraSettings(MySession.Static.LocalHumanPlayer.Id, MySession.Static.ControlledEntity.Entity.EntityId, out settings))
-                        MyThirdPersonSpectator.Static.ResetDistance(settings.Distance);
+                        MyThirdPersonSpectator.Static.ResetViewerDistance(settings.Distance);
                     else
                         MyThirdPersonSpectator.Static.RecalibrateCameraPosition();
                 }
@@ -934,7 +994,8 @@ namespace Sandbox.Game.Gui
 
 
             //Needs to be in update, because several calculation are dependedt on camera position
-            MySector.MainCamera.SetViewMatrix(MySession.Static.CameraController.GetViewMatrix());
+            // MZ: position no longer needs to be updated
+            //MySector.MainCamera.SetViewMatrix(MySector.MainCamera.ViewMatrix);
 
             base.Update(hasFocus);
             count++;
@@ -983,116 +1044,28 @@ namespace Sandbox.Game.Gui
             //    VRageRender.MyRenderProxy.DebugDrawAxis(m, 1, false);
             //}
 
-            MatrixD viewMatrix = MySession.Static.CameraController.GetViewMatrix();
-            if (viewMatrix.IsValid() && viewMatrix != MatrixD.Zero)
+            if (MySector.MainCamera != null)
             {
-                MySector.MainCamera.SetViewMatrix(viewMatrix);
+                // set new camera values
+                MySession.Static.CameraController.ControlCamera(MySector.MainCamera);
+                // update camera properties accordingly to the new settings - zoom, spring, shaking...
+                MySector.MainCamera.Update(MyEngineConstants.UPDATE_STEP_SIZE_IN_SECONDS);
+                // upload to renderer
+                MySector.MainCamera.UploadViewMatrixToRender();
             }
-            else
-            {
-                Debug.Fail("Camera matrix is invalid or zero!");
-            }
-
 
             MyRenderProxy.UpdateGameplayFrame(MySession.Static.GameplayFrameCounter);
 
-            VRageRender.MyRenderProxy.UpdateGodRaysSettings(
-                MySector.GodRaysProperties.Enabled,
-                MySector.GodRaysProperties.Density,
-                MySector.GodRaysProperties.Weight,
-                MySector.GodRaysProperties.Decay,
-                MySector.GodRaysProperties.Exposition,
-                false
-            );
-
-            VRageRender.MyRenderProxy.UpdateAntiAliasSettings(
-                MyPostProcessAntiAlias.Enabled
-            );
-
-            VRageRender.MyRenderProxy.UpdateVignettingSettings(
-                MyPostProcessVignetting.Enabled,
-                MyPostProcessVignetting.VignettingPower
-            );
-
-            VRageRender.MyRenderProxy.UpdateColorMappingSettings(
-                MyPostProcessColorMapping.Enabled
-            );
-
-            VRageRender.MyRenderProxy.UpdateChromaticAberrationSettings(
-                MyPostProcessChromaticAberration.Enabled,
-                MyPostProcessChromaticAberration.DistortionLens,
-                MyPostProcessChromaticAberration.DistortionCubic,
-                new Vector3(MyPostProcessChromaticAberration.DistortionWeightRed,
-                            MyPostProcessChromaticAberration.DistortionWeightGreen,
-                            MyPostProcessChromaticAberration.DistortionWeightBlue)
-            );
-
-            VRageRender.MyRenderProxy.UpdateContrastSettings(
-                MyPostProcessContrast.Enabled,
-                MyPostProcessContrast.Contrast,
-                MyPostProcessContrast.Hue,
-                MyPostProcessContrast.Saturation
-            );
-
-            VRageRender.MyRenderFogSettings fogSettings = new VRageRender.MyRenderFogSettings()
+            MyRenderFogSettings fogSettings = new MyRenderFogSettings()
             {
-                Enabled = MySector.FogProperties.EnableFog,
-                FogNear = MySector.FogProperties.FogNear,
-                FogFar = MySector.FogProperties.FogFar,
                 FogMultiplier = MySector.FogProperties.FogMultiplier,
-                FogBacklightMultiplier = MySector.FogProperties.FogBacklightMultiplier,
                 FogColor = MySector.FogProperties.FogColor,
                 FogDensity = MySector.FogProperties.FogDensity / 100.0f
             };
             VRageRender.MyRenderProxy.UpdateFogSettings(ref fogSettings);
 
-            VRageRender.MyRenderProxy.UpdateHDRSettings(
-                MyPostProcessHDR.DebugHDRChecked,
-                MyPostProcessHDR.Exposure,
-                MyPostProcessHDR.Threshold,
-                MyPostProcessHDR.BloomIntensity,
-                MyPostProcessHDR.BloomIntensityBackground,
-                MyPostProcessHDR.VerticalBlurAmount,
-                MyPostProcessHDR.HorizontalBlurAmount,
-                (int)MyPostProcessHDR.NumberOfBlurPasses
-            );
-
-
-            VRageRender.MyRenderProxy.UpdateSSAOSettings(
-                MyPostProcessVolumetricSSAO2.Enabled,
-                MyPostProcessVolumetricSSAO2.ShowOnlySSAO,
-                MyPostProcessVolumetricSSAO2.UseBlur,
-                MyPostProcessVolumetricSSAO2.MinRadius,
-                MyPostProcessVolumetricSSAO2.MaxRadius,
-                MyPostProcessVolumetricSSAO2.RadiusGrowZScale,
-                MyPostProcessVolumetricSSAO2.CameraZFarScale * MySector.MainCamera.FarPlaneDistance,
-                MyPostProcessVolumetricSSAO2.Bias,
-                MyPostProcessVolumetricSSAO2.Falloff,
-                MyPostProcessVolumetricSSAO2.NormValue,
-                MyPostProcessVolumetricSSAO2.Contrast
-            );
-
-            Vector3 sunDirection = -MySector.SunProperties.SunDirectionNormalized;
-            if (MySession.Static.Settings.EnableSunRotation && !MyFakes.DEVELOPMENT_PRESET)
-            {
-                sunDirection = -MySector.SunProperties.BaseSunDirectionNormalized;
-                float angle = 2.0f * MathHelper.Pi * (float)(MySession.Static.ElapsedGameTime.TotalMinutes / MySession.Static.Settings.SunRotationIntervalMinutes);
-                float originalSunCosAngle = Math.Abs(Vector3.Dot(sunDirection, Vector3.Up));
-                Vector3 sunRotationAxis;
-                if (originalSunCosAngle > 0.95f)
-                {
-                    // original sun is too close to the poles
-                    sunRotationAxis = Vector3.Cross(Vector3.Cross(sunDirection, Vector3.Left), sunDirection);
-                }
-                else
-                {
-                    sunRotationAxis = Vector3.Cross(Vector3.Cross(sunDirection, Vector3.Up), sunDirection);
-                }
-                sunDirection = Vector3.Transform(sunDirection, Matrix.CreateFromAxisAngle(sunRotationAxis, angle));
-                sunDirection.Normalize();
-
-                MySector.SunProperties.SunDirectionNormalized = -sunDirection;
-            }
+            MyRenderProxy.UpdateSSAOSettings(ref MySector.SSAOSettings);
+            MyRenderProxy.UpdateHBAOSettings(MySector.HBAOSettings);
 
             var gravityProviders = Sandbox.Game.GameSystems.MyGravityProviderSystem.NaturalGravityProviders;
             float planetFactor = 0;
@@ -1131,48 +1104,26 @@ namespace Sandbox.Game.Gui
                 }
             }
 
-            VRageRender.MyRenderProxy.UpdateRenderEnvironment(
-                sunDirection,
-                MySector.SunProperties.SunDiffuse,
-                MySector.SunProperties.AdditionalSunDiffuse,
-                MySector.SunProperties.SunSpecular,
-                MySector.SunProperties.SunIntensity,
-                MySector.SunProperties.AdditionalSunIntensity,
-                MySector.SunProperties.AdditionalSunDirection,
-                true,
-                MySector.SunProperties.AmbientColor,
-                MySector.SunProperties.AmbientMultiplier,
-                MySector.SunProperties.EnvironmentAmbientIntensity,
-                MySector.SunProperties.BackgroundColor,
-                MySector.BackgroundTexture,
-                MySector.BackgroundOrientation,
-                MySector.SunProperties.SunSizeMultiplier,
-                MySector.DistanceToSun,
-                MySector.SunProperties.SunMaterial,
-                MySector.DayTime,
-                MySector.ResetEyeAdaptation,
-                MyFakes.ENABLE_SUN_BILLBOARD,
-                planetFactor
-            );
+            var envData = MySector.SunProperties.EnvironmentData;
+            envData.Skybox = MySector.EnvironmentDefinition.EnvironmentTexture;
+            envData.SkyboxOrientation = MySector.EnvironmentDefinition.EnvironmentOrientation.ToQuaternion();
+            envData.EnvironmentLight.SunLightDirection = -MySector.SunProperties.SunDirectionNormalized;
+            MyEnvironmentLightData.CalculateBackLightDirections(envData.EnvironmentLight.SunLightDirection, MySector.SunRotationAxis, 
+                out envData.EnvironmentLight.BackLightDirection1, out envData.EnvironmentLight.BackLightDirection2);
 
-            if (MyDebugDrawSettings.DEBUG_DRAW_ADDITIONAL_ENVIRONMENTAL_LIGHTS)
-            {
-                Color[] colors = { Color.Red, Color.Green, Color.Blue, Color.Yellow, Color.SlateGray };
-                for (int lightIndex = 0; lightIndex < MySector.SunProperties.AdditionalSunDirection.Length; ++lightIndex)
-                {
-                    var lightDirection = MySector.SunProperties.AdditionalSunDirection[lightIndex];
-                    MyRenderProxy.DebugDrawSphere(
-                        MySector.MainCamera.Position + 2f * MathHelper.CalculateVectorOnSphere(MySector.SunProperties.SunDirectionNormalized, lightDirection[0], lightDirection[1]),
-                        0.25f, colors[lightIndex], 1f, false);
+            envData.PlanetFactor = planetFactor;
+            envData.SunBillboardEnabled = MyFakes.ENABLE_SUN_BILLBOARD;
 
-                }
-            }
+            VRageRender.MyRenderProxy.UpdateRenderEnvironment(ref envData, MySector.ResetEyeAdaptation);
 
             MySector.ResetEyeAdaptation = false;
             VRageRender.MyRenderProxy.UpdateEnvironmentMap();
 
+            var postprocessedSettings = MyPostprocessSettings.LerpExposure(ref MyPostprocessSettingsWrapper.Settings, ref MyPostprocessSettingsWrapper.PlanetSettings, planetFactor);
+            MyRenderProxy.SwitchPostprocessSettings(ref postprocessedSettings);
 
-            VRageRender.MyRenderProxy.SwitchProsprocessSettings(VRageRender.MyPostprocessSettings.LerpExposure(ref MyPostprocessSettingsWrapper.Settings, ref MyPostprocessSettingsWrapper.PlanetSettings, planetFactor));
+            if (MyRenderProxy.SettingsDirty)
+                MyRenderProxy.SwitchRenderSettings(MyRenderProxy.Settings);
 
             VRageRender.MyRenderProxy.GetRenderProfiler().StartNextBlock("Main render");
 

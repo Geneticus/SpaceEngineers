@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using VRage.Render11.Resources;
 
 namespace VRageRender
 {
@@ -18,7 +19,7 @@ namespace VRageRender
 
         internal unsafe static void Init()
         {
-            m_buffer = MyHwBuffers.CreateStructuredBuffer(4096, sizeof(MyPerMaterialData), true);
+            m_buffer = MyHwBuffers.CreateStructuredBuffer(4096, sizeof(MyPerMaterialData), true, null, "MySceneMaterials");
         }
 
         internal static void PreFrame()
@@ -71,8 +72,6 @@ namespace VRageRender
 
         internal unsafe static void MoveToGPU()
         {
-            var context = MyImmediateRC.RC.DeviceContext;
-
             fixed (void* ptr = TransferData)
             {
                 var intPtr = new IntPtr(ptr);

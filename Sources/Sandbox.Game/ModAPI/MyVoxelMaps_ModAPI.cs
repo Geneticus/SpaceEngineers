@@ -1,12 +1,11 @@
 ﻿using Sandbox.Definitions;
-using Sandbox.Engine.Utils;
 using Sandbox.Engine.Voxels;
 using Sandbox.Game.World;
 using Sandbox.Game.World.Generator;
-using Sandbox.ModAPI;
-using Sandbox.ModAPI.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Voxels;
 using VRageMath;
@@ -14,7 +13,7 @@ using IMyStorage = VRage.ModAPI.IMyStorage;
 
 namespace Sandbox.Game.Entities
 {
-    partial class MyVoxelMaps : ModAPI.IMyVoxelMaps
+    partial class MyVoxelMaps : IMyVoxelMaps
     {
         static MyShapeBox m_boxVoxelShape = new MyShapeBox();
         static MyShapeCapsule m_capsuleShape = new MyShapeCapsule();
@@ -34,7 +33,7 @@ namespace Sandbox.Game.Entities
 
         IMyVoxelBase IMyVoxelMaps.GetOverlappingWithSphere(ref BoundingSphereD sphere)
         {
-            return GetOverlappingWithSphere(ref sphere);
+            return GetAllOverlappingWithSphere(ref sphere).FirstOrDefault();
         }
 
         IMyVoxelBase IMyVoxelMaps.GetVoxelMapWhoseBoundingBoxIntersectsBox(ref VRageMath.BoundingBoxD boundingBox, IMyVoxelBase ignoreVoxelMap)

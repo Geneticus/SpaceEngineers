@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using Sandbox.Game.Entities;
+using Sandbox.Game.SessionComponents.Clipboard;
 using Sandbox.Game.World;
 using VRage;
 using VRage.Input;
@@ -24,7 +25,7 @@ namespace Sandbox.Game.Gui
                {
                    if (MySession.Static.CameraController == MySpectator.Static && MySession.Static.ControlledEntity != null)
                    {
-                       MySession.Static.ControlledEntity.Entity.GetTopMostParent().PositionComp.SetPosition(MySpectator.Static.Position);
+                       MySession.Static.ControlledEntity.Teleport(MySpectator.Static.Position);
                    }
                    return true;
                });
@@ -63,7 +64,7 @@ namespace Sandbox.Game.Gui
                () => "Save clipboard as prefab",
                delegate
                {
-                  MyCubeBuilder.Static.Clipboard.SaveClipboardAsPrefab();
+                   MyClipboardComponent.Static.Clipboard.SaveClipboardAsPrefab();
                    return true;
                });
         }

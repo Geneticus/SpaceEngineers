@@ -7,6 +7,7 @@ using VRage.Utils;
 using System.ComponentModel.DataAnnotations;
 using VRage.ObjectBuilders;
 using VRage.Serialization;
+using VRage.Library.Utils;
 
 namespace VRage.Game
 {
@@ -56,6 +57,12 @@ namespace VRage.Game
         [GameRelation(Game.SpaceEngineers)]
         [Range(2, int.MaxValue)]
         public short MaxFloatingObjects = 56;
+
+        [ProtoMember]
+        [Display(Name = "Max Backup Saves")]
+        [GameRelation(Game.SpaceEngineers)]
+        [Range(0, 1000)]
+        public short MaxBackupSaves = 5;
 
         [ProtoMember]
         [Display(Name = "Environment hostility")]
@@ -224,6 +231,11 @@ namespace VRage.Game
         public bool EnableOxygen = false;
 
         [ProtoMember]
+        [Display(Name = "Enable airtightness")]
+        [GameRelation(Game.SpaceEngineers)]
+        public bool EnableOxygenPressurization = false;
+
+        [ProtoMember]
         [Display(Name = "Enable 3rd person view")]
         [GameRelation(Game.SpaceEngineers)]
         public bool Enable3rdPersonView = true;
@@ -239,9 +251,9 @@ namespace VRage.Game
         public bool EnableFlora = true;
 
         [ProtoMember]
-        [Display(Name = "Enable Station Voxel Support")]
+        [Display(Name = "Enable convert to station")]
         [GameRelation(Game.SpaceEngineers)]
-        public bool EnableStationVoxelSupport = true;
+        public bool EnableConvertToStation = true;
 
         [ProtoMember]
         [Display(Name = "Enable Sun Rotation")]
@@ -314,9 +326,9 @@ namespace VRage.Game
         public bool EnableDrones = true;
 
         [ProtoMember]
-        [Display(Name = "Enable cyberhounds")]
+        [Display(Name = "Enable wolfs")]
         [GameRelation(Game.SpaceEngineers)]
-        public bool? EnableCyberhounds = true;
+        public bool? EnableWolfs = true;
 
         [ProtoMember]
         [Display(Name = "Enable spiders")]
@@ -331,7 +343,7 @@ namespace VRage.Game
         [ProtoMember]
         [Display(Name = "Enable structural simulation")]
         [GameRelation(Game.MedievalEngineers)]
-        public bool EnableStructuralSimulation = true;
+        public bool EnableStructuralSimulation = false;
 
         [ProtoMember]
         [Display(Name = "Max active fracture pieces")]
@@ -404,12 +416,6 @@ namespace VRage.Game
         NORMAL,
         CATACLYSM,
         CATACLYSM_UNREAL,
-    }
-
-    public enum MyGameModeEnum
-    {
-        Creative,
-        Survival,
     }
 
     [XmlRoot("MyConfigDedicated")]

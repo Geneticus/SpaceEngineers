@@ -1,7 +1,69 @@
 <?xml version="1.0"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <TransparentMaterials>
-     <TransparentMaterial>
+    <TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>DefaultOffscreenTarget</SubtypeId>
+      </Id>
+      <TextureType>RenderTarget</TextureType>
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <AlphaSaturation>1</AlphaSaturation>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <NeedSort>false</NeedSort>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <UseAtlas>false</UseAtlas>
+      <Color>
+        <X>1</X>
+        <Y>1</Y>
+        <Z>1</Z>
+        <W>1</W>
+      </Color>
+
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+
+    <TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>SecondOffscreenTarget</SubtypeId>
+      </Id>
+      <TextureType>RenderTarget</TextureType>
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <AlphaSaturation>1</AlphaSaturation>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <NeedSort>false</NeedSort>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <UseAtlas>false</UseAtlas>
+      <Color>
+        <X>1</X>
+        <Y>1</Y>
+        <Z>1</Z>
+        <W>1</W>
+      </Color>
+
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+
+    <TransparentMaterial>
       <Id>
         <TypeId>TransparentMaterialDefinition</TypeId>
         <SubtypeId>Blood</SubtypeId>
@@ -12,7 +74,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Blood.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -35,7 +97,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Square.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -57,7 +119,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Square.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -79,7 +141,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\ContainerBorder.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -101,7 +163,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\ContainerBorderSelected.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -123,7 +185,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>10000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\LightGlare.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -146,7 +208,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>true</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\EngineThrustMiddle.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -168,7 +230,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Explosion.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -190,7 +252,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Explosion_line.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -212,7 +274,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Explosion_pieces.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -234,7 +296,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\ExplosionSmokeDebrisLine.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -256,7 +318,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Warp.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -278,7 +340,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareHeadlight.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -300,7 +362,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareJetpack.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -322,7 +384,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareLsInteriorLight.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -344,7 +406,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareLsThrustLarge.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -366,7 +428,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareLsThrustSmall.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -388,7 +450,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>2</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareLsLight.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -410,7 +472,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>2</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareSsLight.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -432,7 +494,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareSsThrustLarge.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -454,7 +516,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareSsThrustSmall.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -476,7 +538,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\GlareWelder.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -498,7 +560,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Smoke.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -520,7 +582,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\ReflectorGlareAlphaBlended.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -543,7 +605,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\LightGlare.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -565,7 +627,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\LightGlare.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -587,7 +649,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>1</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\LightGlare_b.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -609,7 +671,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\LightGlare.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -631,7 +693,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\LightGlare.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -654,7 +716,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\MuzzleFlashMachineGunFront.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -676,7 +738,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\MuzzleFlashMachineGunSide.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -698,7 +760,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\particle_flash_a.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -720,7 +782,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\particle_flash_b.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -742,7 +804,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\particle_flash_c.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -764,7 +826,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\particle_glare.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -786,7 +848,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\particle_laser.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -808,7 +870,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\particle_nuclear.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -830,7 +892,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\particle_stone.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -852,7 +914,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\particle_trash_a.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -874,7 +936,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\particle_trash_b.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -897,7 +959,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\ProjectileTrailLine.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -920,7 +982,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>true</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Gizmo\GizmoDrawLineGreen.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -943,7 +1005,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>true</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Gizmo\GizmoDrawLineRed.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -965,7 +1027,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.1</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\ReflectorCone.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -987,7 +1049,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>3</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\ReflectorConeCharacter.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1009,7 +1071,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\ReflectorGlareAlphaBlended.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -1034,7 +1096,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\ShotgunParticle.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1056,7 +1118,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Smoke.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -1078,7 +1140,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Smoke_b.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -1100,7 +1162,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Smoke_c.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -1122,7 +1184,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\smoke_field.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -1144,7 +1206,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\smoke_field2.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1166,7 +1228,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Smoke.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -1188,7 +1250,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Smoke_lit.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1210,7 +1272,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Smoke_square.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1232,7 +1294,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Smoke_square.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1254,7 +1316,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Sparks_a.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -1276,7 +1338,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Sparks_b.dds</Texture>
       <UseAtlas>true</UseAtlas>
       <UVOffset>
@@ -1299,7 +1361,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1.0</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Stardust.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1322,7 +1384,7 @@
       <Emissivity>1.0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1.0</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Firefly.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1345,7 +1407,7 @@
       <Emissivity>0.0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1.0</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Dandelion01.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1367,7 +1429,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\SunDisk.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1389,7 +1451,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Test.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1411,7 +1473,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1433,7 +1495,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_left.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1455,7 +1517,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_right.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1477,7 +1539,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\square_fullcolor.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1499,7 +1561,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_blue.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1521,7 +1583,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_red.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1543,7 +1605,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_green.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1565,7 +1627,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_left_blue.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1587,7 +1649,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_left_green.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1609,7 +1671,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_left_red.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1631,7 +1693,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_right_blue.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1653,7 +1715,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_right_green.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1675,7 +1737,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\arrow_right_red.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1697,7 +1759,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>10000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\RedDot.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1719,7 +1781,7 @@
     <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
     <Emissivity>0</Emissivity>
     <IgnoreDepth>true</IgnoreDepth>
-    <SoftParticleDistanceScale>10000</SoftParticleDistanceScale>
+    <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
     <Texture>Textures\Particles\RedDot.dds</Texture>
     <UseAtlas>false</UseAtlas>
     <UVOffset>
@@ -1741,7 +1803,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\SquareWindowDirt.dds</Texture>
       <UseAtlas>false</UseAtlas>
 	  <NeedSort>true</NeedSort>
@@ -1771,7 +1833,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\SquareWindowDirt.dds</Texture>
       <UseAtlas>false</UseAtlas>
 	  <NeedSort>true</NeedSort>
@@ -1801,7 +1863,7 @@
       <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>0.5</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\AsteroidParticle.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1823,7 +1885,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\WeaponLaser.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1845,7 +1907,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>true</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\WeaponLaser.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1867,7 +1929,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Blood.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1889,7 +1951,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Blood5.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1911,7 +1973,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Blood2.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1933,7 +1995,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Blood3.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1955,7 +2017,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Blood4.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1977,7 +2039,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Spark1.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -1999,7 +2061,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\Spark2.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -2021,7 +2083,7 @@
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
       <NeedSort>false</NeedSort>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\smoke_cutout.dds</Texture>
 	  <AlphaCutout>true</AlphaCutout>
       <UseAtlas>false</UseAtlas>
@@ -2044,7 +2106,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\WhiteDot.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -2066,7 +2128,7 @@
       <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
       <Emissivity>0</Emissivity>
       <IgnoreDepth>false</IgnoreDepth>
-      <SoftParticleDistanceScale>1000</SoftParticleDistanceScale>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
       <Texture>Textures\Particles\WhiteSpark.dds</Texture>
       <UseAtlas>false</UseAtlas>
       <UVOffset>
@@ -2078,5 +2140,915 @@
         <Y>1</Y>
       </UVSize>
     </TransparentMaterial>
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Fire</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Fire.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Blood_Sprite_A</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Blood_Sprite_A.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_01</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_01.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_02</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_02.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_03</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_03.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_04</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_04.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_05</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_05.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_06</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_06.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_07</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_07.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_08</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_08.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_09</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_09.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_10</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_10.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_11</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_11.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_12</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_12.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_13</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_13.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Volumetric_Blood_14</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Volumetric_Blood_14.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Explosion_Spritesheet_01</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Explosion_Spritesheet_01.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Spark5</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Spark5.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Spark6</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Spark6.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Smoke_SpriteSheet_A_90f</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Smoke_SpriteSheet_A_90f.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Smoke_SpriteSheet_A_90f_Shrink</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Smoke_SpriteSheet_A_90f_Shrink.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Lightning_Spherical</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Lightning_Spherical.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Flame_Jet_A_Sprite</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Flame_Jet_A_Sprite.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Current_A_Sprite</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Current_A_Sprite.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Large_Explosion_Sprite_A</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Large_Explosion_Sprite_A.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Debris_Sprite_A</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Debris_Sprite_A.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Lens_Flare_A</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Lens_Flare_A.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Muzzle_Flash_A_Sprite</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Muzzle_Flash_A_Sprite.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Muzzle_Flash_B_Sprite</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Muzzle_Flash_B_Sprite.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Shell_Casings_A</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Shell_Casings_A.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Smoke_Trail</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Smoke_Trail.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Trail_Sprite_A</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>true</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Trail_Sprite_A.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>particle_glare_alpha</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\particle_glare_alpha.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>
+	
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>WhiteBlock</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\WhiteBlock.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>	
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Atlas_A_01</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Atlas_A_01.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Atlas_B_01</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Atlas_B_01.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>Atlas_C_01</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>0</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Particles\Atlas_C_01.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+    </TransparentMaterial>	
+	
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>CockpitGlassCW</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>1</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Models\Cubes\cockpit_interior_me.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+	  <NeedSort>true</NeedSort>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+	  <Color>
+        <X>0</X>
+        <Y>0.0</Y>
+		<Z>0.0</Z>
+		<W>0.01</W>
+      </Color>
+	  <Reflectivity>0.196</Reflectivity>
+    </TransparentMaterial>
+	<TransparentMaterial>
+      <Id>
+        <TypeId>TransparentMaterialDefinition</TypeId>
+        <SubtypeId>CockpitGlassCCW</SubtypeId>
+      </Id>      
+      <AlphaMistingEnable>false</AlphaMistingEnable>
+      <AlphaSaturation>1</AlphaSaturation>
+      <CanBeAffectedByOtherLights>false</CanBeAffectedByOtherLights>
+      <Emissivity>0</Emissivity>
+      <IgnoreDepth>false</IgnoreDepth>
+      <SoftParticleDistanceScale>1</SoftParticleDistanceScale>
+      <Texture>Textures\Models\Cubes\cockpit_interior_me.dds</Texture>
+      <UseAtlas>false</UseAtlas>
+	  <NeedSort>true</NeedSort>
+      <UVOffset>
+        <X>0</X>
+        <Y>0</Y>
+      </UVOffset>
+      <UVSize>
+        <X>1</X>
+        <Y>1</Y>
+      </UVSize>
+	  <Color>
+        <X>0.05</X>
+        <Y>0.05</Y>
+		<Z>0.05</Z>
+		<W>0.2</W>
+      </Color>
+	  <Reflectivity>0.862</Reflectivity>
+    </TransparentMaterial>			
   </TransparentMaterials>
 </Definitions>

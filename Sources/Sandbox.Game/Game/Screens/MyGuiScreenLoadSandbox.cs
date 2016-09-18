@@ -89,7 +89,11 @@ namespace Sandbox.Game.Gui
             Controls.Add(m_editButton = MakeButton(buttonOrigin + buttonDelta * 2, MyCommonTexts.LoadScreenButtonEditSettings, OnEditClick));
             Controls.Add(m_saveButton = MakeButton(buttonOrigin + buttonDelta * 3, MyCommonTexts.LoadScreenButtonSaveAs, OnSaveAsClick));
             Controls.Add(m_deleteButton = MakeButton(buttonOrigin + buttonDelta * 4, MyCommonTexts.LoadScreenButtonDelete, OnDeleteClick));
-            Controls.Add(m_publishButton = MakeButton(buttonOrigin + buttonDelta * 6, MyCommonTexts.LoadScreenButtonPublish, OnPublishClick));
+            m_publishButton = MakeButton(buttonOrigin + buttonDelta * 6, MyCommonTexts.LoadScreenButtonPublish, OnPublishClick);
+            if (!MyFakes.XB1_PREVIEW)
+            {
+                Controls.Add(m_publishButton);
+            }
 
             m_publishButton.SetToolTip(MyTexts.GetString(MyCommonTexts.LoadScreenButtonTooltipPublish));
 
@@ -218,6 +222,7 @@ namespace Sandbox.Game.Gui
 
         void OnPublishClick(MyGuiControlButton sender)
         {
+#if !XB1 // XB1_NOWORKSHOP
             var row = m_sessionsTable.SelectedRow;
             if (row == null)
                 return;
@@ -226,8 +231,12 @@ namespace Sandbox.Game.Gui
             {
                 Publish(save.Item1, save.Item2);
             }
+#else // XB1
+            System.Diagnostics.Debug.Assert(false); // TODO?
+#endif // XB1
         }
 
+#if !XB1 // XB1_NOWORKSHOP
         public static void Publish(string sessionPath, MyWorldInfo worlInfo)
         {
             if (MyFakes.XBOX_PREVIEW)
@@ -309,6 +318,7 @@ namespace Sandbox.Game.Gui
                 }));
 
         }
+#endif // !XB1
 
         void OnTableItemSelected(MyGuiControlTable sender, MyGuiControlTable.EventArgs eventArgs)
         {
@@ -357,23 +367,33 @@ namespace Sandbox.Game.Gui
             }
 
             MySteamWorkshop.DownloadModsAsync(world.Checkpoint.Mods,
-                onFinishedCallback: delegate(bool success)
-                {
+                onFinishedCallback: 
+                delegate(bool success,string mismatchMods)
+                {                       
                     if (success)
                     {
-                        //Sandbox.Audio.MyAudio.Static.Mute = true;
-
-                        MyScreenManager.CloseAllScreensNowExcept(null);
-                        MyGuiSandbox.Update(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_MILLISECONDS);
-
-                        // May be called from gameplay, so we must make sure we unload the current game
-                        if (MySession.Static != null)
+                        CheckMismatchmods(mismatchMods, delegate(VRage.Game.ModAPI.ResultEnum val)
                         {
-                            MySession.Static.Unload();
-                            MySession.Static = null;
-                        }
+                            if (val == VRage.Game.ModAPI.ResultEnum.OK)
+                            {
+                                //Sandbox.Audio.MyAudio.Static.Mute = true;
+                                MyScreenManager.CloseAllScreensNowExcept(null);
+                                MyGuiSandbox.Update(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_MILLISECONDS);
 
-                        MyGuiScreenGamePlay.StartLoading(delegate { MySession.LoadMultiplayer(world, multiplayerSession); });
+                                // May be called from gameplay, so we must make sure we unload the current game
+                                if (MySession.Static != null)
+                                {
+                                    MySession.Static.Unload();
+                                    MySession.Static = null;
+                                }
+
+                                MyGuiScreenGamePlay.StartLoading(delegate { MySession.LoadMultiplayer(world, multiplayerSession); });
+                            }
+                            else
+                            {
+                                MyGuiScreenMainMenu.UnloadAndExitToMenu();
+                            }
+                        });
                     }
                     else
                     {
@@ -405,6 +425,25 @@ namespace Sandbox.Game.Gui
                 });
         }
 
+        public static void CheckMismatchmods(string mismatchMods, Action<VRage.Game.ModAPI.ResultEnum> callback)
+        {
+            if (String.IsNullOrEmpty(mismatchMods) == false && String.IsNullOrWhiteSpace(mismatchMods) == false)
+            {
+                MyGuiSandbox.AddScreen(new MyGuiScreenText(
+                    windowSize:new Vector2(0.73f, 0.7f),
+                    descSize: new Vector2(0.62f,0.44f),
+                    missionTitle: MyTexts.GetString(MyCommonTexts.MessageBoxCaptionWarning),
+                    currentObjectivePrefix:"",
+                    currentObjective: MyTexts.GetString(MyCommonTexts.MessageBoxModsMismatch),
+                    description: mismatchMods,
+                    resultCallback: callback));
+            }
+            else if(callback != null)
+            {
+                callback(VRage.Game.ModAPI.ResultEnum.OK);
+            }
+        }
+
         public static void LoadMultiplayerScenarioWorld(MyObjectBuilder_World world, MyMultiplayerBase multiplayerSession)
         {
             Debug.Assert(MySession.Static != null);
@@ -426,18 +465,21 @@ namespace Sandbox.Game.Gui
             }
 
             MySteamWorkshop.DownloadModsAsync(world.Checkpoint.Mods,
-                onFinishedCallback: delegate(bool success)
+                onFinishedCallback: delegate(bool success,string mismatchMods)
                 {
                     if (success)
                     {
-                        MyScreenManager.CloseAllScreensNowExcept(null);
-                        MyGuiSandbox.Update(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_MILLISECONDS);
-
-                        MyGuiScreenGamePlay.StartLoading(delegate
+                        CheckMismatchmods(mismatchMods, callback: delegate(VRage.Game.ModAPI.ResultEnum val)
                         {
-                            MySession.Static.LoadMultiplayerWorld(world, multiplayerSession);
-                            if (ScenarioWorldLoaded != null)
-                                ScenarioWorldLoaded();
+                            MyScreenManager.CloseAllScreensNowExcept(null);
+                            MyGuiSandbox.Update(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_MILLISECONDS);
+
+                            MyGuiScreenGamePlay.StartLoading(delegate
+                            {
+                                MySession.Static.LoadMultiplayerWorld(world, multiplayerSession);
+                                if (ScenarioWorldLoaded != null)
+                                    ScenarioWorldLoaded();
+                            });
                         });
                     }
                     else
@@ -472,25 +514,27 @@ namespace Sandbox.Game.Gui
             }
 
             MySteamWorkshop.DownloadModsAsync(world.Checkpoint.Mods,
-                onFinishedCallback: delegate(bool success)
+                onFinishedCallback: delegate(bool success,string mismatchMods)
                 {
                     if (success)
                     {
                         MyScreenManager.CloseAllScreensNowExcept(null);
                         MyGuiSandbox.Update(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_MILLISECONDS);
-
-                        MyGuiScreenGamePlay.StartLoading(delegate 
+                        CheckMismatchmods(mismatchMods, callback: delegate(VRage.Game.ModAPI.ResultEnum val)
                         {
-                            if (MySession.Static == null)
+                            MyGuiScreenGamePlay.StartLoading(delegate
                             {
-                                MySession.CreateWithEmptyWorld(multiplayerSession);
-                                MySession.Static.Settings.Battle = true;
-                            }
+                                if (MySession.Static == null)
+                                {
+                                    MySession.CreateWithEmptyWorld(multiplayerSession);
+                                    MySession.Static.Settings.Battle = true;
+                                }
 
-                            MySession.Static.LoadMultiplayerWorld(world, multiplayerSession);
-                            Debug.Assert(MySession.Static.Battle);
-                            if (BattleWorldLoaded != null)
-                                BattleWorldLoaded();
+                                MySession.Static.LoadMultiplayerWorld(world, multiplayerSession);
+                                Debug.Assert(MySession.Static.Battle);
+                                if (BattleWorldLoaded != null)
+                                    BattleWorldLoaded();
+                            });
                         });
                     }
                     else
@@ -556,26 +600,34 @@ namespace Sandbox.Game.Gui
             }
 
 
-            MySteamWorkshop.DownloadModsAsync(checkpoint.Mods, delegate(bool success)
+            MySteamWorkshop.DownloadModsAsync(checkpoint.Mods, delegate(bool success,string mismatchMods)
             {
                 if (success || (checkpoint.Settings.OnlineMode == MyOnlineModeEnum.OFFLINE) && MySteamWorkshop.CanRunOffline(checkpoint.Mods))
                 {
-                    //Sandbox.Audio.MyAudio.Static.Mute = true;
-
+                    //Sandbox.Audio.MyAudio.Static.Mute = true;           
                     MyScreenManager.CloseAllScreensNowExcept(null);
                     MyGuiSandbox.Update(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_MILLISECONDS);
-
-                    // May be called from gameplay, so we must make sure we unload the current game
-                    if (MySession.Static != null)
-                    {
-                        MySession.Static.Unload();
-                        MySession.Static = null;
-                    }
-                    MyGuiScreenGamePlay.StartLoading(delegate
-                    {
-                        MyAnalyticsHelper.SetEntry(MyGameEntryEnum.Load);
-                        MySession.Load(sessionPath, checkpoint, checkpointSizeInBytes);
-                    });
+                    CheckMismatchmods(mismatchMods, callback: delegate(VRage.Game.ModAPI.ResultEnum val)
+                        {
+                            if (val == VRage.Game.ModAPI.ResultEnum.OK)
+                            {
+                                // May be called from gameplay, so we must make sure we unload the current game
+                                if (MySession.Static != null)
+                                {
+                                    MySession.Static.Unload();
+                                    MySession.Static = null;
+                                }
+                                MyGuiScreenGamePlay.StartLoading(delegate
+                                {
+                                    MyAnalyticsHelper.SetEntry(MyGameEntryEnum.Load);
+                                    MySession.Load(sessionPath, checkpoint, checkpointSizeInBytes);
+                                });
+                            }
+                            else
+                            {
+                                MyGuiScreenMainMenu.ReturnToMainMenu();
+                            }
+                        });                      
                 }
                 else
                 {
@@ -692,6 +744,19 @@ namespace Sandbox.Game.Gui
             }
 
             m_sessionsTable.SelectedRowIndex = m_selectedRow;
+            m_sessionsTable.ScrollToSelection();
+        }
+
+        public void SelectSteamWorld(string sessionPath)
+        {
+            int i;
+            for (i = 0; i < m_availableSaves.Count; i++)
+                if (sessionPath.Equals(m_availableSaves[i].Item1))
+                    break;
+
+            Debug.Assert(i >= m_availableSaves.Count, "table row out of range!!!");
+
+            m_sessionsTable.SelectedRowIndex = i;
             m_sessionsTable.ScrollToSelection();
         }
 

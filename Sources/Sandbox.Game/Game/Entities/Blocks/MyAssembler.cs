@@ -25,7 +25,7 @@ using VRage;
 using Sandbox.Game.GameSystems;
 using VRage.Utils;
 using Sandbox.Game.GameSystems.Conveyors;
-using Sandbox.ModAPI.Ingame;
+using Sandbox.ModAPI;
 using Sandbox.Game.Localization;
 using VRage;
 using Sandbox.Game.Entities.Interfaces;
@@ -41,7 +41,7 @@ using VRage.Network;
 namespace Sandbox.Game.Entities.Cube
 {
     [MyCubeBlockType(typeof(MyObjectBuilder_Assembler))]
-    class MyAssembler : MyProductionBlock, IMyAssembler, IMyEventProxy
+    public class MyAssembler : MyProductionBlock, IMyAssembler, IMyEventProxy
     {
 
         public enum StateEnum
@@ -122,8 +122,18 @@ namespace Sandbox.Game.Entities.Cube
         public event Action<MyAssembler> CurrentStateChanged;
         public event Action<MyAssembler> CurrentModeChanged;
 
-        static MyAssembler()
+        public MyAssembler() :
+            base()
         {
+            CreateTerminalControls();
+
+            m_otherQueue = new List<QueueItem>();
+        }
+
+        static void CreateTerminalControls()
+        {
+            if (MyTerminalControlFactory.AreControlsCreated<MyAssembler>())
+                return;
 
             var slaveCheck = new MyTerminalControlCheckbox<MyAssembler>("slaveMode", MySpaceTexts.Assembler_SlaveMode, MySpaceTexts.Assembler_SlaveMode);
             slaveCheck.Getter = (x) => x.IsSlave;
@@ -140,16 +150,11 @@ namespace Sandbox.Game.Entities.Cube
             MyTerminalControlFactory.AddControl(slaveCheck);
         }
 
-        public MyAssembler() :
-            base()
-        {
-            m_otherQueue = new List<QueueItem>();
-        }
-
         public override void Init(MyObjectBuilder_CubeBlock objectBuilder, MyCubeGrid cubeGrid)
         {
             base.Init(objectBuilder, cubeGrid);
             m_cubeGrid = cubeGrid;
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
 
             MyDebug.AssertDebug(BlockDefinition is MyAssemblerDefinition);
             m_assemblerDef = BlockDefinition as MyAssemblerDefinition;
@@ -282,6 +287,9 @@ namespace Sandbox.Game.Entities.Cube
         private static Predicate<IMyConveyorEndpoint> m_edgePredicate = EdgeRules;
         private static bool EdgeRules(IMyConveyorEndpoint edge)
         {
+            if (edge.CubeBlock.OwnerId == 0)
+                return true;
+
             return m_assemblerForPathfinding.FriendlyWithBlock(edge.CubeBlock);
         }
 
@@ -291,7 +299,7 @@ namespace Sandbox.Game.Entities.Cube
             
             m_assemblerForPathfinding = this;
 
-            MyGridConveyorSystem.Pathfinding.FindReachable(this.ConveyorEndpoint, m_conveyorEndpoints, m_vertexPredicate, m_edgePredicate);
+            MyGridConveyorSystem.FindReachable(this.ConveyorEndpoint, m_conveyorEndpoints, m_vertexPredicate, m_edgePredicate);
 
             MyUtils.ShuffleList<IMyConveyorEndpoint>(m_conveyorEndpoints);
 
@@ -910,7 +918,7 @@ namespace Sandbox.Game.Entities.Cube
         {
             m_inventoryOwners.Clear();
             List<IMyConveyorEndpoint> reachableVertices = new List<IMyConveyorEndpoint>();
-            MyGridConveyorSystem.Pathfinding.FindReachable(this.ConveyorEndpoint, reachableVertices, (vertex) => vertex.CubeBlock != null && FriendlyWithBlock(vertex.CubeBlock) && vertex.CubeBlock.HasInventory);
+            MyGridConveyorSystem.FindReachable(this.ConveyorEndpoint, reachableVertices, (vertex) => vertex.CubeBlock != null && FriendlyWithBlock(vertex.CubeBlock) && vertex.CubeBlock.HasInventory);
 
             foreach (var vertex in reachableVertices)
             {
@@ -983,6 +991,6 @@ namespace Sandbox.Game.Entities.Cube
                 if (Sync.IsServer)
                     OutputInventory.ContentsChanged -= OutputInventory_ContentsChanged;
             }
-        }     
+        }
     }
 }

@@ -20,6 +20,7 @@ using VRage.Game.Entity;
 using VRage.Generics;
 using VRage.Input;
 using VRage.Library.Utils;
+using VRage.Profiler;
 using VRage.Utils;
 using VRageMath;
 using VRageRender;
@@ -210,8 +211,6 @@ namespace Sandbox.Game.GameSystems
 		#region Oxygen
 		public const float OXYGEN_UNIFORMIZATION_TIME_MS = 1500;
 
-        private readonly List<MyParticleEffect> m_depressurizationEffects = new List<MyParticleEffect>();
-
         private bool m_isPressurizing = false;
         //Intermediary storage. Needed because the pressurization process can be interrupted
         private MyOxygenBlock[, ,] m_tempPrevCubeRoom;
@@ -249,11 +248,12 @@ namespace Sandbox.Game.GameSystems
         MyOxygenRoomLinkPool m_OxygenRoomLinkPool;
         
         Task m_backgroundTask;
-        bool m_bgTaskRunning=false;
+        bool m_bgTaskRunning = false;
         bool m_doPostProcess = false;
 		#endregion
 
         private int m_lastUpdateTime;
+        private bool isClosing = false;
 
         //Cannot use Base6Direction because it's not optimal to process neighbours in that order
         private readonly List<Vector3I> m_neighbours = new List<Vector3I>()
@@ -274,6 +274,40 @@ namespace Sandbox.Game.GameSystems
             cubeGrid.OnBlockRemoved += cubeGrid_OnBlockRemoved;
 
             m_lastUpdateTime = MySandboxGame.TotalGamePlayTimeInMilliseconds;
+        }
+
+        public void OnGridClosing()
+        {
+            // This will invalidate any running thread
+            isClosing = true;
+
+            // Wait for the task to finish
+            if (m_bgTaskRunning)
+            {
+                // Wait can throw an exception; but since the thread will most likely be blocking at this point anyway it is okay to try-catch it, it shouldn't affect performance
+                try
+                {
+                    m_backgroundTask.Wait();
+                }
+                catch (Exception ex)
+                {
+                    MySandboxGame.Log.WriteLineAndConsole("MyGridGasSystem.OnGridClosing: " + ex.Message + ", " + ex.StackTrace);
+                }
+            }
+
+            m_cubeGrid.OnBlockAdded -= cubeGrid_OnBlockAdded;
+            m_cubeGrid.OnBlockRemoved -= cubeGrid_OnBlockRemoved;
+
+            foreach (var block in m_cubeGrid.GetFatBlocks())
+            {
+                IMyDoor door = block as IMyDoor;
+                if(door != null)
+                    door.DoorStateChanged -= OnDoorStateChanged;
+            }
+
+            // Clear out pool to release memory
+            if (m_OxygenRoomLinkPool != null && m_OxygenRoomLinkPool.pool != null)
+                m_OxygenRoomLinkPool.pool.DeallocateAll();
         }
 
         void cubeGrid_OnBlockAdded(MySlimBlock addedBlock)
@@ -382,8 +416,8 @@ namespace Sandbox.Game.GameSystems
                 }
                 else if (!m_bgTaskRunning)
                 {
-                    m_bgTaskRunning = true;
                     m_backgroundTask = Parallel.Start(BackgroundPressurizeStart, BackgroundPressurizeFinished);
+                    m_bgTaskRunning = true;
                 }
                 ProfilerShort.End();
             }
@@ -427,26 +461,6 @@ namespace Sandbox.Game.GameSystems
                         oxygenAmount[i] = (float)m_rooms[i].OxygenAmount;
                     }
                     m_cubeGrid.UpdateOxygenAmount(oxygenAmount);
-                }
-            }
-
-            foreach (var effect in m_depressurizationEffects)
-            {
-                if (effect.GetElapsedTime() > 1f)
-                    effect.Stop();
-            }
-
-            int index = 0;
-            while (index < m_depressurizationEffects.Count)
-            {
-                if (m_depressurizationEffects[index].GetParticlesCount() == 0)
-                {
-                    m_depressurizationEffects[index].Close(true);
-                    m_depressurizationEffects.RemoveAt(index);
-                }
-                else
-                {
-                    index++;
                 }
             }
         }
@@ -551,7 +565,7 @@ namespace Sandbox.Game.GameSystems
             }
             ProfilerShort.Begin("Oxygen PressurizeProcessQueue");
             int index = 0;
-            while (m_queue.Count > 0)
+            while (m_queue.Count > 0 && !isClosing)
             {
                 if (m_qMaxSize < m_queue.Count)
                     m_qMaxSize = m_queue.Count;
@@ -670,6 +684,9 @@ namespace Sandbox.Game.GameSystems
 
         private void PressurizePostProcess()
         {
+            // No need to post-process when closing
+            if (isClosing) return;
+
             ProfilerShort.Begin("Oxygen PressurizePostProcess");
             m_prevCubeRoom = m_tempPrevCubeRoom;
             m_prevCubeRoomDimensions = m_tempPrevCubeRoomDimensions;
@@ -938,12 +955,8 @@ namespace Sandbox.Game.GameSystems
             {
                 var orientation = Matrix.CreateFromDir(to - from);
                 orientation.Translation = from;
-                effect.UserScale = 3f;
 
                 effect.WorldMatrix = orientation;
-                effect.AutoDelete = true;
-
-                m_depressurizationEffects.Add(effect);
 
                 MyEntity3DSoundEmitter airLeakSound = MyAudioComponent.TryGetSoundEmitter();
                 if (airLeakSound != null)
@@ -1141,6 +1154,19 @@ namespace Sandbox.Game.GameSystems
                         }
                         ProfilerShort.End();
                         return true;
+                    }
+                }
+                else if (doorBlock is MyAirtightSlideDoor)
+                {
+                    var hangarDoor = doorBlock as MyAirtightDoorGeneric;
+                    if (hangarDoor.IsFullyClosed)
+                    {
+                        //check only forward for slide door from backgward it should be not accessible (closed door)
+                        if (transformedNormal == Vector3.Forward)
+                        {
+                            ProfilerShort.End();
+                            return true;
+                        }
                     }
                 }
                 else if (doorBlock is MyAirtightDoorGeneric)
@@ -1402,7 +1428,7 @@ namespace Sandbox.Game.GameSystems
                         }
                         if (DEBUG_MODE)
                         {
-                            MyRenderProxy.DebugDrawText3D(worldPos, roomIndex.ToString(), Color.White, 0.5f, false);
+                            MyRenderProxy.DebugDrawText3D(worldPos, roomIndex.ToString()/* + " " + (i + GridMin().X) + " " + (j + GridMin().Y) + " " + (k + GridMin().Z)*/, Color.White, 0.5f, false);
                         }
                     }
 

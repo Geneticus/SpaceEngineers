@@ -8,8 +8,8 @@ using System.Linq;
 using System.Text;
 using VRage;
 using VRage.Game.Entity;
+using VRage.Profiler;
 using VRage.Utils;
-using VRage.Voxels;
 using VRageMath;
 
 namespace Sandbox.Game.AI.Pathfinding
@@ -239,8 +239,7 @@ namespace Sandbox.Game.AI.Pathfinding
             {
                 m_tmpNavmeshes.Add(mesh.Value);
             }
-            if (!MyFakes.DEBUG_AVOID_RANDOM_AI)
-                m_tmpNavmeshes.ShuffleList();
+            m_tmpNavmeshes.ShuffleList();
         }
 
         private void PerformCellMarking(List<Vector3D> updatePositions)

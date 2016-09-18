@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using VRage.Render11.Resources;
 using VRageMath;
 
 namespace VRageRender
@@ -29,7 +30,7 @@ namespace VRageRender
             m_allocationSize = Math.Min(maxAlloc, m_allocationSize);
 
             Debug.Assert(m_stream == VertexBufferId.NULL);
-            m_stream = MyHwBuffers.CreateVertexBuffer(m_allocationSize, vertexStride, BindFlags.VertexBuffer | BindFlags.StreamOutput, ResourceUsage.Default);
+            m_stream = MyHwBuffers.CreateVertexBuffer(m_allocationSize, vertexStride, BindFlags.VertexBuffer | BindFlags.StreamOutput, ResourceUsage.Default, null, "MyFoliageStream");
         }
 
         public void Dispose()

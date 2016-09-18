@@ -16,7 +16,7 @@ using System.Text;
 using Sandbox.Common;
 using VRage.Utils;
 using Sandbox.Game.World;
-using Sandbox.ModAPI.Ingame;
+using Sandbox.ModAPI;
 using Sandbox.Game.GameSystems;
 using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Game.EntityComponents;
@@ -24,17 +24,17 @@ using VRage.Game.ObjectBuilders.Definitions;
 using VRage.ModAPI;
 using VRageRender;
 using VRage.Game.Components;
-using IMyInventoryOwner = VRage.ModAPI.Ingame.IMyInventoryOwner;
+using IMyInventoryOwner = VRage.Game.ModAPI.Ingame.IMyInventoryOwner;
 using Sandbox.Engine.Utils;
 using VRage.Game.Entity;
 using VRage.Game;
-using VRage.ModAPI.Ingame;
+using VRage.Game.ModAPI.Ingame;
 using VRage.Network;
 
 namespace Sandbox.Game.Entities.Blocks
 {
     [MyCubeBlockType(typeof(MyObjectBuilder_OxygenTank))]
-    class MyGasTank : MyFunctionalBlock, IMyGasBlock, IMyOxygenTank, VRage.ModAPI.Ingame.IMyInventoryOwner
+    public class MyGasTank : MyFunctionalBlock, IMyGasBlock, IMyOxygenTank, VRage.Game.ModAPI.Ingame.IMyInventoryOwner
     {
         private static readonly string[] m_emissiveNames = { "Emissive1", "Emissive2", "Emissive3", "Emissive4" };
         
@@ -79,41 +79,46 @@ namespace Sandbox.Game.Entities.Blocks
             m_conveyorEndpoint = new MyMultilineConveyorEndpoint(this);
         }
 
-        static MyGasTank()
-        {
-	        var isStockpiling = new MyTerminalControlOnOffSwitch<MyGasTank>("Stockpile", MySpaceTexts.BlockPropertyTitle_Stockpile, MySpaceTexts.BlockPropertyDescription_Stockpile)
-	        {
-		        Getter = (x) => x.IsStockpiling,
-		        Setter = (x, v) => x.ChangeStockpileMode(v)
-	        };
-	        isStockpiling.EnableToggleAction();
-            isStockpiling.EnableOnOffActions();
-            MyTerminalControlFactory.AddControl(isStockpiling);
-
-	        var refillButton = new MyTerminalControlButton<MyGasTank>("Refill", MySpaceTexts.BlockPropertyTitle_Refill, MySpaceTexts.BlockPropertyTitle_Refill, OnRefillButtonPressed)
-	        {
-		        Enabled = (x) => x.CanRefill()
-	        };
-	        refillButton.EnableAction();
-            MyTerminalControlFactory.AddControl(refillButton);
-
-	        var autoRefill = new MyTerminalControlCheckbox<MyGasTank>("Auto-Refill", MySpaceTexts.BlockPropertyTitle_AutoRefill, MySpaceTexts.BlockPropertyTitle_AutoRefill)
-	        {
-		        Getter = (x) => x.m_autoRefill,
-		        Setter = (x, v) => x.ChangeAutoRefill(v)
-	        };
-	        autoRefill.EnableAction();
-            MyTerminalControlFactory.AddControl(autoRefill);
-
-        }
-
 	    public MyGasTank()
 	    {
+            CreateTerminalControls();
+
 			SourceComp = new MyResourceSourceComponent();
 			ResourceSink = new MyResourceSinkComponent(2);
 	    }
 
-		public override void Init(MyObjectBuilder_CubeBlock objectBuilder, MyCubeGrid cubeGrid)
+        static void CreateTerminalControls()
+        {
+            if (MyTerminalControlFactory.AreControlsCreated<MyGasTank>())
+                return;
+
+            var isStockpiling = new MyTerminalControlOnOffSwitch<MyGasTank>("Stockpile", MySpaceTexts.BlockPropertyTitle_Stockpile, MySpaceTexts.BlockPropertyDescription_Stockpile)
+            {
+                Getter = (x) => x.IsStockpiling,
+                Setter = (x, v) => x.ChangeStockpileMode(v)
+            };
+            isStockpiling.EnableToggleAction();
+            isStockpiling.EnableOnOffActions();
+            MyTerminalControlFactory.AddControl(isStockpiling);
+
+            var refillButton = new MyTerminalControlButton<MyGasTank>("Refill", MySpaceTexts.BlockPropertyTitle_Refill, MySpaceTexts.BlockPropertyTitle_Refill, OnRefillButtonPressed)
+            {
+                Enabled = (x) => x.CanRefill()
+            };
+            refillButton.EnableAction();
+            MyTerminalControlFactory.AddControl(refillButton);
+
+            var autoRefill = new MyTerminalControlCheckbox<MyGasTank>("Auto-Refill", MySpaceTexts.BlockPropertyTitle_AutoRefill, MySpaceTexts.BlockPropertyTitle_AutoRefill)
+            {
+                Getter = (x) => x.m_autoRefill,
+                Setter = (x, v) => x.ChangeAutoRefill(v)
+            };
+            autoRefill.EnableAction();
+            MyTerminalControlFactory.AddControl(autoRefill);
+
+        }
+
+        public override void Init(MyObjectBuilder_CubeBlock objectBuilder, MyCubeGrid cubeGrid)
 		{
 			SyncFlag = true;
 
@@ -136,15 +141,10 @@ namespace Sandbox.Game.Entities.Blocks
 
             if (this.GetInventory() == null)
             {
-                Components.Add<MyInventoryBase>( new MyInventory(
-                    BlockDefinition.InventoryMaxVolume,
-                        BlockDefinition.InventorySize,
-                        MyInventoryFlags.CanReceive,
-                        this)
-                {
-                    Constraint = BlockDefinition.InputInventoryConstraint
-                });
-                this.GetInventory().Init(builder.Inventory);
+                MyInventory inventory = new MyInventory(BlockDefinition.InventoryMaxVolume, BlockDefinition.InventorySize, MyInventoryFlags.CanReceive);
+                inventory.Constraint = BlockDefinition.InputInventoryConstraint;
+                Components.Add<MyInventoryBase>(inventory);
+                inventory.Init(builder.Inventory);
             }
             Debug.Assert(this.GetInventory().Owner == this, "Ownership was not set!");
             
@@ -274,6 +274,9 @@ namespace Sandbox.Game.Entities.Blocks
 	        if (m_autoRefill && CanRefill())
 		        RefillBottles();
 
+            // this is performance unfriendly
+            // its supposed to be in Sink_CurrentInputChanged, but it dont catch slider change correctly
+            SourceComp.Enabled = CanStore;
             ExecuteGasTransfer();
         }
 
@@ -384,6 +387,7 @@ namespace Sandbox.Game.Entities.Blocks
 			if (resourceTypeId != BlockDefinition.StoredGasId)
 				return;
 
+            SourceComp.Enabled = CanStore;
             float timeSinceLastUpdateSeconds = (MySession.Static.GameplayFrameCounter - m_lastInputUpdateTime) / VRage.Game.MyEngineConstants.UPDATE_STEPS_PER_SECOND;
             m_lastInputUpdateTime = MySession.Static.GameplayFrameCounter;
 			float inputAmount = oldInput*timeSinceLastUpdateSeconds;
@@ -435,7 +439,7 @@ namespace Sandbox.Game.Entities.Blocks
 
 	        for (int nameIndex = 0; nameIndex < m_emissiveNames.Length; ++nameIndex)
 	        {
-		        MyRenderProxy.UpdateColorEmissivity(Render.RenderObjectIDs[0], 0, m_emissiveNames[nameIndex], nameIndex < fillCount ? color : Color.Black, 1);
+                UpdateNamedEmissiveParts(Render.RenderObjectIDs[0], m_emissiveNames[nameIndex], nameIndex < fillCount ? color : Color.Black, 1);
 	        }
 	        m_prevColor = color;
 	        m_prevFillCount = fillCount;
@@ -646,6 +650,24 @@ namespace Sandbox.Game.Entities.Blocks
         IMyInventory IMyInventoryOwner.GetInventory(int index)
         {
             return this.GetInventory(index);
+        }
+
+        #endregion
+
+        #region IMyConveyorEndpointBlock implementation
+
+        public Sandbox.Game.GameSystems.Conveyors.PullInformation GetPullInformation()
+        {
+            Sandbox.Game.GameSystems.Conveyors.PullInformation pullInformation = new Sandbox.Game.GameSystems.Conveyors.PullInformation();
+            pullInformation.Inventory = this.GetInventory();
+            pullInformation.OwnerID = OwnerId;
+            pullInformation.Constraint = pullInformation.Inventory.Constraint;
+            return pullInformation;
+        }
+
+        public Sandbox.Game.GameSystems.Conveyors.PullInformation GetPushInformation()
+        {
+            return null;
         }
 
         #endregion

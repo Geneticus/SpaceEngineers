@@ -18,6 +18,7 @@ using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRageMath;
+using Sandbox.Game.Multiplayer;
 
 namespace SpaceEngineers.Game.Entities
 {
@@ -73,7 +74,7 @@ namespace SpaceEngineers.Game.Entities
 
         public override bool HasBuildingMaterials(MyEntity builder)
         {
-            if (MySession.Static.CreativeMode || (MySession.Static.IsAdminModeEnabled && builder == MySession.Static.LocalCharacter))
+            if (MySession.Static.CreativeMode || (MySession.Static.IsAdminModeEnabled(Sync.MyId) && builder == MySession.Static.LocalCharacter))
                 return true;
 
             if (builder == null) return false;
@@ -165,45 +166,25 @@ namespace SpaceEngineers.Game.Entities
         {
         }
 
-        public override void BeforeCreateBlock(MyCubeBlockDefinition definition, MyEntity builder, MyObjectBuilder_CubeBlock ob)
+        public override void BeforeCreateBlock(MyCubeBlockDefinition definition, MyEntity builder, MyObjectBuilder_CubeBlock ob, bool buildAsAdmin)
         {
-            base.BeforeCreateBlock(definition, builder, ob);
+            base.BeforeCreateBlock(definition, builder, ob, buildAsAdmin);
 
-            if (builder != null && MySession.Static.SurvivalMode&&MySession.Static.IsAdminModeEnabled == false)
+            if (builder != null && MySession.Static.SurvivalMode && !buildAsAdmin)
             {
                 ob.IntegrityPercent = MyComponentStack.MOUNT_THRESHOLD;
                 ob.BuildPercent = MyComponentStack.MOUNT_THRESHOLD;
             }
         }
 
-        public override void AfterGridCreated(MyCubeGrid grid, MyEntity builder)
+        public override void AfterSuccessfulBuild(MyEntity builder, bool instantBuild)
         {
-            if (MySession.Static.SurvivalMode)
-            {
-                TakeMaterialsFromBuilder(builder);
-            }
-        }
-
-        public override void AfterGridsSpawn(Dictionary<MyDefinitionId, int> buildItems, MyEntity builder)
-        {
-        }
-
-        public override void AfterBlockBuild(MySlimBlock block, MyEntity builder)
-        {
-            if (builder == null) return;
+            if (builder == null || instantBuild) return;
 
             if (MySession.Static.SurvivalMode)
             {
                 TakeMaterialsFromBuilder(builder);
             }
-        }
-
-        public override void AfterBlocksBuild(HashSet<MyCubeGrid.MyBlockLocation> builtBlocks, MyEntity builder)
-        {
-        }
-
-        public override void AfterMultiBlockBuild(MyEntity builder)
-        {
         }
 
         private void ClearRequiredMaterials()
@@ -223,6 +204,7 @@ namespace SpaceEngineers.Game.Entities
 
         private void TakeMaterialsFromBuilder(MyEntity builder)
         {
+            // CH: TODO: Please refactor this to not be so ugly. Especially, calling the Solve function multiple times on the component combiner is bad...
             if (builder == null) return;
             var inventory = GetBuilderInventory(builder);
             if (inventory == null) return;

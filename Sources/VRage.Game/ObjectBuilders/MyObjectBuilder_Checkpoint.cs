@@ -7,6 +7,8 @@ using VRage.Serialization;
 using System.Diagnostics;
 using System.Xml.Serialization;
 using VRage.ObjectBuilders;
+using VRage.Game.Definitions;
+using VRage.Library.Utils;
 
 
 namespace VRage.Game
@@ -100,6 +102,8 @@ namespace VRage.Game
         [ProtoMember]
         [XmlElement("Settings", Type = typeof(MyAbstractXmlSerializer<MyObjectBuilder_SessionSettings>))]
         public MyObjectBuilder_SessionSettings Settings = MyObjectBuilderSerializer.CreateNewObject<MyObjectBuilder_SessionSettings>();
+
+        public MyObjectBuilder_ScriptManager ScriptManagerData;
 
         [ProtoMember]
         public int AppVersion = 0;
@@ -222,20 +226,30 @@ namespace VRage.Game
         public List<long> NonPlayerIdentities = null;
 
         [ProtoMember]
-        public SerializableDictionary <long,MyObjectBuilder_Gps> Gps;
+        public SerializableDictionary<long, MyObjectBuilder_Gps> Gps;
 
         [ProtoMember]
-        public SerializableBoundingBoxD WorldBoundaries;
+        public SerializableBoundingBoxD? WorldBoundaries;
         public bool ShouldSerializeWorldBoundaries()
         {
-            // Prevent this from appearing in SE checkpoints.
-            return WorldBoundaries.Min != Vector3D.Zero ||
-                   WorldBoundaries.Max != Vector3D.Zero;
+            return WorldBoundaries.HasValue;
         }
 
         [ProtoMember]
         [XmlArrayItem("MyObjectBuilder_SessionComponent", Type = typeof(MyAbstractXmlSerializer<MyObjectBuilder_SessionComponent>))]
         public List<MyObjectBuilder_SessionComponent> SessionComponents;
+
+        [ProtoMember]
+        // Definition for this game.
+        public SerializableDefinitionId GameDefinition = MyGameDefinition.Default;
+
+        // Session component overrides, these are which components are enabled over the default from definition
+        [ProtoMember]
+        public HashSet<string> SessionComponentEnabled = new HashSet<string>();
+
+        [ProtoMember]
+        // Session component overrides, these are which components are disabled over the default from definition
+        public HashSet<string> SessionComponentDisabled = new HashSet<string>();
 
         [ProtoMember]
         public DateTime InGameTime = DEFAULT_DATE;

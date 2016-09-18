@@ -22,8 +22,9 @@ using Sandbox.Game;
 using VRage;
 using Sandbox.Common.ObjectBuilders.Definitions;
 using System;
+using Sandbox.Engine.Voxels;
 using Sandbox.Game.Multiplayer;
-
+using VRage.Profiler;
 
 #endregion
 
@@ -34,11 +35,14 @@ namespace Sandbox.Engine.Physics
     using VRage.Game.Components;
     using VRage.Game.Entity;
     using VRage.Game;
+    using ParallelTasks;
+    using VRage.Game.ModAPI;
+    using VRage.ModAPI;
 
     [MySessionComponentDescriptor(MyUpdateOrder.Simulation, 500)]
     public class MyPhysics : MySessionComponentBase
     {
-        public struct HitInfo
+        public struct HitInfo : IHitInfo
         {
             public HitInfo(HkWorld.HitInfo hi, Vector3D worldPosition)
             {
@@ -48,12 +52,38 @@ namespace Sandbox.Engine.Physics
 
             public HkWorld.HitInfo HkHitInfo;
             public Vector3D Position;
+
+            Vector3D IHitInfo.Position
+            {
+                get { return Position; }
+            }
+
+            IMyEntity IHitInfo.HitEntity
+            {
+                get { return HkHitInfo.GetHitEntity(); }
+            }
+
+            public override string ToString()
+            {
+                //return base.ToString();
+                var hitEntity = HkHitInfo.GetHitEntity();
+                if (hitEntity != null)
+                {
+                    return hitEntity.ToString();
+                }
+                return base.ToString();
+            }
         }
 
         public struct MyContactPointEvent
         {
             public HkContactPointEvent ContactPointEvent;
             public Vector3D Position;
+
+            public Vector3 Normal
+            {
+                get { return ContactPointEvent.ContactPoint.Normal; }
+            }
         }
 
         public struct FractureImpactDetails
@@ -113,7 +143,7 @@ namespace Sandbox.Engine.Physics
 
         public static int ThreadId;
 
-        public static MyHavokCluster Clusters;
+        private static MyHavokCluster Clusters;
 
         private static HkJobThreadPool m_threadPool;
         private static HkJobQueue m_jobQueue;
@@ -136,7 +166,7 @@ namespace Sandbox.Engine.Physics
         {
             get 
             {
-                if (MyFakes.ENABLE_SIMSPEED_LOCKING)
+                if (MyFakes.ENABLE_SIMSPEED_LOCKING || MyFakes.PRECISE_SIM_SPEED)
                 {
                     return MySandboxGame.SimulationRatio;
                 }
@@ -152,6 +182,8 @@ namespace Sandbox.Engine.Physics
                 return MyPerGameSettings.BallFriendlyPhysics ? 3 : float.MaxValue;
             }
         }
+
+        private static SpinLockRef m_raycastLock = new SpinLockRef();
 
         static void InitCollisionFilters(HkWorld world)
         {
@@ -303,7 +335,7 @@ namespace Sandbox.Engine.Physics
             }
 
 
-            if (MyFakes.USE_LOD1_VOXEL_PHYSICS)
+            if (MyVoxelPhysicsBody.UseLod1VoxelPhysics)
             {
                 //large and low quality objects dont collide with lod0 voxel physics
                 world.DisableCollisionsBetween(CollisionLayers.DynamicDoubledCollisionLayer, CollisionLayers.VoxelCollisionLayer);
@@ -355,7 +387,7 @@ namespace Sandbox.Engine.Physics
             HkBaseSystem.EnableAssert(-668493307, false);
             //HkBaseSystem.EnableAssert((int)3626473989, false);
             //float broadphaseSize = 100000.0f; // For unlimited worlds
-            
+
             //Angular velocities and impulses
             HkBaseSystem.EnableAssert(952495168, false);
             HkBaseSystem.EnableAssert(1501626980, false);
@@ -372,22 +404,12 @@ namespace Sandbox.Engine.Physics
 
             ThreadId = Thread.CurrentThread.ManagedThreadId;
 
-            if (MyPerGameSettings.SingleCluster)
-            {
-                Clusters = new MyHavokCluster(MySession.Static.WorldBoundaries);
-            }
-            else
-            {
-                Clusters = new MyHavokCluster(null);
-            }
+            Clusters = new MyHavokCluster(MySession.Static.WorldBoundaries);
+
             Clusters.OnClusterCreated += OnClusterCreated;
             Clusters.OnClusterRemoved += OnClusterRemoved;
             Clusters.OnFinishBatch += OnFinishBatch;
 
-            if (MyPerGameSettings.SingleCluster)
-            {
-                Clusters.CreateSingleCluster();
-            }
             if (MyFakes.ENABLE_HAVOK_MULTITHREADING)
             {
                 m_threadPool = new HkJobThreadPool();
@@ -401,6 +423,7 @@ namespace Sandbox.Engine.Physics
         HkWorld OnClusterCreated(int clusterId, BoundingBoxD bbox)
         {
             float broadPhaseSize = (float)bbox.Size.Max();
+            //Debug.Assert(false, "bbox.Center: " + bbox.Center + ", bbox.Size: " + bbox.Size + ", broadPhaseSize: " + broadPhaseSize);
             System.Diagnostics.Debug.Assert(broadPhaseSize > 10 && broadPhaseSize < 1000000);
             return CreateHkWorld(broadPhaseSize);
         }
@@ -427,7 +450,7 @@ namespace Sandbox.Engine.Physics
 
             hkWorld.MarkForWrite();
 
-            if (MySession.Static.Settings.WorldSizeKm > 0 || MyPerGameSettings.SingleCluster)
+            if (MySession.Static.Settings.WorldSizeKm > 0)
             {
                 hkWorld.EntityLeftWorld += HavokWorld_EntityLeftWorld;
             }
@@ -627,7 +650,9 @@ namespace Sandbox.Engine.Physics
             ProfilerShort.Begin("HavokWorld.StepVDB");
             foreach (HkWorld world in Clusters.GetList())
             {
-                if (MySession.Static.ControlledEntity != null && MySession.Static.ControlledEntity.Entity.GetTopMostParent().GetPhysicsBody().HavokWorld == world)
+                if (MySession.Static.ControlledEntity != null
+                    && MySession.Static.ControlledEntity.Entity.GetTopMostParent().GetPhysicsBody() != null
+                    && MySession.Static.ControlledEntity.Entity.GetTopMostParent().GetPhysicsBody().HavokWorld == world)
                     world.StepVDB(VRage.Game.MyEngineConstants.UPDATE_STEP_SIZE_IN_SECONDS);
             }
 
@@ -883,11 +908,6 @@ namespace Sandbox.Engine.Physics
             }
         }
 
-        public void Debug_ReorderClusters()
-        {
-            MySession.Static.ControlledEntity.Entity.GetPhysicsBody().ReorderClusters();
-        }
-
         #region Havok worlds wrapper
 
         [ThreadStatic]
@@ -918,27 +938,36 @@ namespace Sandbox.Engine.Physics
 
         public static void CastRay(Vector3D from, Vector3D to, List<HitInfo> toList, int raycastFilterLayer = 0)
         {
-            m_resultWorlds.Clear();
-            Clusters.CastRay(from, to, m_resultWorlds);
-
-            toList.Clear();
-
-            foreach (var world in m_resultWorlds)
+            using (m_raycastLock.Acquire())
             {
-                Vector3 fromF = from - world.AABB.Center;
-                Vector3 toF = to - world.AABB.Center;
+                m_resultWorlds.Clear();
+                Clusters.CastRay(from, to, m_resultWorlds);
 
-                m_resultHits.Clear();
-                ((HkWorld)world.UserData).CastRay(fromF, toF, m_resultHits, raycastFilterLayer);
+                toList.Clear();
 
-                foreach (var hit in m_resultHits)
+                foreach (var world in m_resultWorlds)
                 {
-                    toList.Add(new HitInfo()
+                    Vector3 fromF = from - world.AABB.Center;
+                    Vector3 toF = to - world.AABB.Center;
+
+                    m_resultHits.Clear();
+
+
+                    HkWorld havokWorld = (HkWorld)(world.UserData);
+                    if (havokWorld != null)
                     {
-                        HkHitInfo = hit,
-                        Position = hit.Position + world.AABB.Center
+                        havokWorld.CastRay(fromF, toF, m_resultHits, raycastFilterLayer);
                     }
-                    );
+
+                    foreach (var hit in m_resultHits)
+                    {
+                        toList.Add(new HitInfo()
+                        {
+                            HkHitInfo = hit,
+                            Position = hit.Position + world.AABB.Center
+                        }
+                        );
+                    }
                 }
             }
 
@@ -1435,5 +1464,93 @@ namespace Sandbox.Engine.Physics
             Debug.Fail("Cannot convert collision layer string - layer not found");
             return CollisionLayers.DefaultCollisionLayer;
         }
+
+        /// <summary>
+        /// Ensure aabb is inside only one subspace. If no, reorder.
+        /// </summary>
+        /// <param name="aabb"></param>
+        public static void EnsurePhysicsSpace(BoundingBoxD aabb)
+        {
+            Clusters.EnsureClusterSpace(aabb);
+        }
+
+        /// <summary>
+        /// Change position of object in world. Move object between subspaces if necessary.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="oldAabb"></param>
+        /// <param name="aabb"></param>
+        /// <param name="velocity"></param>
+        public static void MoveObject(ulong id, BoundingBoxD aabb, Vector3 velocity)
+        {
+            Clusters.MoveObject(id, aabb, velocity);
+        }
+
+        /// <summary>
+        /// Remove object from world, remove also subspace if empty.
+        /// </summary>
+        /// <param name="id"></param>
+        public static void RemoveObject(ulong id)
+        {
+            Clusters.RemoveObject(id);
+        }
+
+        /// <summary>
+        /// Return offset of objects subspace center.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static Vector3D GetObjectOffset(ulong id)
+        {
+            return Clusters.GetObjectOffset(id);
+        }
+
+        /// <summary>
+        /// Try add object to some subspace.
+        /// Create new subspace if allowed (!SingleCluster.HasValue) and needed (object is outside of existing subspaces).
+        /// If not allowed, mark object as left the world.
+        /// </summary>
+        /// <param name="bbox"></param>
+        /// <param name="velocity"></param>
+        /// <param name="activationHandler"></param>
+        /// <param name="customId"></param>
+        /// <returns></returns>
+        public static ulong AddObject(BoundingBoxD bbox, Vector3 velocity, MyPhysicsBody activationHandler, ulong? customId)
+        {
+            ulong tmp = Clusters.AddObject(bbox, velocity, activationHandler, customId);
+
+            if (tmp == MyHavokCluster.CLUSTERED_OBJECT_ID_UNITIALIZED)
+            {
+                HavokWorld_EntityLeftWorld(activationHandler.RigidBody);
+                return MyHavokCluster.CLUSTERED_OBJECT_ID_UNITIALIZED;
+            }
+            return tmp;
+            
+        }
+
+        public static VRage.Collections.ListReader<object>? GetClusterList()
+        {
+            if (Clusters == null)
+                return null;
+            return Clusters.GetList();
+        }
+
+        public static void GetAll(List<VRageMath.Spatial.MyClusterTree.MyClusterQueryResult> results)
+        {
+            Clusters.GetAll(results);
+        }
+
+        public static void UpdateGravity(float ratio)
+        {
+            Clusters.GetAll(m_resultWorlds);
+
+            foreach (var world in m_resultWorlds)
+            {
+                ((HkWorld)world.UserData).Gravity = new Vector3(0.0f, -9.81f, 0.0f) * ratio;
+            }
+            m_resultWorlds.Clear();
+        }
+
     }
+
 }

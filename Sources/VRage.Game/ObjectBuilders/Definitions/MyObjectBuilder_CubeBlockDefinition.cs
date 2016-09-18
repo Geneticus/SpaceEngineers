@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 using ProtoBuf;
 using VRage.Data;
+using VRage.Game.ObjectBuilders.Definitions.SessionComponents;
 using VRage.ObjectBuilders;
 
 namespace VRage.Game
@@ -108,7 +109,8 @@ namespace VRage.Game
         XMinusHalfX,
         YMinusHalfX,
         ZMinusHalfX,
-        ZThenOffsetX
+        ZThenOffsetX,
+        YThenOffsetX,
     }
 
     public enum MyAutorotateMode
@@ -150,10 +152,19 @@ namespace VRage.Game
         Both = Horizontal | Vertical,
     }
 
+    public struct VoxelPlacementOverride
+    {
+        public VoxelPlacementSettings StaticMode;
+        public VoxelPlacementSettings DynamicMode;
+    }
+
     [ProtoContract]
     [MyObjectBuilderDefinition]
     public class MyObjectBuilder_CubeBlockDefinition : MyObjectBuilder_PhysicalModelDefinition
     {
+
+        #region Properties Definitions
+
         [ProtoContract]
         public class MountPoint
         {
@@ -201,6 +212,10 @@ namespace VRage.Game
 
             [XmlAttribute, ProtoMember, DefaultValue(true)]
             public bool Enabled = true;
+
+            [XmlAttribute, ProtoMember, DefaultValue(false)]
+            public bool Default = false;
+
         }
 
         [ProtoContract]
@@ -336,6 +351,65 @@ namespace VRage.Game
             public string BuilderType;
         }
 
+        [ProtoContract]
+        public class CubeBlockEffectBase
+        {
+            [XmlAttribute]
+            [ProtoMember]
+            public string Name = "";
+
+            [XmlAttribute]
+            [ProtoMember]
+            public float ParameterMin = float.MinValue;
+
+            [XmlAttribute]
+            [ProtoMember]
+            public float ParameterMax = float.MaxValue;
+
+            [XmlArrayItem("ParticleEffect")]
+            [ProtoMember]
+            public CubeBlockEffect[] ParticleEffects;
+        }
+
+        [ProtoContract]
+        public class CubeBlockEffect
+        {
+            [XmlAttribute]
+            [ProtoMember]
+            public string Name = "";
+
+            [XmlAttribute]
+            [ProtoMember]
+            public string Origin = "";
+
+            [XmlAttribute]
+            [ProtoMember]
+            public float Delay = 0f;
+
+            [XmlAttribute]
+            [ProtoMember]
+            public float Duration = 0f;
+
+            [XmlAttribute]
+            [ProtoMember]
+            public bool Loop = false;
+
+            [XmlAttribute]
+            [ProtoMember]
+            public float SpawnTimeMin = 0f;
+
+            [XmlAttribute]
+            [ProtoMember]
+            public float SpawnTimeMax = 0f;
+        }
+
+        #endregion
+
+        public VoxelPlacementOverride? VoxelPlacement = null;
+
+        [ProtoMember, DefaultValue(false)]
+        public bool SilenceableByShipSoundSystem;
+
         [ProtoMember]
         public MyCubeSize CubeSize;
         
@@ -358,6 +432,10 @@ namespace VRage.Game
         [XmlArrayItem("Component")]
         [ProtoMember]
         public CubeBlockComponent[] Components;
+        
+        [XmlArrayItem("Effect")]
+        [ProtoMember]
+        public CubeBlockEffectBase[] Effects;
 
         [ProtoMember]
         public CriticalPart CriticalComponent;

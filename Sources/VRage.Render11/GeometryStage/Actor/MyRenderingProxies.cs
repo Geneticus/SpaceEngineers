@@ -1,6 +1,7 @@
 ﻿using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using System;
+using System.Collections.Generic;
 using VRage.Utils;
 using VRageMath;
 using Buffer = SharpDX.Direct3D11.Buffer;
@@ -40,19 +41,15 @@ namespace VRageRender
         }
     }
 
-    struct MyVertexDataProxy_2
-    {
-        internal Buffer[] VB;
-        internal int[] VertexStrides;
-        internal Buffer IB;
-        internal Format IndexFormat;
-    }
-
     /// <summary>
     /// Contains data used for culling, but should not own any itself
     /// </summary>
     [PooledObject]
+#if XB1
+    class MyCullProxy : IMyPooledObjectCleaner
+#else // !XB1
     class MyCullProxy
+#endif // !XB1
     {
         internal ulong[] SortingKeys;
         internal MyRenderableProxy [] RenderableProxies;
@@ -62,11 +59,18 @@ namespace VRageRender
 
         internal uint OwnerID { get { return Parent != null ? Parent.Owner.ID : 0; } }
 
+#if XB1
+        public void ObjectCleaner()
+        {
+            Clear();
+        }
+#else // !XB1
         [PooledObjectCleaner]
         public static void Clear(MyCullProxy cullProxy)
         {
             cullProxy.Clear();
         }
+#endif // !XB1
 
         internal void Clear()
         {
@@ -111,7 +115,11 @@ namespace VRageRender
     /// Does not own any data
     /// </summary>
     [PooledObject]
+#if XB1
+    class MyRenderableProxy : IMyPooledObjectCleaner
+#else // !XB1
     class MyRenderableProxy
+#endif // !XB1
     {
         internal const float NO_DITHER_FADE = Single.PositiveInfinity;
 
@@ -127,6 +135,7 @@ namespace VRageRender
 
         internal MyMaterialShadersBundleId DepthShaders;
         internal MyMaterialShadersBundleId Shaders;
+        internal MyMaterialShadersBundleId HighlightShaders;
         internal MyMaterialShadersBundleId ForwardShaders;
 
         internal MyDrawSubmesh DrawSubmesh;
@@ -149,13 +158,20 @@ namespace VRageRender
 
         internal MyActorComponent Parent;
 
-        internal MyStringId Material;
+        internal MyMeshMaterialId Material;
 
+#if XB1
+        public void ObjectCleaner()
+        {
+            Clear();
+        }
+#else // !XB1
         [PooledObjectCleaner]
         public static void Clear(MyRenderableProxy renderableProxy)
         {
             renderableProxy.Clear();
         }
+#endif // !XB1
 
         internal void Clear()
         {
@@ -180,7 +196,7 @@ namespace VRageRender
             Lod = 0;
             ObjectBuffer = null;
             Parent = null;
-            Material = MyStringId.NullOrEmpty;
+            Material = MyMeshMaterialId.NULL;
         }
 	};
 
@@ -210,11 +226,11 @@ namespace VRageRender
         BIND_VS = 1,
         BIND_PS = 2
     }
-
+   
     struct MySrvTable
     {
         internal int StartSlot;
-        internal ShaderResourceView [] SRVs;
+        internal ShaderResourceView[] Srvs;
         internal MyBindFlag BindFlag;
         internal int Version;
     }
@@ -222,7 +238,7 @@ namespace VRageRender
     struct MyMaterialProxy_2
     {
         internal MyConstantsPack MaterialConstants;
-        internal MySrvTable MaterialSRVs;
+        internal MySrvTable MaterialSrvs;
     }
 
     enum MyDrawCommandEnum
@@ -255,23 +271,29 @@ namespace VRageRender
 
         // object
         internal MyConstantsPack ObjectConstants;
-        internal MySrvTable ObjectSRVs;
-        internal MyVertexDataProxy_2 VertexData;
+        internal MySrvTable ObjectSrvs;
         internal int InstanceCount;
         internal int StartInstance;
 
         // shader material 
-        internal MyMaterialShadersBundleId DepthShaders;
-        internal MyMaterialShadersBundleId Shaders;
-        internal MyMaterialShadersBundleId ForwardShaders;
+        internal MyMergeInstancingShaderBundle DepthShaders;
+        internal MyMergeInstancingShaderBundle Shaders;
+        internal MyMergeInstancingShaderBundle HighlightShaders;
+        internal MyMergeInstancingShaderBundle ForwardShaders;
 
         // drawcalls + material
         internal MyDrawSubmesh_2[] SubmeshesDepthOnly;
         internal MyDrawSubmesh_2[] Submeshes;
-
+        internal MyDrawSubmesh_2[][] SectionSubmeshes;
 
         internal readonly static MyRenderableProxy_2[] EmptyList = new MyRenderableProxy_2[0];
         internal readonly static UInt64[] EmptyKeyList = new UInt64[0];
+    }
+
+    struct MyMergeInstancingShaderBundle
+    {
+        public MyMaterialShadersBundleId MultiInstance;
+        public MyMaterialShadersBundleId SingleInstance;
     }
 
     static class MyProxiesFactory

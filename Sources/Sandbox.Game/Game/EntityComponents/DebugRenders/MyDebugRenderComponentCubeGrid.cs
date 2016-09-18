@@ -17,7 +17,7 @@ using Sandbox.Engine.Utils;
 using Sandbox.Game.World;
 using Sandbox.Graphics;
 using Sandbox.Engine.Physics;
-using Sandbox.Common.Components;
+
 using Sandbox.Game.Multiplayer;
 using VRage;
 using VRage.Utils;
@@ -73,7 +73,7 @@ namespace Sandbox.Game.Components
 
         List<Havok.HkBodyCollision> m_penetrations = new List<Havok.HkBodyCollision>();
 
-        public override bool DebugDraw()
+        public override void DebugDraw()
         {
             if (MyDebugDrawSettings.DEBUG_DRAW_FIXED_BLOCK_QUERIES)
             {
@@ -232,16 +232,16 @@ namespace Sandbox.Game.Components
                             if (cubeBlock.FatBlock is MyCompoundCubeBlock)
                             {
                                 foreach (var b in (cubeBlock.FatBlock as MyCompoundCubeBlock).GetBlocks())
-                                    integrity += b.Integrity;
+                                    integrity += b.Integrity * b.BlockDefinition.MaxIntegrityRatio;
                             }
                             else
-                                integrity = cubeBlock.Integrity;
+                                integrity = cubeBlock.Integrity * cubeBlock.BlockDefinition.MaxIntegrityRatio;
                             MyRenderProxy.DebugDrawText3D(m_cubeGrid.GridIntegerToWorld(cubeBlock.Position), ((int)integrity).ToString(), Color.White, m_cubeGrid.GridSizeEnum == MyCubeSize.Large ? 0.65f : 0.5f, false);
                         }
                     }
             }
 
-            return base.DebugDraw();
+            base.DebugDraw();
         }
 
         private void DebugDrawMountPoints(MySlimBlock block)
@@ -283,7 +283,7 @@ namespace Sandbox.Game.Components
             MyCubeGridRenderData data = gridRender.RenderData;
             foreach (var cell in data.Cells)
             {
-                HashSet<MyCubePart> parts = cell.Value.CubeParts;
+                var parts = cell.Value.CubeParts;
                 foreach (var part in parts)
                 {
                     MyModel model = part.Model;

@@ -22,7 +22,6 @@ using Sandbox.Common.ObjectBuilders.Definitions;
 using VRage;
 using VRage.Input;
 using VRage.Utils;
-using VRage.Voxels;
 using VRageMath;
 using VRage.Library.Utils;
 using VRage.FileSystem;
@@ -31,6 +30,8 @@ using VRage.Network;
 using Sandbox.Game.Entities.Character;
 using VRage.Game;
 using VRage.Game.Entity;
+using VRage.Game.SessionComponents;
+using VRage.Game.ModAPI;
 
 namespace Sandbox.Game.Gui
 {
@@ -57,6 +58,9 @@ namespace Sandbox.Game.Gui
         static CyclingOptions m_cyclingOtions = new CyclingOptions();
         protected Vector4 m_labelColor = Color.White.ToVector4();
         protected MyGuiControlCheckbox m_creativeCheckbox;
+        List<IMyGps> m_gpsList = new List<IMyGps>();
+
+        int m_currentGpsIndex = 0;
 
         public MyGuiScreenAdminMenu()
             : base(new Vector2(MyGuiManager.GetMaxMouseCoord().X - SCREEN_SIZE.X * 0.5f + HIDDEN_PART_RIGHT, 0.5f), SCREEN_SIZE, MyGuiConstants.SCREEN_BACKGROUND_COLOR, false)
@@ -97,13 +101,13 @@ namespace Sandbox.Game.Gui
 
             m_creativeCheckbox = AddCheckBox(MyCommonTexts.ScreenDebugAdminMenu_EnableAdminMode, false, OnEnableAdminModeChanged, true, null, m_labelColor, cbOffset);
             m_creativeCheckbox.SetToolTip(MyCommonTexts.ScreenDebugAdminMenu_EnableAdminMode_Tooltip);
-            m_creativeCheckbox.IsChecked = MySession.Static.IsAdminModeEnabled;
+            m_creativeCheckbox.IsChecked = MySession.Static.IsAdminModeEnabled(Sync.MyId);
             m_creativeCheckbox.Enabled = MySession.Static.IsAdmin;
 
          
             ///////////////////// CYCLING /////////////////////
-            AddSubcaption(MyCommonTexts.ScreenDebugAdminMenu_CycleObjects, m_labelColor, new Vector2(-HIDDEN_PART_RIGHT, -0.02f));
-            m_currentPosition.Y -= 0.04f;
+            AddSubcaption(MyCommonTexts.ScreenDebugAdminMenu_CycleObjects, m_labelColor, new Vector2(-HIDDEN_PART_RIGHT, -0.03f));
+            m_currentPosition.Y -= 0.065f;
 
             CreateSelectionCombo();
             m_labelCurrentIndex = AddLabel(String.Empty, m_labelColor, 1);
@@ -144,8 +148,8 @@ namespace Sandbox.Game.Gui
             m_onlySmallGridsCheckbox.IsChecked = m_cyclingOtions.OnlySmallGrids;
 
             ///////////////////// TRASH /////////////////////
-            AddSubcaption(MyCommonTexts.ScreenDebugAdminMenu_TrashRemoval, m_labelColor, new Vector2(-HIDDEN_PART_RIGHT, -0.02f));
-            m_currentPosition.Y -= 0.04f;
+            AddSubcaption(MyCommonTexts.ScreenDebugAdminMenu_TrashRemoval, m_labelColor, new Vector2(-HIDDEN_PART_RIGHT, -0.03f));
+            m_currentPosition.Y -= 0.065f;
 
             //AddLabel("Select which objects WON'T be removed", white, 1);
             CreateTrashCheckBoxes(ref cbOffset, ref m_labelColor);
@@ -174,18 +178,9 @@ namespace Sandbox.Game.Gui
             m_currentPosition.Y = y;
             CreateDepowerButtonTrash(usableWidth,controlPadding.X,separatorSize);
 
-            // PREPARED FOR FLOATING REMOVAL
-            //y = m_currentPosition.Y;
-            //btn = CreateDebugButton(usableWidth / 3, MySpaceTexts.ScreenDebugAdminMenu_RemoveTrash, null);
-            //btn.PositionX = -usableWidth / 3 - controlPadding.X;
-
-            //m_currentPosition.Y = y;
-            //btn = CreateDebugButton(usableWidth / 3, MySpaceTexts.ScreenDebugAdminMenu_StopTrash, null);
-            //btn.PositionX = -controlPadding.X + separatorSize / 2;
-
-            //m_currentPosition.Y = y;
-            //btn = CreateDebugButton(usableWidth / 3, MySpaceTexts.ScreenDebugAdminMenu_DepowerTrash, null);
-            //btn.PositionX = usableWidth / 3 - controlPadding.X + separatorSize;
+            ///////////////////// REMOVE FLOATING OBJECTS /////////////////////
+            CreateDebugButton(usableWidth, MySpaceTexts.ScreenDebugAdminMenu_RemoveFloating, OnRemoveFloating, true);
+            
             CreateCustomButtons(usableWidth, controlPadding.X, separatorSize);
 
             UpdateSmallLargeGridSelection();
@@ -194,6 +189,25 @@ namespace Sandbox.Game.Gui
 
             bool isClient = Sync.IsServer == false;
             CreateDebugButton(usableWidth / 2, MyCommonTexts.ScreenDebugAdminMenu_ReplicateEverything, OnReplicateEverything, isClient, isClient ? MyCommonTexts.ScreenDebugAdminMenu_ReplicateEverything_Tooltip : MySpaceTexts.ScreenDebugAdminMenu_ReplicateEverythingServer_Tooltip);
+        }
+
+        private void OnRemoveFloating(MyGuiControlButton obj)
+        {
+            foreach (var entity in MyEntities.GetEntities())
+            {
+                MyFloatingObject floating = entity as MyFloatingObject;
+                if (floating != null)
+                {
+                    if (Sync.IsServer)
+                    {
+                        floating.Close();
+                    }
+                    else
+                    {
+                        floating.SendCloseRequest();
+                    }
+                }
+            }
         }
 
         private void UpdateCyclingAndDepower()
@@ -244,6 +258,7 @@ namespace Sandbox.Game.Gui
         private void OnPlayerControl(MyGuiControlButton obj)
         {
             m_attachCamera = 0;
+            MySessionComponentAnimationSystem.Static.EntitySelectedForDebug = null; // reset debugging
             MyGuiScreenGamePlay.SetCameraController();
         }
 
@@ -264,13 +279,67 @@ namespace Sandbox.Game.Gui
 
         void RecalcTrash()
         {
+            if (Sync.IsServer == false)
+            {
+                MyMultiplayer.RaiseStaticEvent(x => UploadSettingsToServer, MyTrashRemoval.PreviewSettings);
+            }
             int num = MyTrashRemoval.Calculate(MyTrashRemoval.PreviewSettings);
             m_labelNumVisible.TextToDraw.Clear().ConcatFormat(MyTexts.GetString(MyCommonTexts.ScreenDebugAdminMenu_NumberOfLocalTrash), num);
         }
 
         void OnCycleClicked(bool reset, bool forward)
         {
+            if (m_order != MyEntityCyclingOrder.Gps)
+            {
             MyMultiplayer.RaiseStaticEvent(x => CycleRequest_Implementation, m_order, reset, forward, m_metricValue, m_entityId, m_cyclingOtions);
+        }
+            else
+            {
+                CircleGps(reset,forward);
+            }
+
+        }
+
+        void CircleGps(bool reset, bool forward)
+        { 
+            if(MySession.Static != null && MySession.Static.Gpss != null && MySession.Static.LocalHumanPlayer != null)
+            {
+                if (forward)
+                {
+                    m_currentGpsIndex--;
+                }
+                else
+                {
+                    m_currentGpsIndex++;
+                }
+
+                m_gpsList.Clear();
+                MySession.Static.Gpss.GetGpsList(MySession.Static.LocalPlayerId, m_gpsList);
+
+                if(m_gpsList.Count == 0)
+                {
+                    m_currentGpsIndex = 0;
+                    return;
+                }
+
+                if(m_currentGpsIndex < 0)
+                {
+                    m_currentGpsIndex = m_gpsList.Count - 1;
+                }
+              
+                if(m_gpsList.Count <= m_currentGpsIndex || reset)
+                {
+                    m_currentGpsIndex = 0;
+                }
+
+                Vector3D gpsPosition =  m_gpsList[m_currentGpsIndex].Coords;
+
+                MySession.Static.SetCameraController(MyCameraControllerEnum.Spectator);
+                Vector3D? cameraPosition = MyEntities.FindFreePlace(gpsPosition + Vector3D.One , 2.0f,30);
+                 
+                MySpectatorCameraController.Static.Position = cameraPosition.HasValue ? cameraPosition.Value : (gpsPosition + Vector3D.One);
+                MySpectatorCameraController.Static.Target = gpsPosition;
+            }
         }
 
         [Event, Reliable, Server]
@@ -357,6 +426,10 @@ namespace Sandbox.Game.Gui
                 MySession.Static.SetCameraController(MyCameraControllerEnum.Spectator);
                 MySpectatorCameraController.Static.Position = volume.Center + Math.Max((float)volume.Radius,1.0f) * Vector3.One;
                 MySpectatorCameraController.Static.Target = volume.Center;
+
+                // debug animation system
+                MySessionComponentAnimationSystem.Static.EntitySelectedForDebug = entity;
+
                 return true;
             }
 
@@ -380,6 +453,12 @@ namespace Sandbox.Game.Gui
             {
                 MyMultiplayer.RaiseStaticEvent(x => RemoveEntity_Implementation, m_attachCamera, operation);
             }
+        }
+
+        [Event, Reliable, Server]
+        static void UploadSettingsToServer(MyTrashRemovalSettings newSettings)
+        {
+            MyTrashRemoval.PreviewSettings = newSettings;
         }
 
         [Event, Reliable, Server]
@@ -470,7 +549,7 @@ namespace Sandbox.Game.Gui
 
         void OnEnableAdminModeChanged(MyGuiControlCheckbox checkbox)
         {
-            MySession.Static.IsAdminModeEnabled = checkbox.IsChecked;
+            MySession.Static.EnableAdminMode(Sync.MyId,checkbox.IsChecked);
         }
 
         void OnSmallGridChanged(MyGuiControlCheckbox checkbox)

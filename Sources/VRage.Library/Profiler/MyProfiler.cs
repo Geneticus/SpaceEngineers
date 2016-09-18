@@ -1,4 +1,5 @@
-﻿#region Using
+﻿#if !XB1 // XB1_NOPROFILER
+#region Using
 
 using System;
 using System.Collections.Generic;
@@ -53,7 +54,7 @@ namespace VRage.Profiler
         private Dictionary<MyProfilerBlockKey, MyProfilerBlock> m_profilingBlocks = new Dictionary<MyProfilerBlockKey, MyProfilerBlock>(8192, new MyProfilerBlockKeyComparer());
         private List<MyProfilerBlock> m_rootBlocks = new List<MyProfilerBlock>(32);
         private Stack<MyProfilerBlock> m_currentProfilingStack = new Stack<MyProfilerBlock>(1024);
-        private MyProfiler.MyProfilerBlock m_selectedRoot = null;
+        private MyProfilerBlock m_selectedRoot = null;
         private int m_levelLimit = -1;
         private int m_levelSkipCount;
         private volatile int m_newLevelLimit = -1;
@@ -163,7 +164,7 @@ namespace VRage.Profiler
             Interlocked.Exchange(ref m_remainingWindow, UPDATE_WINDOW);
         }
 
-        public static MyProfiler.MyProfilerBlock CreateExternalBlock(string name, int blockId)
+        public static MyProfilerBlock CreateExternalBlock(string name, int blockId)
         {
             MyProfilerBlockKey key = new MyProfilerBlockKey(String.Empty, String.Empty, name, 0, ROOT_ID);
             return new MyProfilerBlock(ref key, String.Empty, blockId);
@@ -236,7 +237,7 @@ namespace VRage.Profiler
             m_levelLimit = m_newLevelLimit;
 
             int writeFrame = (m_lastFrameIndex + 1) % MyProfiler.MAX_FRAMES;
-            foreach (MyProfiler.MyProfilerBlock profilerBlock in m_profilingBlocks.Values)
+            foreach (MyProfilerBlock profilerBlock in m_profilingBlocks.Values)
             {
                 callCount += profilerBlock.NumCalls;
 
@@ -261,7 +262,7 @@ namespace VRage.Profiler
                         m_logWriter.Write(((int)profilerBlock.Elapsed.Miliseconds).ToString());
                         m_logWriter.Write("; ");
                         m_logWriter.Write(profilerBlock.Name);
-                        MyProfiler.MyProfilerBlock tempBlock = profilerBlock;
+                        MyProfilerBlock tempBlock = profilerBlock;
                         while (tempBlock.Parent != null)
                         {
                             tempBlock = tempBlock.Parent;
@@ -285,9 +286,14 @@ namespace VRage.Profiler
             Debug.Assert(!EnableAsserts || OwnerThread == Thread.CurrentThread);
             Debug.Assert(m_currentProfilingStack.Count == 0, "ClearFrame cannot be called when there are some opened blocks, it must be outside blocks!");
 
+            m_currentProfilingStack.Clear();
+
+            if (m_blocksToAdd.Count > 0)
+                m_blocksToAdd.Clear();
+
             m_levelLimit = m_newLevelLimit;
 
-            foreach (MyProfiler.MyProfilerBlock profilerBlock in m_profilingBlocks.Values)
+            foreach (MyProfilerBlock profilerBlock in m_profilingBlocks.Values)
             {
                 profilerBlock.Clear();
             }
@@ -438,3 +444,4 @@ namespace VRage.Profiler
         }
     }
 }
+#endif // !XB1

@@ -23,10 +23,12 @@ using VRage.ModAPI;
 using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game;
+using VRage.Game.ModAPI.Interfaces;
+using Sandbox.ModAPI.Weapons;
 
 namespace Sandbox.Game.Weapons
 {
-    public abstract class MyEngineerToolBase : MyEntity, IMyHandheldGunObject<MyToolBase>
+    public abstract class MyEngineerToolBase : MyEntity, IMyHandheldGunObject<MyToolBase>, IMyEngineerToolBase
     {
         public static float GLARE_SIZE = 0.068f;
         /// <summary>
@@ -77,7 +79,7 @@ namespace Sandbox.Game.Weapons
         MyLight m_toolEffectLight;
 
 
-        public Vector3I TargetCube { get { return m_raycastComponent.HitBlock.Position; } }
+        public Vector3I TargetCube { get { return m_raycastComponent != null && m_raycastComponent.HitBlock != null ? m_raycastComponent.HitBlock.Position : Vector3I.Zero; } }
 
         public bool HasHitBlock { get { return m_raycastComponent.HitBlock != null; } }
 
@@ -163,7 +165,7 @@ namespace Sandbox.Game.Weapons
             m_activated = false;
             m_wasPowered = false;
 
-            NeedsUpdate = MyEntityUpdateEnum.EACH_FRAME;
+            NeedsUpdate = MyEntityUpdateEnum.EACH_FRAME | MyEntityUpdateEnum.EACH_100TH_FRAME;
             Render.NeedsDraw = true;
 
             (PositionComp as MyPositionComponent).WorldPositionChanged = WorldPositionChanged;
@@ -285,10 +287,12 @@ namespace Sandbox.Game.Weapons
             if (Owner == null)
                 return;
 
-            
-            m_raycastComponent.SetPointOfReference(m_gunBase.GetMuzzleWorldPosition());
-
-
+            Vector3 weaponLocalPosition = Owner.GetLocalWeaponPosition();
+            Vector3D localDummyPosition = m_gunBase.GetMuzzleLocalPosition();
+            MatrixD weaponWorld = WorldMatrix;
+            Vector3D localDummyPositionRotated;
+            Vector3D.Rotate(ref localDummyPosition, ref weaponWorld, out localDummyPositionRotated);
+            m_raycastComponent.SetPointOfReference(Owner.PositionComp.GetPosition() + weaponLocalPosition + localDummyPositionRotated);
             
 			SinkComp.Update();
 
@@ -316,6 +320,12 @@ namespace Sandbox.Game.Weapons
             //MyTrace.Watch("MyEngineerToolBase.RequiredPowerInput", RequiredPowerInput);            
         }
 
+        public void UpdateSoundEmitter()
+        {
+            if (m_soundEmitter != null)
+                m_soundEmitter.Update();
+        }
+
         private void WorldPositionChanged(object source)
         {
             m_gunBase.OnWorldPositionChanged(PositionComp.WorldMatrix);
@@ -328,7 +338,26 @@ namespace Sandbox.Game.Weapons
             {
                 Debug.Assert(Owner != null && Owner is MyCharacter, "An engineer tool is not held by a character");
                 MyCharacter character = Owner as MyCharacter;
-                MatrixD sensorWorldMatrix = character.GetHeadMatrix(false, true);
+
+                MatrixD sensorWorldMatrix = MatrixD.Identity;
+                sensorWorldMatrix.Translation = character.WeaponPosition.LogicalPositionWorld;
+                sensorWorldMatrix.Right = character.WorldMatrix.Right;
+                sensorWorldMatrix.Forward = character.WeaponPosition.LogicalOrientationWorld;
+                sensorWorldMatrix.Up = Vector3.Cross(sensorWorldMatrix.Right, sensorWorldMatrix.Forward);
+                
+                // MZ: removing code requiring synchronization
+
+                //if (character.ControllerInfo.IsLocallyControlled())
+                //{
+                //    sensorWorldMatrix = character.GetHeadMatrix(false, true);
+                //    character.SyncHeadToolTransform(ref sensorWorldMatrix);
+                //}
+                //else
+                //{
+                //    sensorWorldMatrix = character.GetSyncedToolTransform();
+                //}
+
+                // VRageRender.MyRenderProxy.DebugDrawAxis(sensorWorldMatrix, 0.2f, false);
                 m_raycastComponent.OnWorldPosChanged(ref sensorWorldMatrix);
             }
         }
@@ -350,7 +379,7 @@ namespace Sandbox.Game.Weapons
             return false;
         }
 
-        public virtual void Shoot(MyShootActionEnum action, Vector3 direction, string gunAction)
+        public virtual void Shoot(MyShootActionEnum action, Vector3 direction, Vector3D? overrideWeaponPos, string gunAction)
         {
             if (action != MyShootActionEnum.PrimaryAction)
             {
@@ -443,7 +472,7 @@ namespace Sandbox.Game.Weapons
                     return;
                 }
 
-                bool canSeeEffect = MySector.MainCamera.GetDistanceWithFOV(PositionComp.GetPosition()) < 150;
+                bool canSeeEffect = MySector.MainCamera.GetDistanceFromPoint(PositionComp.GetPosition()) < 150;
                 if (canSeeEffect)
                 {
                     if (CurrentEffect == 1 && HasPrimaryEffect)
@@ -516,7 +545,8 @@ namespace Sandbox.Game.Weapons
             switch (CurrentEffect)
             {
                 case 0:
-                    StopLoopSound();
+                    if (m_soundEmitter.IsPlaying)
+                        StopLoopSound();
                     break;
                 case 1:
                     //MyRenderProxy.DebugDrawText2D(new Vector2(0.0f, 30.0f), "Primary", Color.Red, 1.0f);
@@ -529,7 +559,7 @@ namespace Sandbox.Game.Weapons
             }
 
             const float lightMuzzleOffset = 0.0f;
-            const float particleMuzzleOffset = 1.0f;            
+            const float particleMuzzleOffset = 0.5f;            
 
             if (m_toolEffect != null)
             {
@@ -613,7 +643,7 @@ namespace Sandbox.Game.Weapons
             CharacterInventory = null;
         }
 
-        public void DrawHud(Sandbox.ModAPI.Interfaces.IMyCameraController camera, long playerId)
+        public void DrawHud(IMyCameraController camera, long playerId)
         {
             MyHud.Crosshair.Recenter();
 
@@ -650,7 +680,7 @@ namespace Sandbox.Game.Weapons
 
             MyHud.BlockInfo.MissingComponentIndex = -1;
             MyHud.BlockInfo.BlockName = block.BlockDefinition.DisplayNameText;
-            MyHud.BlockInfo.BlockIcon = block.BlockDefinition.Icon;
+            MyHud.BlockInfo.BlockIcons = block.BlockDefinition.Icons;
             MyHud.BlockInfo.BlockIntegrity = block.Integrity / block.MaxIntegrity;
             MyHud.BlockInfo.CriticalIntegrity = block.BlockDefinition.CriticalIntegrityRatio;
             MyHud.BlockInfo.CriticalComponentIndex = block.BlockDefinition.CriticalGroup;

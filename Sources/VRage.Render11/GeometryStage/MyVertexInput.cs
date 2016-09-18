@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 
 using SharpDX.Direct3D11;
+using System.Diagnostics;
+using SharpDX.Direct3D;
 
 namespace VRageRender
 {
@@ -127,8 +129,7 @@ namespace VRageRender
     {
         internal MyVertexInputComponent[] Components;
         internal InputElement[] Elements;
-        internal string SourceDeclarations;
-        internal string SourceDataMove;
+        internal ShaderMacro[] Macros;
         internal bool HasBonesInfo;
     }
 
@@ -150,9 +151,8 @@ namespace VRageRender
             HashIndex[0] = id;
             Layouts.Data[id.Index] = new MyVertexLayoutInfo 
             { 
-                Elements = new InputElement[0], 
-                SourceDeclarations = "struct __VertexInput { \n \n \n };",
-                SourceDataMove = ""
+                Elements = new InputElement[0],
+                Macros = new ShaderMacro[0],
             };
 
             Empty = id;
@@ -167,12 +167,22 @@ namespace VRageRender
             return GetLayout(components.Select(x => new MyVertexInputComponent(x)).ToArray());
         }
 
-        internal static VertexLayoutId GetLayout(VertexLayoutId a, VertexLayoutId b)
+        internal static VertexLayoutId GetLayout(VertexLayoutId firstLayout, VertexLayoutId secondLayout)
         {
-            return GetLayout(a.Info.Components.Concat(b.Info.Components).ToArray());
+            VertexLayoutId combinedLayout = VertexLayoutId.NULL;
+            List<MyVertexInputComponent> firstComponents = new List<MyVertexInputComponent>(firstLayout.Info.Components);
+            MyVertexInputComponent[] secondComponents = secondLayout.Info.Components;
+           
+            firstComponents.AddArray(secondComponents);
+
+            Debug.Assert(firstComponents.Count == firstComponents.Capacity);
+            firstComponents.Capacity = firstComponents.Count;
+
+            combinedLayout = GetLayout(firstComponents.GetInternalArray());
+            return combinedLayout;
         }
 
-        internal static VertexLayoutId GetLayout(params MyVertexInputComponent [] components)
+        internal static VertexLayoutId GetLayout(params MyVertexInputComponent[] components)
         {
             if(components == null || components.Length == 0)
             {
@@ -195,19 +205,23 @@ namespace VRageRender
 
             var declarationBuilder = new StringBuilder();
             var sourceBuilder = new StringBuilder();
-            var elementsList = new List<InputElement>();
             var semanticDict = new Dictionary<string, int>();
+
+            // Might save some allocations when each AddComponent only adds one element as then we can use GetInternalArray and Capacity set does nothing
+            var elementsList = new List<InputElement>(components.Length);
 
             foreach (var component in components)
             {
                 MyVertexInputLayout.m_mapComponent[component.Type].AddComponent(component, elementsList, semanticDict, declarationBuilder, sourceBuilder);
             }
 
+            elementsList.Capacity = elementsList.Count;
+            Debug.Assert(elementsList.Count == elementsList.Capacity);
+
             Layouts.Data[id.Index] = new MyVertexLayoutInfo {
                 Components = components,
-                Elements = elementsList.ToArray(),
-                SourceDataMove = sourceBuilder.ToString(),
-                SourceDeclarations = new StringBuilder().AppendFormat("struct __VertexInput {{ \n {0} \n }};", declarationBuilder.ToString()).ToString(),
+                Elements = elementsList.GetInternalArray(),
+                Macros = MyComponent.GetComponentMacros(declarationBuilder.ToString(), sourceBuilder.ToString()),
                 HasBonesInfo = components.Any(x => x.Type == MyVertexInputComponentType.BLEND_INDICES)
             };
 
@@ -224,8 +238,7 @@ namespace VRageRender
         int m_id;
 
         internal InputElement[] m_elements;
-        internal string m_declarationsSrc;
-        internal string m_transferSrc;
+        internal ShaderMacro[] m_macros;
 
         internal int Hash { get { return m_hash; } }
         internal int ID { get { return m_id; } }
@@ -281,29 +294,19 @@ namespace VRageRender
             next = new MyVertexInputLayout();
             next.m_hash = nextHash;
             next.m_id = m_cached.Count;
-            next.m_components = m_components.Concat(component.Yield()).ToArray();
+            next.m_components = m_components.Concat(component.Yield_()).ToArray();
             next.Build();
 
             m_cached[nextHash] = next;
             return next;
         }
 
-        internal static string DeclarationsSrc(int hash)
+        internal static ShaderMacro[] GetMacros(int hash)
         {
             MyVertexInputLayout cached;
             if (m_cached.TryGetValue(hash, out cached))
             {
-                return cached.m_declarationsSrc;
-            }
-            return null;
-        }
-
-        internal static string TransferSrc(int hash)
-        {
-            MyVertexInputLayout cached;
-            if (m_cached.TryGetValue(hash, out cached))
-            {
-                return cached.m_transferSrc;
+                return cached.m_macros;
             }
             return null;
         }
@@ -329,9 +332,8 @@ namespace VRageRender
                 m_mapComponent[component.Type].AddComponent(component, elementsList, semanticDict, declarationBuilder, sourceBuilder);
             }
 
-            m_declarationsSrc = new StringBuilder().AppendFormat("struct __VertexInput {{ \n {0} \n }};", declarationBuilder.ToString()).ToString();
-            m_transferSrc = sourceBuilder.ToString();
             m_elements = elementsList.ToArray();
+            m_macros = MyComponent.GetComponentMacros(declarationBuilder.ToString(), sourceBuilder.ToString());
         }
     }
 }

@@ -23,6 +23,8 @@ using VRage.Game;
 using VRage.Utils;
 using VRage.ModAPI;
 using VRage.Game.Entity;
+using VRage.Network;
+using Sandbox.Engine.Multiplayer;
 
 #endregion
 
@@ -68,7 +70,6 @@ namespace Sandbox.Game.Entities.Cube
                     m_targetId = null;
             }
         }
-        MySyncLaserAntenna sync;
 
         long? m_targetId;
         StringBuilder m_lastKnownTargetName=new StringBuilder();
@@ -159,13 +160,23 @@ namespace Sandbox.Game.Entities.Cube
         
         public MyLaserAntenna()
         {
-            sync = new MySyncLaserAntenna(this);
+            CreateTerminalControls();
         }
 
         static MyLaserAntenna()
         {
             m_Max_LosDist=MySession.Static.Settings.ViewDistance;
 
+        }
+        static MyTerminalControlButton<MyLaserAntenna> idleButton;
+        static MyTerminalControlButton<MyLaserAntenna> connectGPS;
+        static MyTerminalControlListbox<MyLaserAntenna> receiversList;
+        static MyTerminalControlTextbox<MyLaserAntenna> gpsCoords;
+        static MyTerminalControlButton<MyLaserAntenna> PasteGpsCoords;
+        static MyTerminalControlButton<MyLaserAntenna> ConnectReceiver;
+
+        static void CreateTerminalControls()
+        {
             /*MyTerminalControlFactory.RemoveBaseClass<MyLaserAntenna, MyTerminalBlock>();
 
             var customName = new MyTerminalControlTextbox<MyLaserAntenna>("CustomName", MySpaceTexts.Name, MySpaceTexts.Blank);
@@ -174,8 +185,11 @@ namespace Sandbox.Game.Entities.Cube
             customName.SupportsMultipleBlocks = false;
             MyTerminalControlFactory.AddControl(customName);*/
 
+            if (MyTerminalControlFactory.AreControlsCreated<MyLaserAntenna>())
+                return;
+
             idleButton = new MyTerminalControlButton<MyLaserAntenna>("Idle", MySpaceTexts.LaserAntennaIdleButton, MySpaceTexts.Blank,
-                delegate(MyLaserAntenna self)
+                delegate (MyLaserAntenna self)
                 {
                     self.SetIdle();
                     idleButton.UpdateVisual();
@@ -188,24 +202,28 @@ namespace Sandbox.Game.Entities.Cube
             MyTerminalControlFactory.AddControl(new MyTerminalControlSeparator<MyLaserAntenna>());
 
             var copyCoordsButton = new MyTerminalControlButton<MyLaserAntenna>("CopyCoords", MySpaceTexts.LaserAntennaCopyCoords, MySpaceTexts.LaserAntennaCopyCoordsHelp,
-                delegate(MyLaserAntenna self)
+                delegate (MyLaserAntenna self)
                 {
                     StringBuilder sanitizedName = new StringBuilder(self.DisplayNameText);
                     sanitizedName.Replace(':', ' ');
                     StringBuilder sb = new StringBuilder("GPS:", 256);
                     sb.Append(sanitizedName); sb.Append(":");
-                    sb.Append(Math.Round(self.HeadPos.X,2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
-                    sb.Append(Math.Round(self.HeadPos.Y,2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
-                    sb.Append(Math.Round(self.HeadPos.Z,2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
+                    sb.Append(Math.Round(self.HeadPos.X, 2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
+                    sb.Append(Math.Round(self.HeadPos.Y, 2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
+                    sb.Append(Math.Round(self.HeadPos.Z, 2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
+#if !XB1
                     Thread thread = new Thread(() => System.Windows.Forms.Clipboard.SetText(sb.ToString()));
                     thread.SetApartmentState(ApartmentState.STA);
                     thread.Start();
                     thread.Join();
+#else
+                    Debug.Assert(false, "Not Clipboard support on XB1!");
+#endif
                 });
             MyTerminalControlFactory.AddControl(copyCoordsButton);
 
             var copyTargetCoordsButton = new MyTerminalControlButton<MyLaserAntenna>("CopyTargetCoords", MySpaceTexts.LaserAntennaCopyTargetCoords, MySpaceTexts.LaserAntennaCopyTargetCoordsHelp,
-                delegate(MyLaserAntenna self)
+                delegate (MyLaserAntenna self)
                 {
                     if (self.m_targetId == null)
                         return;
@@ -213,26 +231,29 @@ namespace Sandbox.Game.Entities.Cube
                     sanitizedName.Replace(':', ' ');
                     StringBuilder sb = new StringBuilder("GPS:", 256);
                     sb.Append(sanitizedName); sb.Append(":");
-                    sb.Append(Math.Round(self.m_targetCoords.X,2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
-                    sb.Append(Math.Round(self.m_targetCoords.Y,2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
-                    sb.Append(Math.Round(self.m_targetCoords.Z,2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
+                    sb.Append(Math.Round(self.m_targetCoords.X, 2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
+                    sb.Append(Math.Round(self.m_targetCoords.Y, 2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
+                    sb.Append(Math.Round(self.m_targetCoords.Z, 2).ToString(System.Globalization.CultureInfo.InvariantCulture)); sb.Append(":");
+#if !XB1
                     Thread thread = new Thread(() => System.Windows.Forms.Clipboard.SetText(sb.ToString()));
                     thread.SetApartmentState(ApartmentState.STA);
                     thread.Start();
                     thread.Join();
-                    
+#else
+                    Debug.Assert(false, "Not Clipboard support on XB1!");
+#endif
                 });
             copyTargetCoordsButton.Enabled = (x) => x.m_targetId != null;
             MyTerminalControlFactory.AddControl(copyTargetCoordsButton);
 
             PasteGpsCoords = new MyTerminalControlButton<MyLaserAntenna>("PasteGpsCoords", MySpaceTexts.LaserAntennaPasteGPS, MySpaceTexts.Blank,
-                delegate(MyLaserAntenna self)
+                delegate (MyLaserAntenna self)
                 {
                     Thread thread = new Thread(() => PasteFromClipboard());
                     thread.SetApartmentState(ApartmentState.STA);
                     thread.Start();
                     thread.Join();
-                    self.sync.PasteCoordinates(m_clipboardText);
+                    self.PasteCoordinates(m_clipboardText);
                 });
             //PasteGpsCoords.Enabled = (x) => x.P2PTargetCoords;
             PasteGpsCoords.EnableAction();
@@ -244,23 +265,23 @@ namespace Sandbox.Game.Entities.Cube
             MyTerminalControlFactory.AddControl(gpsCoords);
 
             connectGPS = new MyTerminalControlButton<MyLaserAntenna>("ConnectGPS", MySpaceTexts.LaserAntennaConnectGPS, MySpaceTexts.Blank,
-                delegate(MyLaserAntenna self)
+                delegate (MyLaserAntenna self)
                 {
                     if (self.m_termGpsCoords == null)
                         return;//should not get here anyway
                     self.ConnectToGps();
                 });
             connectGPS.Enabled = (x) => x.CanConnectToGPS();
-            connectGPS.EnableAction(); 
+            connectGPS.EnableAction();
             MyTerminalControlFactory.AddControl(connectGPS);
 
-            var isPerm = new MyTerminalControlCheckbox<MyLaserAntenna>("isPerm",MySpaceTexts.LaserAntennaPermanentCheckbox,MySpaceTexts.Blank);
-                isPerm.Getter = (self) => self.m_IsPermanent;
-                isPerm.Setter = (self, v) =>
-                {
-                    self.sync.ChangePerm(v);
-                };
-            isPerm.Enabled = (self) => self.State==StateEnum.connected;
+            var isPerm = new MyTerminalControlCheckbox<MyLaserAntenna>("isPerm", MySpaceTexts.LaserAntennaPermanentCheckbox, MySpaceTexts.Blank);
+            isPerm.Getter = (self) => self.m_IsPermanent;
+            isPerm.Setter = (self, v) =>
+            {
+                self.ChangePerm(v);
+            };
+            isPerm.Enabled = (self) => self.State == StateEnum.connected;
             isPerm.EnableAction();
             MyTerminalControlFactory.AddControl(isPerm);
 
@@ -274,20 +295,13 @@ namespace Sandbox.Game.Entities.Cube
             MyTerminalControlFactory.AddControl(receiversList);
 
             ConnectReceiver = new MyTerminalControlButton<MyLaserAntenna>("ConnectReceiver", MySpaceTexts.LaserAntennaConnectButton, MySpaceTexts.Blank,
-                delegate(MyLaserAntenna self)
+                delegate (MyLaserAntenna self)
                 {
                     self.ConnectToId();
                 });
-            ConnectReceiver.Enabled = (x) => x.m_selectedEntityId!=null;
+            ConnectReceiver.Enabled = (x) => x.m_selectedEntityId != null;
             MyTerminalControlFactory.AddControl(ConnectReceiver);
-
         }
-        static MyTerminalControlButton<MyLaserAntenna> idleButton;
-        static MyTerminalControlButton<MyLaserAntenna> connectGPS;
-        static MyTerminalControlListbox<MyLaserAntenna> receiversList;
-        static MyTerminalControlTextbox<MyLaserAntenna> gpsCoords;
-        static MyTerminalControlButton<MyLaserAntenna> PasteGpsCoords;
-        static MyTerminalControlButton<MyLaserAntenna> ConnectReceiver;
 
         static void UpdateVisuals()
         {
@@ -307,7 +321,12 @@ namespace Sandbox.Game.Entities.Cube
         }
         static void PasteFromClipboard()
         {
+#if !XB1
            m_clipboardText = System.Windows.Forms.Clipboard.GetText();
+#else
+            Debug.Assert(false, "Not Clipboard support on XB1!");
+#endif
+           
         }
         
         Vector3D m_temp;
@@ -597,12 +616,12 @@ namespace Sandbox.Game.Entities.Cube
                     break;
                 case StateEnum.rot_GPS:
                     if (m_rotationFinished)
-                        sync.ShiftMode(StateEnum.search_GPS);
+                        ShiftModeSync(StateEnum.search_GPS);
                     break;
                 case StateEnum.search_GPS:
                     if (!m_rotationFinished)//rotation lost
                     {
-                        sync.ShiftMode(StateEnum.rot_GPS);
+                        ShiftModeSync(StateEnum.rot_GPS);
                         break;
                     }
                     //search for laser there
@@ -672,18 +691,18 @@ namespace Sandbox.Game.Entities.Cube
                     if (!LosTests(anyLaser))
                         break;//no visibility. Sorry
                     //modify connection to connect to receiver:
-                    sync.ConnectToRec(anyLaser.EntityId);
+                    ConnectToRec(anyLaser.EntityId);
                     break;
                 case StateEnum.rot_Rec:
                     if (m_rotationFinished)
-                        sync.ShiftMode(StateEnum.contact_Rec);
+                        ShiftModeSync(StateEnum.contact_Rec);
                     break;
                 case StateEnum.contact_Rec:
                     if (m_targetId == null)
                         break;//legal - laser could be destroyed
                     if (!m_rotationFinished)//rotation lost
                     {
-                        sync.ShiftMode(StateEnum.rot_Rec);
+                        ShiftModeSync(StateEnum.rot_Rec);
                         break;
                     }
                     MyLaserAntenna target=GetLaserById((long)m_targetId);
@@ -710,16 +729,16 @@ namespace Sandbox.Game.Entities.Cube
                                 target.m_rotationFinished = false;
                                 break;
                             }
-                            sync.ShiftMode(StateEnum.connected);
+                            ShiftModeSync(StateEnum.connected);
                         }
                     }
                     break;
                 case StateEnum.connected:
                     //if rotation lost go to rot_Rec
                     if (!m_rotationFinished)
-                        sync.ShiftMode(StateEnum.rot_Rec);
+                        ShiftModeSync(StateEnum.rot_Rec);
                     if (m_targetId == null)
-                        sync.ShiftMode(StateEnum.contact_Rec);//other side MIA - legal - laser could be destroyed
+                        ShiftModeSync(StateEnum.contact_Rec);//other side MIA - legal - laser could be destroyed
                     target = GetLaserById((long)m_targetId);
                     if (target == null
                         || target.m_targetId != EntityId
@@ -731,7 +750,7 @@ namespace Sandbox.Game.Entities.Cube
                         || !target.Receiver.CanIUseIt(Broadcaster, target.OwnerId)
                         || !LosTest(target.HeadPos)//target will make other half of line in its update
                         )
-                        sync.ShiftMode(StateEnum.contact_Rec);//other side MIA
+                        ShiftModeSync(StateEnum.contact_Rec);//other side MIA
                     else
                     {
                         m_targetCoords = target.HeadPos;
@@ -784,7 +803,7 @@ namespace Sandbox.Game.Entities.Cube
 					if (target.Enabled && target.IsFunctional && ResourceSink.SuppliedRatio > 0.99f)
                         if (target.m_targetId != EntityId)
                         {
-                            sync.ShiftMode(StateEnum.idle);
+                            ShiftModeSync(StateEnum.idle);
                             return;//partner cheated us - we did not heard of each other for a while and he is with someone else now :-(
                         }
                     if (Receiver.RelayedBroadcasters.Contains(target.Broadcaster))
@@ -854,7 +873,7 @@ namespace Sandbox.Game.Entities.Cube
         {
 			ResourceSink.Update();
             if (Enabled && State == StateEnum.connected)
-                sync.ShiftMode(StateEnum.rot_Rec);
+                ShiftModeSync(StateEnum.rot_Rec);
             Receiver.UpdateBroadcastersInRange();
             base.OnEnabledChanged();
         }
@@ -868,7 +887,7 @@ namespace Sandbox.Game.Entities.Cube
         {
             UpdateIsWorking();
             if (State == StateEnum.connected && !IsWorking)
-                sync.ShiftMode(StateEnum.rot_Rec);
+                ShiftModeSync(StateEnum.rot_Rec);
             if (Receiver!=null)
                 Receiver.Enabled = IsWorking;
             m_rotationInterval_ms = MySandboxGame.TotalGamePlayTimeInMilliseconds;
@@ -888,7 +907,7 @@ namespace Sandbox.Game.Entities.Cube
             base.OnIntegrityChanged(buildIntegrity, integrity, setOwnership, owner, sharing);
             m_termGpsCoords = null;
             m_termGpsName.Clear();
-            sync.ShiftMode(StateEnum.idle);
+            ShiftModeSync(StateEnum.idle);
         }
 
         public void OnClosed()
@@ -933,23 +952,23 @@ namespace Sandbox.Game.Entities.Cube
                 return;
             if (!IsWorking)
             {
-                VRageRender.MyRenderProxy.UpdateColorEmissivity(m_base2.Render.RenderObjectIDs[0], 0, "Emissive0", Color.Red, 0);
+                UpdateNamedEmissiveParts(m_base2.Render.RenderObjectIDs[0], "Emissive0", Color.Red, 0);
                 return;
             }
             switch (State)
             {
                 case StateEnum.idle:
-                    VRageRender.MyRenderProxy.UpdateColorEmissivity(m_base2.Render.RenderObjectIDs[0], 0, "Emissive0", Color.Green, 1);
+                    UpdateNamedEmissiveParts(m_base2.Render.RenderObjectIDs[0], "Emissive0", Color.Green, 1);
                     break;
                 case StateEnum.rot_GPS:
                 case StateEnum.rot_Rec:
-                    VRageRender.MyRenderProxy.UpdateColorEmissivity(m_base2.Render.RenderObjectIDs[0], 0, "Emissive0", Color.Yellow, 1);
+                    UpdateNamedEmissiveParts(m_base2.Render.RenderObjectIDs[0], "Emissive0", Color.Yellow, 1);
                     break;
                 case StateEnum.connected:
-                    VRageRender.MyRenderProxy.UpdateColorEmissivity(m_base2.Render.RenderObjectIDs[0], 0, "Emissive0", Color.SteelBlue, 1);
+                    UpdateNamedEmissiveParts(m_base2.Render.RenderObjectIDs[0], "Emissive0", Color.SteelBlue, 1);
                     break;
                 default:
-                    VRageRender.MyRenderProxy.UpdateColorEmissivity(m_base2.Render.RenderObjectIDs[0], 0, "Emissive0", Color.GreenYellow, 1);
+                    UpdateNamedEmissiveParts(m_base2.Render.RenderObjectIDs[0], "Emissive0", Color.GreenYellow, 1);
                     return;
             }
         }
@@ -1009,18 +1028,18 @@ namespace Sandbox.Game.Entities.Cube
         
         protected void SetIdle()
         {
-            sync.ChangeMode(StateEnum.idle);
+            ChangeModeSync(StateEnum.idle);
             receiversList.UpdateVisual();
         }
 
         protected void ConnectToId()
         {
             Debug.Assert(m_selectedEntityId != null);
-            sync.ConnectToRec((long)m_selectedEntityId);
+            ConnectToRec((long)m_selectedEntityId);
         }
         protected void ConnectToGps()
         {
-            sync.ChangeMode(StateEnum.rot_GPS);
+            ChangeModeSync(StateEnum.rot_GPS);
         }
 
         internal void ChangeMode(StateEnum Mode)
@@ -1110,7 +1129,7 @@ namespace Sandbox.Game.Entities.Cube
                     if (IsInContact(other))
                     {
                         //inform other side that we are breaking connection, switch it to idle
-                        other.sync.ChangeMode(StateEnum.idle);
+                        other.ChangeModeSync(StateEnum.idle);
                         return true;
                     }
                     //other side not in contact, bad luck, will stay searching for us
@@ -1133,7 +1152,7 @@ namespace Sandbox.Game.Entities.Cube
             if (target!=null && target.m_targetId!=EntityId)
             {
                 //other.IdleOther();
-                target.sync.ConnectToRec(EntityId);
+                target.ConnectToRec(EntityId);
             }
             return true;
         }
@@ -1395,9 +1414,103 @@ namespace Sandbox.Game.Entities.Cube
             m_rotationFinished = (stapR <= float.Epsilon && stapE <= float.Epsilon);
             return m_rotationFinished;
         }
-        /*public override void DebugDraw()
+
+        #region Network
+
+        #region paste coords
+        private void PasteCoordinates(string coords)
         {
-            MyRenderProxy.DebugDrawLine3D(m_origin, FrontPoint, Color.Red, Color.Blue, false);
-        } */
+            if (!Sync.MultiplayerActive)
+                DoPasteCoords(coords);
+            else
+                MyMultiplayer.RaiseEvent(this, x => x.PasteCoordinatesSuccess, coords);
+        }
+
+        [Event, Reliable, Server, Broadcast]
+        void PasteCoordinatesSuccess(string coords)
+        {
+            DoPasteCoords(coords);
+        }
+
+        #endregion //  paste coords
+
+        #region change permanent
+
+        private void ChangePerm(bool isPerm)
+        {
+            if (!Sync.MultiplayerActive)
+                DoSetIsPerm(isPerm);
+            else
+                MyMultiplayer.RaiseEvent(this, x => x.ChangePermRequest, isPerm);
+        }
+
+        [Event, Reliable, Server]
+        void ChangePermRequest(bool isPerm)
+        {
+            if (DoSetIsPerm(isPerm))
+                MyMultiplayer.RaiseEvent(this, x => x.ChangePermSuccess, isPerm);
+        }
+
+        [Event, Reliable, Broadcast]
+        void ChangePermSuccess(bool isPerm)
+        {
+            DoSetIsPerm(isPerm);
+        }
+
+        #endregion // change permanent
+
+        #region change mode
+        private void ChangeModeSync(StateEnum Mode)
+        {
+            ChangeMode(Mode, true);
+        }
+        private void ShiftModeSync(StateEnum Mode)//same as ChengeMode but MP client side will not be propagated to server
+        {
+            ChangeMode(Mode, false);
+        }
+
+        private void ChangeMode(StateEnum mode, bool UploadFromClient)
+        {
+            if (!Sync.MultiplayerActive)
+                ChangeMode(mode);
+            else if (UploadFromClient || Sync.IsServer)
+                MyMultiplayer.RaiseEvent(this, x => x.OnChangeModeRequest, mode);
+        }
+
+        [Event, Reliable, Server, Broadcast]
+        void OnChangeModeRequest(StateEnum mode)
+        {
+            ChangeMode(mode);
+        }
+
+        #endregion // change mode
+
+        #region change dest
+
+        public void ConnectToRec(long TgtReceiver)
+        {
+            if (!Sync.MultiplayerActive)
+                ConnectTo(TgtReceiver);
+            else
+                MyMultiplayer.RaiseEvent(this, x => x.OnConnectToRecRequest, TgtReceiver);
+        }
+
+        [Event, Reliable, Server]
+        void OnConnectToRecRequest(long targetEntityId)
+        {
+            if(ConnectTo(targetEntityId))
+                MyMultiplayer.RaiseEvent(this, x => x.OnConnectToRecSuccess, targetEntityId);
+        }
+
+        [Event, Reliable, Broadcast]
+        void OnConnectToRecSuccess(long targetEntityId)
+        {
+            DoConnectTo(targetEntityId);
+        }
+
+        #endregion // change dest
+
+        #endregion
+
     }
 }

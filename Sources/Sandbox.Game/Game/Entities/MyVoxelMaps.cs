@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using VRage;
 using VRage.Collections;
+using VRage.Profiler;
 using VRage.Utils;
-using VRage.Voxels;
 using VRageMath;
 
 namespace Sandbox.Game.Entities
@@ -70,6 +70,11 @@ namespace Sandbox.Game.Entities
             }
             m_tmpVoxelMapsList.Clear();
             return ret;
+        }
+
+        public void GetAllOverlappingWithSphere(ref BoundingSphereD sphere, List<MyVoxelBase> voxels)
+        {
+            MyGamePruningStructure.GetAllVoxelMapsInSphere(ref sphere, voxels);
         }
 
         public List<MyVoxelBase> GetAllOverlappingWithSphere(ref BoundingSphereD sphere)

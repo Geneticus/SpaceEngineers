@@ -26,10 +26,12 @@ using VRage.ObjectBuilders;
 using Sandbox.Game.Entities.Blocks;
 using VRage.Game;
 using VRage.Game.Entity;
+using VRage.Game.ModAPI;
+using VRage.Profiler;
 
 namespace Sandbox.Game.World
 {
-    public class MyPrefabManager : Sandbox.ModAPI.IMyPrefabManager
+    public class MyPrefabManager : VRage.Game.ModAPI.IMyPrefabManager
     {
         private static List<MyCubeGrid> m_tmpSpawnedGridList = new List<MyCubeGrid>();
 
@@ -195,7 +197,7 @@ namespace Sandbox.Game.World
                     if (cubeGrid.IsStatic)
                     {
                         Vector3 rounded = default(Vector3I);
-                        if (MyPerGameSettings.BuildingSettings.StaticGridAlignToCenter)
+                        if (MyCubeBuilder.CubeBuilderDefinition.BuildingSettings.StaticGridAlignToCenter)
                             rounded = Vector3I.Round(newWorldMatrix.Translation / cubeGrid.GridSize) * cubeGrid.GridSize;
                         else
                             rounded = Vector3I.Round(newWorldMatrix.Translation / cubeGrid.GridSize + 0.5f) * cubeGrid.GridSize - 0.5f * cubeGrid.GridSize;
@@ -337,6 +339,8 @@ namespace Sandbox.Game.World
                 }
                 bool setOwnership = owner != 0;
 
+                List<MyCockpit> shipCockpits = new List<MyCockpit>();
+
                 foreach (var grid in resultList)
                 {
                     grid.ClearSymmetries();
@@ -357,9 +361,9 @@ namespace Sandbox.Game.World
                         ProfilerShort.Begin("Iterate through blocks");
                         foreach (var block in grid.GetBlocks())
                         {
-                            if (block.FatBlock is MyCockpit && rotateToCockpit && firstCockpit == null)
+                            if (block.FatBlock is MyCockpit && block.FatBlock.IsFunctional)
                             {
-                                firstCockpit = (MyCockpit)block.FatBlock;
+                                shipCockpits.Add(block.FatBlock as MyCockpit);
                             }
 
                             else if (block.FatBlock is MyCargoContainer && spawnCargo)
@@ -391,7 +395,25 @@ namespace Sandbox.Game.World
                     }
                 }
 
-                Matrix transform = default(Matrix);
+                // First sort cockpits by order: Ship controlling cockpits set to main, then ship controlling cockpits not set to main, lastly whatever remains, e.g. CryoChambers and Passenger Seats
+                if (shipCockpits.Count > 1)
+                {
+                    shipCockpits.Sort(delegate(MyCockpit cockpitA, MyCockpit cockpitB)
+                    {
+                        int controlCompare = cockpitB.EnableShipControl.CompareTo(cockpitA.EnableShipControl);
+                        if (controlCompare != 0) return controlCompare;
+
+                        int mainCompare = cockpitB.IsMainCockpit.CompareTo(cockpitA.IsMainCockpit);
+                        if (mainCompare != 0) return mainCompare;
+
+                        return 0;
+                    });
+                }
+                if (shipCockpits.Count > 0)
+                    firstCockpit = shipCockpits[0];
+
+                // Try to rotate to the first cockpit
+                Matrix transform = Matrix.Identity;
                 if (rotateToCockpit)
                 {
                     System.Diagnostics.Debug.Assert(firstCockpit != null,"cockpit in prefab ship is missing !");
@@ -405,7 +427,7 @@ namespace Sandbox.Game.World
 
                 foreach (var grid in resultList)
                 {
-                    if (firstCockpit != null)
+                    if (firstCockpit != null && rotateToCockpit)
                     {
                         grid.WorldMatrix = grid.WorldMatrix * transform;
                     }

@@ -400,6 +400,9 @@ Remove the original control?</value>
   <data name="ControlName_UseOrInteract" xml:space="preserve">
     <value>Use / Interact</value>
   </data>
+  <data name="ControlName_PickUp" xml:space="preserve">
+    <value>Pick Up</value>
+  </data>
   <data name="VerticalSync" xml:space="preserve">
     <value>Vertical sync</value>
   </data>
@@ -724,6 +727,12 @@ Remove the original control?</value>
   <data name="ControlName_HoldToLookAround" xml:space="preserve">
     <value>Hold to look around</value>
   </data>
+  <data name="ControlName_ToggleSignalsMode" xml:space="preserve">
+    <value>Toggle signal mode</value>
+  </data>
+  <data name="ControlName_ToggleSignalsMode_Tooltip" xml:space="preserve">
+    <value>Toggles signals between fading mode and always visible mode.</value>
+  </data>
   <data name="ControlName_HoldToSprint" xml:space="preserve">
     <value>Hold to sprint</value>
   </data>
@@ -774,7 +783,7 @@ If the game doesn't run smoothly, decrease your screen resolution.</value>
     <value>HW mouse cursor is independent of game framerate. We recommend to turn it on.</value>
   </data>
   <data name="ToolTipVideoOptionsCaptureMouse" xml:space="preserve">
-    <value>Weather the cursor should be captured by the game window (for Windowed and Fullscreen Window modes).</value>
+    <value>Whether the cursor should be captured by the game window (for Windowed and Fullscreen Window modes).</value>
   </data>
   <data name="ToolTipVideoOptionsVerticalSync" xml:space="preserve">
     <value>The game will synchronize with the refresh rate of the monitor. We recommend to turn it off.</value>
@@ -796,6 +805,9 @@ If the game doesn't run smoothly, decrease your screen resolution.</value>
   </data>
   <data name="MessageBoxCaptionWarning" xml:space="preserve">
     <value>WARNING</value>
+  </data>
+  <data name="MessageBoxModsMismatch" xml:space="preserve">
+    <value>These mods were created in development version. They could cause issues in game</value>
   </data>
   <data name="MessageBoxTextOpenBrowser" xml:space="preserve">
     <value>This will open {0} in your internet browser. The game will keep running. Do you want to continue?</value>
@@ -1154,6 +1166,9 @@ World size: {1}</value>
   <data name="MessageBoxTextYouHaveBeenKicked" xml:space="preserve">
     <value>You have been kicked from the game by its owner.</value>
   </data>
+  <data name="NotificationPasteFailed" xml:space="preserve">
+    <value>Paste operation failed, selected area is occupied.</value>
+  </data>
   <data name="WorldSettings_OnlineModeFriends" xml:space="preserve">
     <value>Friends</value>
   </data>
@@ -1244,6 +1259,9 @@ World size: {1}</value>
   <data name="NotificationInventoryFull" xml:space="preserve">
     <value>Inventory is full</value>
   </data>
+  <data name="NotificationInventoryNotEmpty" xml:space="preserve">
+    <value>This inventory still contains items</value>
+  </data>
   <data name="OutOfAmmo" xml:space="preserve">
     <value>{0} is out of ammunition</value>
   </data>
@@ -1289,7 +1307,7 @@ Refinery speed {2}x</value>
     <value>Player disconnected: {0}</value>
   </data>
   <data name="MultiplayerError_IncorrectVersion" xml:space="preserve">
-    <value>Server has different version of the game. Your version: {0}; Server version: {1}</value>
+    <value>Server has different version of the game. Your version: {0}; Server version: {1}; You can change the branch, before launching the game, in game properties.</value>
   </data>
   <data name="ShowCrosshair" xml:space="preserve">
     <value>Show crosshair</value>
@@ -1603,6 +1621,9 @@ Open admin profile?</value>
   <data name="WorldSettings_Mods" xml:space="preserve">
     <value>Mods</value>
   </data>
+  <data name="WorldSettings_Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
   <data name="ToolTipWorkshopOpenModInWorkshop" xml:space="preserve">
     <value>Open selected mod in Workshop Steam Overlay</value>
   </data>
@@ -1616,7 +1637,7 @@ Open admin profile?</value>
     <value>At least 3 characters must be inserted to start searching</value>
   </data>
   <data name="ProgressTextDownloadingMods" xml:space="preserve">
-    <value>Downloading mods ... please wait.</value>
+    <value>Downloading mod </value>
   </data>
   <data name="NotificationClientCannotSave" xml:space="preserve">
     <value>Client saving is disabled on this server</value>
@@ -1733,7 +1754,7 @@ Open admin profile?</value>
     <value>Hud Warnings</value>
   </data>
   <data name="DialogTextIncompatibleWorldVersion" xml:space="preserve">
-    <value>This world can not be loaded. It has been created in newer version of the game.</value>
+    <value>This world cannot be loaded. It has been created in a newer version of the game or in a different branch of the game. You can change the branch, before launching the game, in game properties.</value>
   </data>
   <data name="MessageBoxTextPublishFailed_AccessDenied" xml:space="preserve">
     <value>This workshop item does not seem to belong to you. Make sure you are logged in with the right account.</value>
@@ -2183,6 +2204,9 @@ Do you want to continue?</value>
   <data name="ScreenGraphicsOptions_ShadowMapResolution_High" xml:space="preserve">
     <value>High</value>
   </data>
+  <data name="ScreenGraphicsOptions_ShadowMapResolution_Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
   <data name="ScreenGraphicsOptions_ShadowMapResolution_Low" xml:space="preserve">
     <value>Low</value>
   </data>
@@ -2201,11 +2225,20 @@ Do you want to continue?</value>
   <data name="ControlName_VoiceChat" xml:space="preserve">
     <value>Push-to-talk voice chat</value>
   </data>
+  <data name="ControlName_CubeSizeMode" xml:space="preserve">
+    <value>Cube size toggle button</value>
+  </data>
+  <data name="ControlName_CubeSizeMode_Tooltip" xml:space="preserve">
+    <value>Press to switch between small and large sizes of a block</value>
+  </data>
   <data name="EnableVoiceChat" xml:space="preserve">
     <value>Enable voice chat</value>
   </data>
   <data name="ScreenGraphicsOptions_Tonemapping" xml:space="preserve">
     <value>Tonemapping</value>
+  </data>
+  <data name="WorldSettings_VegetationDistance" xml:space="preserve">
+    <value>Vegetation View Distance</value>
   </data>
   <data name="WorldSettings_GrassDensity" xml:space="preserve">
     <value>Grass density</value>
@@ -2367,5 +2400,62 @@ Do you want to continue?</value>
   </data>
   <data name="MuteWhenNotInFocus" xml:space="preserve">
     <value>Mute when inactive</value>
+  </data>
+  <data name="ControlTypeNavigation2" xml:space="preserve">
+    <value>Navigation 2</value>
+  </data>
+  <data name="ScreenLoadSubscribedWorldCopyWorld" xml:space="preserve">
+    <value>Copy World</value>
+  </data>
+  <data name="NotificationResearchUnlocked" xml:space="preserve">
+    <value>You have unlocked new knowledge about {0}.</value>
+  </data>
+  <data name="NotificationResearchKnown" xml:space="preserve">
+    <value>You already have knowledge about {0}!</value>
+  </data>
+  <data name="MessageBoxTextWorldExistsDownloadOverwrite" xml:space="preserve">
+    <value>World already exists! Download &amp; Overwrite?</value>
+  </data>
+  <data name="MessageBoxTextWorldExistsOverwrite" xml:space="preserve">
+    <value>World already exists! Overwrite?</value>
+  </data>
+  <data name="ToolTipWorkshopCopyWorld" xml:space="preserve">
+    <value>Download selected world to save games without loading it (Use to Edit Settings before playing world)</value>
+  </data>
+  <data name="SignalMode_Switch_DefaultMode" xml:space="preserve">
+    <value>Signals switched to normal display.</value>
+  </data>
+  <data name="SignalMode_Switch_FullDisplay" xml:space="preserve">
+    <value>Signals switched to fully visible.</value>
+  </data>
+  <data name="SignalMode_Switch_NoNames" xml:space="preserve">
+    <value>Signals switched to no names.</value>
+  </data>
+  <data name="SignalMode_Switch_Off" xml:space="preserve">
+    <value>Signals switched off.</value>
+  </data>
+  <data name="Notification_CannotManipulateDoor" xml:space="preserve">
+    <value>Cannot open or close the door. Check for blocking objects!</value>
+  </data>
+  <data name="AudioSettings_UseMusicController" xml:space="preserve">
+    <value>Use contextual music</value>
+  </data>
+  <data name="ControlName_ChangeBlockVariants" xml:space="preserve">
+    <value>Change block variants</value>
+  </data>
+  <data name="ScreenOptionsGame_Skin" xml:space="preserve">
+    <value>Skin</value>
+  </data>
+  <data name="ScreenOptionsGame_SkinWarning" xml:space="preserve">
+    <value>Note: Not all screens support skin at the moment</value>
+  </data>
+  <data name="AnimatedRotation" xml:space="preserve">
+    <value>Animated block preview</value>
+  </data>
+  <data name="BuildingSizeHint" xml:space="preserve">
+    <value>Show building size hint</value>
+  </data>
+  <data name="AudioSettings_ShipSoundsBasedOnSpeed" xml:space="preserve">
+    <value>Speed based ship sounds</value>
   </data>
 </root>

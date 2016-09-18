@@ -16,7 +16,6 @@ using System.Xml.Serialization;
 using VRage;
 
 using VRage.Serialization;
-using Sandbox.Graphics.Render;
 using Sandbox.Graphics;
 
 //  This class encapsulated read/write access to our config file - xxx.cfg - stored in user's local files
@@ -35,10 +34,11 @@ using System.Runtime.Serialization.Formatters.Binary;
 using ProtoBuf;
 using System.Diagnostics;
 using VRage.Game;
+using VRage.Game.ModAPI;
 
 namespace Sandbox.Engine.Utils
 {
-    public class MyConfig : MyConfigBase, Sandbox.ModAPI.IMyConfig
+    public class MyConfig : MyConfigBase, IMyConfig
     {
         //  Constants for mapping between our get/set properties and parameters inside the config file
         readonly string DX9_RENDER_QUALITY = "RenderQuality";
@@ -57,8 +57,11 @@ namespace Sandbox.Engine.Utils
         readonly string MUSIC_VOLUME = "MusicVolume";
         readonly string VOICE_CHAT_VOLUME = "VoiceChatVolume";
         readonly string LANGUAGE = "Language";
+        readonly string SKIN = "Skin";
         readonly string CONTROLS_HINTS = "ControlsHints";
         readonly string ROTATION_HINTS = "RotationHints";
+        readonly string ANIMATED_ROTATION = "AnimatedRotation";
+        readonly string BUILDING_SIZE_HINT = "BuildingSizeHint";
         readonly string SHOW_CROSSHAIR = "ShowCrosshair";
         readonly string DISABLE_HEADBOB = "DisableHeadbob";
         readonly string CONTROLS_GENERAL = "ControlsGeneral";
@@ -81,6 +84,8 @@ namespace Sandbox.Engine.Utils
         readonly string WINDOW_MODE = "WindowMode";
         readonly string MOUSE_CAPTURE = "CaptureMouse";
         readonly string HUD_WARNINGS = "HudWarnings";
+        readonly string DYNAMIC_MUSIC = "EnableDynamicMusic";
+        readonly string SHIP_SOUNDS_SPEED = "ShipSoundsAreBasedOnSpeed";
         readonly string ANTIALIASING_MODE = "AntialiasingMode";
         readonly string SHADOW_MAP_RESOLUTION = "ShadowMapResolution";
         readonly string MULTITHREADED_RENDERING = "MultithreadedRendering";
@@ -89,6 +94,7 @@ namespace Sandbox.Engine.Utils
         readonly string ANISOTROPIC_FILTERING = "AnisotropicFiltering";
         readonly string FOLIAGE_DETAILS = "FoliageDetails";
         readonly string GRASS_DENSITY = "GrassDensity";
+        readonly string VEGETATION_DISTANCE = "VegetationViewDistance";
         readonly string GRAPHICS_RENDERER = "GraphicsRenderer";
         readonly string ENABLE_VOICE_CHAT = "VoiceChat";
         readonly string ENABLE_MUTE_WHEN_NOT_IN_FOCUS = "EnableMuteWhenNotInFocus";
@@ -195,6 +201,20 @@ namespace Sandbox.Engine.Utils
             set
             {
                 SetParameterValue(GRASS_DENSITY, value);
+            }
+        }
+
+
+        public float VegetationDrawDistance
+        {
+            get
+            {
+                return MyUtils.GetFloatFromString(GetParameterValue(VEGETATION_DISTANCE), 100);
+            }
+
+            set
+            {
+                SetParameterValue(VEGETATION_DISTANCE, value);
             }
         }
 
@@ -435,6 +455,30 @@ namespace Sandbox.Engine.Utils
             }
         }
 
+        public bool AnimatedRotation
+        {
+            get
+            {
+                return MyUtils.GetBoolFromString(GetParameterValue(ANIMATED_ROTATION), true);
+            }
+            set
+            {
+                SetParameterValue(ANIMATED_ROTATION, value);
+            }
+        }
+
+        public bool ShowBuildingSizeHint
+        {
+            get
+            {
+                return MyUtils.GetBoolFromString(GetParameterValue(BUILDING_SIZE_HINT), true);
+            }
+            set
+            {
+                SetParameterValue(BUILDING_SIZE_HINT, value);
+            }
+        }
+
         public bool ShowCrosshair
         {
             get
@@ -497,6 +541,25 @@ namespace Sandbox.Engine.Utils
             set
             {
                 SetParameterValue(LANGUAGE, (byte)value);
+            }
+        }
+
+        public string Skin
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(GetParameterValue(SKIN)))
+                {
+                    SetParameterValue(SKIN, "Default");
+                    Save();
+                }
+
+                return GetParameterValue(SKIN);
+            }
+
+            set
+            {
+                SetParameterValue(SKIN, value);
             }
         }
 
@@ -723,13 +786,13 @@ namespace Sandbox.Engine.Utils
 
         public float UIOpacity
         {
-            get { return MyUtils.GetFloatFromString(GetParameterValue(UI_TRANSPARENCY), 0.0f); }
+            get { return MyUtils.GetFloatFromString(GetParameterValue(UI_TRANSPARENCY), 1.0f); }
             set { SetParameterValue(UI_TRANSPARENCY, value); }
         }
 
         public float UIBkOpacity
         {
-            get { return MyUtils.GetFloatFromString(GetParameterValue(UI_BK_TRANSPARENCY), 0.0f); }
+            get { return MyUtils.GetFloatFromString(GetParameterValue(UI_BK_TRANSPARENCY), 1.0f); }
             set { SetParameterValue(UI_BK_TRANSPARENCY, value); }
         }
 
@@ -765,6 +828,18 @@ namespace Sandbox.Engine.Utils
         {
             get { return MyUtils.GetBoolFromString(GetParameterValue(ENABLE_MUTE_WHEN_NOT_IN_FOCUS), true); }
             set { SetParameterValue(ENABLE_MUTE_WHEN_NOT_IN_FOCUS, value); }
+        }
+
+        public bool EnableDynamicMusic
+        {
+            get { return MyUtils.GetBoolFromString(GetParameterValue(DYNAMIC_MUSIC), true); }
+            set { SetParameterValue(DYNAMIC_MUSIC, value); }
+        }
+
+        public bool ShipSoundsAreBasedOnSpeed
+        {
+            get { return MyUtils.GetBoolFromString(GetParameterValue(SHIP_SOUNDS_SPEED), true); }
+            set { SetParameterValue(SHIP_SOUNDS_SPEED, value); }
         }
 
         public MyStringId GraphicsRenderer
@@ -928,127 +1003,127 @@ namespace Sandbox.Engine.Utils
 
         
         #region ModAPI
-        MyTextureAnisoFiltering? ModAPI.IMyConfig.AnisotropicFiltering
+        MyTextureAnisoFiltering? IMyConfig.AnisotropicFiltering
         {
             get { return AnisotropicFiltering; }
         }
 
-        MyAntialiasingMode? ModAPI.IMyConfig.AntialiasingMode
+        MyAntialiasingMode? IMyConfig.AntialiasingMode
         {
             get { return AntialiasingMode; }
         }
 
-        bool ModAPI.IMyConfig.CompressSaveGames
+        bool IMyConfig.CompressSaveGames
         {
             get { return CompressSaveGames; }
         }
 
-        SerializableDictionary<string, object> ModAPI.IMyConfig.ControlsButtons
+        SerializableDictionary<string, object> IMyConfig.ControlsButtons
         {
             get { return ControlsButtons; }
         }
 
-        SerializableDictionary<string, object> ModAPI.IMyConfig.ControlsGeneral
+        SerializableDictionary<string, object> IMyConfig.ControlsGeneral
         {
             get { return ControlsGeneral; }
         }
 
-        bool ModAPI.IMyConfig.ControlsHints
+        bool IMyConfig.ControlsHints
         {
             get { return ControlsHints; }
         }
 
-        int ModAPI.IMyConfig.CubeBuilderBuildingMode
+        int IMyConfig.CubeBuilderBuildingMode
         {
             get { return CubeBuilderBuildingMode; }
         }
 
-        bool ModAPI.IMyConfig.CubeBuilderUseSymmetry
+        bool IMyConfig.CubeBuilderUseSymmetry
         {
             get { return CubeBuilderUseSymmetry; }
         }
 
-        SerializableDictionary<string, object> ModAPI.IMyConfig.DebugInputComponents
+        SerializableDictionary<string, object> IMyConfig.DebugInputComponents
         {
             get { return null; }
         }
 
-        bool ModAPI.IMyConfig.DisableHeadbob
+        bool IMyConfig.DisableHeadbob
         {
             get { return DisableHeadbob; }
         }
 
-        bool ModAPI.IMyConfig.EnableDamageEffects
+        bool IMyConfig.EnableDamageEffects
         {
             get { return EnableDamageEffects; }
         }
 
-        float ModAPI.IMyConfig.FieldOfView
+        float IMyConfig.FieldOfView
         {
             get { return FieldOfView; }
         }
 
-        MyFoliageDetails? ModAPI.IMyConfig.FoliageDetails
+        MyFoliageDetails? IMyConfig.FoliageDetails
         {
             get { return FoliageDetails; }
         }
 
-        float ModAPI.IMyConfig.GameVolume
+        float IMyConfig.GameVolume
         {
             get { return GameVolume; }
         }
 
-        bool ModAPI.IMyConfig.HardwareCursor
+        bool IMyConfig.HardwareCursor
         {
             get { return HardwareCursor; }
         }
 
-        bool ModAPI.IMyConfig.HudWarnings
+        bool IMyConfig.HudWarnings
         {
             get { return HudWarnings; }
         }
 
-        VRage.MyLanguagesEnum ModAPI.IMyConfig.Language
+        VRage.MyLanguagesEnum IMyConfig.Language
         {
             get { return Language; }
         }
 
-        bool ModAPI.IMyConfig.MemoryLimits
+        bool IMyConfig.MemoryLimits
         {
             get { return MemoryLimits; }
         }
 
-        bool ModAPI.IMyConfig.MinimalHud
+        bool IMyConfig.MinimalHud
         {
             get { return MinimalHud; }
         }
 
-        float ModAPI.IMyConfig.MusicVolume
+        float IMyConfig.MusicVolume
         {
             get { return MusicVolume; }
         }
 
-        bool ModAPI.IMyConfig.NeedShowTutorialQuestion
+        bool IMyConfig.NeedShowTutorialQuestion
         {
             get { return NeedShowTutorialQuestion; }
         }
 
-        int ModAPI.IMyConfig.RefreshRate
+        int IMyConfig.RefreshRate
         {
             get { return RefreshRate; }
         }
 
-        bool ModAPI.IMyConfig.RenderInterpolation
+        bool IMyConfig.RenderInterpolation
         {
             get { return RenderInterpolation; }
         }
 
-        MyRenderQualityEnum? ModAPI.IMyConfig.RenderQuality
+        MyRenderQualityEnum? IMyConfig.RenderQuality
         {
             get { return Dx9RenderQuality; }
         }
 
-        MyGraphicsRenderer ModAPI.IMyConfig.GraphicsRenderer
+        MyGraphicsRenderer IMyConfig.GraphicsRenderer
         {
             get
             {
@@ -1057,64 +1132,61 @@ namespace Sandbox.Engine.Utils
                 if (id == MySandboxGame.DirectX11RendererKey)
                     return MyGraphicsRenderer.DX11;
 
-                if (id == MySandboxGame.DirectX9RendererKey)
-                    return MyGraphicsRenderer.DX9;
-
                 return MyGraphicsRenderer.NONE;
             }
         }
 
-        bool ModAPI.IMyConfig.RotationHints
+        bool IMyConfig.RotationHints
         {
             get { return RotationHints; }
         }
 
-        int? ModAPI.IMyConfig.ScreenHeight
+        int? IMyConfig.ScreenHeight
         {
             get { return ScreenHeight; }
         }
 
-        int? ModAPI.IMyConfig.ScreenWidth
+        int? IMyConfig.ScreenWidth
         {
             get { return ScreenWidth; }
         }
 
-        MyShadowsQuality? ModAPI.IMyConfig.ShadowQuality
+        MyShadowsQuality? IMyConfig.ShadowQuality
         {
             get { return ShadowQuality; }
         }
 
-        bool ModAPI.IMyConfig.ShowCrosshair
+        bool IMyConfig.ShowCrosshair
         {
             get { return ShowCrosshair; }
         }
 
-        bool ModAPI.IMyConfig.ShowPlayerNamesOnHud
+        bool IMyConfig.ShowPlayerNamesOnHud
         {
             get { return ShowPlayerNamesOnHud; }
         }
 
-        MyTextureQuality? ModAPI.IMyConfig.TextureQuality
+        MyTextureQuality? IMyConfig.TextureQuality
         {
             get { return TextureQuality; }
         }
 
-        bool ModAPI.IMyConfig.VerticalSync
+        bool IMyConfig.VerticalSync
         {
             get { return VerticalSync; }
         }
 
-        int ModAPI.IMyConfig.VideoAdapter
+        int IMyConfig.VideoAdapter
         {
             get { return VideoAdapter; }
         }
 
-        MyWindowModeEnum ModAPI.IMyConfig.WindowMode
+        MyWindowModeEnum IMyConfig.WindowMode
         {
             get { return WindowMode; }
         }
 
-        bool ModAPI.IMyConfig.CaptureMouse
+        bool IMyConfig.CaptureMouse
         {
             get { return CaptureMouse; }
         }

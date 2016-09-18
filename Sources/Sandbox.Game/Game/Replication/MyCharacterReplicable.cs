@@ -14,7 +14,6 @@ using VRage;
 using VRage.Game;
 using VRage.Game.Entity;
 using VRage.Library.Collections;
-using VRage.Library.Sync;
 using VRage.Network;
 using VRage.ObjectBuilders;
 using VRageMath;
@@ -24,9 +23,11 @@ namespace Sandbox.Game.Replication
     class MyCharacterReplicable : MyEntityReplicableBaseEvent<MyCharacter>
     {
         private MyPropertySyncStateGroup m_propertySync;
+        MyEntityPositionVerificationStateGroup m_posVerGroup;
 
         protected override IMyStateGroup CreatePhysicsGroup()
         {
+            m_posVerGroup = new MyCharacterPositionVerificationStateGroup(Instance);
             return new MyCharacterPhysicsStateGroup(Instance, this);
         }
 
@@ -36,12 +37,26 @@ namespace Sandbox.Game.Replication
             m_propertySync = new MyPropertySyncStateGroup(this, Instance.SyncType);
         }
 
-        public override float GetPriority(MyClientInfo state)
+        public override float GetPriority(MyClientInfo state,bool cached)
         {
             float priority = 0.0f;
             if(Instance == null || state.State == null)
             {
                 return priority;
+            }
+
+            ulong clientEndpoint = state.EndpointId.Value;
+            if (cached)
+            {
+                if (m_cachedPriorityForClient != null && m_cachedPriorityForClient.ContainsKey(clientEndpoint))
+                {
+                    return m_cachedPriorityForClient[clientEndpoint];
+                }
+            }
+
+            if (m_cachedPriorityForClient == null)
+            {
+                m_cachedPriorityForClient = new Dictionary<ulong, float>();
             }
 
             var player = state.State.GetPlayer();
@@ -51,7 +66,7 @@ namespace Sandbox.Game.Replication
             }
             else
             {
-                priority = base.GetPriority(state);
+                priority = base.GetPriority(state,cached);
             }
 
             if (Instance.IsUsing is MyShipController)
@@ -68,6 +83,7 @@ namespace Sandbox.Game.Replication
                 }
             }
 
+            m_cachedPriorityForClient[clientEndpoint] = priority;
             return priority;
         }
 
@@ -75,7 +91,10 @@ namespace Sandbox.Game.Replication
         {
             base.GetStateGroups(resultList);
             if (m_propertySync != null && m_propertySync.PropertyCount > 0)
+            {
                 resultList.Add(m_propertySync);
+            }
+            resultList.Add(m_posVerGroup);
         }
 
         public override IMyReplicable GetDependency()
