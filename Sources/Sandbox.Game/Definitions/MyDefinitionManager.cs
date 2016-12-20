@@ -54,6 +54,7 @@ using Sandbox.Graphics.GUI;
 using VRage.Library;
 using VRage.Profiler;
 using VRageRender.Utils;
+using Sandbox.Game.GameSystems;
 
 #endregion
 
@@ -392,6 +393,19 @@ namespace Sandbox.Definitions
             if (block.Model != null)
             {
                 var model = VRage.Game.Models.MyModels.GetModelOnlyData(block.Model);
+                if (MyFakes.TEST_MODELS_WRONG_TRIANGLES)
+                {
+                    int triCount = model.GetTrianglesCount();
+                    for (int i = 0; i < triCount; ++i)
+                    {
+                        var triangle = model.GetTriangle(i);
+                        if (MyUtils.IsWrongTriangle(model.GetVertex(triangle.I0), model.GetVertex(triangle.I1), model.GetVertex(triangle.I2)))
+                        {
+                            System.Diagnostics.Debug.Fail("Wrong triangle in " + model.AssetName + "!");
+                            break;
+                        }
+                    }
+                }
                 model.UnloadData();
             }
             foreach (var c in block.BuildProgressModels)
@@ -840,6 +854,12 @@ namespace Sandbox.Definitions
                 Check(failOnDebug, "Environment", failOnDebug, WARNING_ON_REDEFINITION_MESSAGE);
                 InitEnvironment(context, definitionSet, objBuilder.Environments, failOnDebug);
             }
+            if (objBuilder.DroneBehaviors != null)
+            {
+                MySandboxGame.Log.WriteLine("Loading drone behaviors");
+                Check(failOnDebug, "DroneBehaviors", failOnDebug, WARNING_ON_REDEFINITION_MESSAGE);
+                LoadDroneBehaviorPresets(context, definitionSet, objBuilder.DroneBehaviors, failOnDebug);
+            }
             if (objBuilder.EnvironmentItemsEntries != null)
             {
                 MySandboxGame.Log.WriteLine("Loading environment items entries");
@@ -866,6 +886,10 @@ namespace Sandbox.Definitions
             {
                 MySandboxGame.Log.WriteLine("Loading physical items");
                 InitPhysicalItems(context, definitionSet.m_definitionsById, definitionSet.m_physicalItemDefinitions, objBuilder.PhysicalItems, failOnDebug);
+            }
+            if (objBuilder.Fonts != null)
+            {
+                InitFonts(context, definitionSet.m_fontsById, objBuilder.Fonts, failOnDebug);
             }
 
             if (objBuilder.TransparentMaterials != null)
@@ -1197,7 +1221,7 @@ namespace Sandbox.Definitions
 
                 ToDefinitions(context, definitionSet.m_definitionsById, definitionSet.m_uniqueCubeBlocksBySize, objBuilder.CubeBlocks, failOnDebug);
 
-                MySandboxGame.Log.WriteLine( "Created block definitions" );
+                MySandboxGame.Log.WriteLine("Created block definitions");
                 foreach (var size in definitionSet.m_uniqueCubeBlocksBySize)
                     PrepareBlockBlueprints(context, definitionSet.m_blueprintsById, size);
             }
@@ -2017,6 +2041,18 @@ namespace Sandbox.Definitions
             }
         }
 
+        private void InitFonts(MyModContext context,
+            Dictionary<MyDefinitionId, MyFontDefinition> output,
+            MyObjectBuilder_FontDefinition[] fonts, bool failOnDebug = true)
+        {
+            for (int i = 0; i < fonts.Length; ++i)
+            {
+                var font = InitDefinition<MyFontDefinition>(context, fonts[i]);
+                Check(!output.ContainsKey(font.Id), font.Id, failOnDebug);
+                output[font.Id] = font;
+            }
+        }
+
         private static void InitComponents(MyModContext context,
             DefinitionDictionary<MyDefinitionBase> output, MyObjectBuilder_ComponentDefinition[] components, bool failOnDebug = true)
         {
@@ -2029,8 +2065,8 @@ namespace Sandbox.Definitions
                 Check(!output.ContainsKey(res[i].Id), res[i].Id, failOnDebug);
                 output[res[i].Id] = res[i];
 
-                if(!context.IsBaseGame)
-                    MySandboxGame.Log.WriteLine( "Loaded component: " + res[i].Id );
+                if (!context.IsBaseGame)
+                    MySandboxGame.Log.WriteLine("Loaded component: " + res[i].Id);
             }
         }
 
@@ -2150,8 +2186,8 @@ namespace Sandbox.Definitions
             {
                 var cubeBlock = entry.Value;
 
-                if(!context.IsBaseGame)
-                    MySandboxGame.Log.WriteLine( "Loading cube block: " + entry.Key );
+                if (!context.IsBaseGame)
+                    MySandboxGame.Log.WriteLine("Loading cube block: " + entry.Key);
 
                 if (!MyFakes.ENABLE_NON_PUBLIC_BLOCKS && cubeBlock.Public == false) continue;
 
@@ -2173,6 +2209,15 @@ namespace Sandbox.Definitions
                 var environmentDef = InitDefinition<MyEnvironmentDefinition>(context, ob);
 
                 defSet.AddDefinition(environmentDef);
+            }
+        }
+
+        private static void LoadDroneBehaviorPresets(MyModContext context, DefinitionSet defSet, MyObjectBuilder_DroneBehaviorDefinition[] objBuilder, bool failOnDebug = true)
+        {
+            foreach (var ob in objBuilder)
+            {
+                MySpaceStrafeData preset = new MySpaceStrafeData(ob);
+                MySpaceStrafeDataStatic.SavePreset(ob.Id.SubtypeId, preset);
             }
         }
 
@@ -2307,7 +2352,7 @@ namespace Sandbox.Definitions
                 if (obj.MaxSize < obj.MinSize)
                     obj.MaxSize = obj.MinSize;
 
-                MyDecalMaterial material = new MyDecalMaterial(obj.Material,
+                MyDecalMaterial material = new MyDecalMaterial(obj.Material, obj.Transparent,
                     MyStringHash.GetOrCompute(obj.Target), MyStringHash.GetOrCompute(obj.Source),
                     obj.MinSize, obj.MaxSize, obj.Depth, obj.Rotation);
 
@@ -2639,9 +2684,7 @@ namespace Sandbox.Definitions
                     material.AlphaMistingEnable,
                     material.Color,
                     material.IgnoreDepth,
-                    material.NeedSort,
                     material.UseAtlas,
-                    material.Emissivity,
                     material.AlphaMistingStart,
                     material.AlphaMistingEnd,
                     material.AlphaSaturation,
@@ -2666,8 +2709,8 @@ namespace Sandbox.Definitions
                 Check(!output.ContainsKey(res[i].Id.SubtypeName), res[i].Id.SubtypeName, failOnDebug);
                 output[res[i].Id.SubtypeName] = res[i];
 
-                if(!context.IsBaseGame)
-                    MySandboxGame.Log.WriteLine( "Loaded voxel material: " + res[i].Id.SubtypeName );
+                if (!context.IsBaseGame)
+                    MySandboxGame.Log.WriteLine("Loaded voxel material: " + res[i].Id.SubtypeName);
             }
         }
 
@@ -3625,7 +3668,9 @@ namespace Sandbox.Definitions
         {
             Debug.Assert(m_definitions.m_definitionsById.ContainsKey(id));
             CheckDefinition<MyBotDefinition>(ref id);
-            return m_definitions.m_definitionsById[id] as MyBotDefinition;
+            if (m_definitions.m_definitionsById.ContainsKey(id))
+                return m_definitions.m_definitionsById[id] as MyBotDefinition;
+            return null;
         }
 
         public bool TryGetBotDefinition(MyDefinitionId id, out MyBotDefinition botDefinition)
@@ -3939,6 +3984,16 @@ namespace Sandbox.Definitions
             return m_definitions.m_entityComponentDefinitions[componentId];
         }
 
+        public ListReader<MyComponentDefinitionBase> GetEntityComponentDefinitions()
+        {
+            return GetEntityComponentDefinitions<MyComponentDefinitionBase>();
+        }
+
+        public ListReader<T> GetEntityComponentDefinitions<T>()
+        {
+            return new ListReader<T>(m_definitions.m_entityComponentDefinitions.Values.OfType<T>().ToList());
+        }
+
         public bool TryGetContainerDefinition(MyDefinitionId containerId, out MyContainerDefinition definition)
         {
             return m_definitions.m_entityContainers.TryGetValue(containerId, out definition);
@@ -3955,6 +4010,25 @@ namespace Sandbox.Definitions
             {
                 definedContainers.Add(def.Key);
             }
+        }
+
+        public DictionaryValuesReader<MyDefinitionId, MyFontDefinition> GetFontDefinitions()
+        {
+            return new DictionaryValuesReader<MyDefinitionId, MyFontDefinition>(m_definitions.m_fontsById);
+        }
+
+        public MyFontDefinition GetFontSafe(string fontName)
+        {
+            var id = new MyDefinitionId(typeof(MyObjectBuilder_FontDefinition), fontName);
+            MyFontDefinition font;
+            if (!m_definitions.m_fontsById.TryGetValue(id, out font))
+            {
+                //Debug must be always provided
+                id = new MyDefinitionId(typeof(MyObjectBuilder_FontDefinition), "Debug");
+                font = m_definitions.m_fontsById[id];
+            }
+
+            return font;
         }
 
         #endregion
@@ -4073,8 +4147,8 @@ namespace Sandbox.Definitions
                 Check(!outputDefinitions.ContainsKey(result.Id), result.Id, failOnDebug);
                 outputDefinitions[result.Id] = result;
 
-                if(!context.IsBaseGame)
-                    MySandboxGame.Log.WriteLine( "Created definition for: " + result.DisplayNameText );
+                if (!context.IsBaseGame)
+                    MySandboxGame.Log.WriteLine("Created definition for: " + result.DisplayNameText);
 
                 //if (currentDef.Variants != null)
                 //{
@@ -4183,8 +4257,8 @@ namespace Sandbox.Definitions
 
             if (extensions.IsNullOrEmpty())
             {
-                if ( logNoExtensions )
-                    MyDefinitionErrors.Add( context, "No file extensions.", TErrorSeverity.Warning );
+                if (logNoExtensions)
+                    MyDefinitionErrors.Add(context, "No file extensions.", TErrorSeverity.Warning);
                 return;
             }
 

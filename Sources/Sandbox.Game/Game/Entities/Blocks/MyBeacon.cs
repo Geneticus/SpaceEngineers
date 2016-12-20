@@ -61,11 +61,11 @@ namespace Sandbox.Game.Entities.Cube
             RadioBroadcaster.BroadcastRadius = m_radius;
         }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MyBeacon>())
                 return;
-
+            base.CreateTerminalControls();
             //MyTerminalControlFactory.RemoveBaseClass<MyBeacon, MyTerminalBlock>(); // this removed also controls shared with other blocks
 
             //removed unnecessary controls
@@ -104,7 +104,7 @@ namespace Sandbox.Game.Entities.Cube
                         NeedsUpdate |= MyEntityUpdateEnum.EACH_FRAME;
                         m_lastAnimationUpdateTime = MySandboxGame.TotalGamePlayTimeInMilliseconds;
                     }
-                    else
+                    else if (IsFunctional)
                         NeedsUpdate &= ~MyEntityUpdateEnum.EACH_FRAME;
                 }
             }
@@ -112,7 +112,7 @@ namespace Sandbox.Game.Entities.Cube
 
         protected override bool CheckIsWorking()
         {
-            return ResourceSink.IsPowered && base.CheckIsWorking();
+            return ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && base.CheckIsWorking();
         }
 
         public override void Init(MyObjectBuilder_CubeBlock objectBuilder, MyCubeGrid cubeGrid)
@@ -150,7 +150,8 @@ namespace Sandbox.Game.Entities.Cube
 
             m_light.GlareOn = true;
             m_light.GlareIntensity = m_largeLight ? 2 : 1;
-            m_light.GlareQuerySize = m_largeLight ? 15f : 0.2f;
+            m_light.GlareQuerySize = m_largeLight ? 1.0f : 0.2f;
+            m_light.GlareSize = 1.0f;
             m_light.GlareType = VRageRender.Lights.MyGlareTypeEnum.Distant;
             m_light.GlareMaterial = m_largeLight ? "GlareLsLight"
                                                  : "GlareSsLight";
@@ -389,7 +390,7 @@ namespace Sandbox.Game.Entities.Cube
             DetailedInfo.Append(BlockDefinition.DisplayNameText);
             DetailedInfo.Append("\n");
             DetailedInfo.AppendStringBuilder(MyTexts.Get(MySpaceTexts.BlockPropertyProperties_CurrentInput));
-            MyValueFormatter.AppendWorkInBestUnit(ResourceSink.IsPowered ? ResourceSink.RequiredInput : 0, DetailedInfo);
+            MyValueFormatter.AppendWorkInBestUnit(ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) ? ResourceSink.RequiredInputByType(MyResourceDistributorComponent.ElectricityId) : 0, DetailedInfo);
             RaisePropertiesChanged();
         }
         float ModAPI.Ingame.IMyBeacon.Radius

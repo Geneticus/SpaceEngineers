@@ -46,6 +46,14 @@ namespace Sandbox.Graphics.GUI
 
         public MyGuiDrawAlignEnum TextAlign = MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_TOP;
 
+        public int NumberOfRows
+        {
+            get
+            {
+                return m_lineSeparatorsCount + 1;
+            }
+        }
+
         public MyRichLabel(MyGuiControlBase parent, float maxLineWidth, float minLineHeight, int? linesCountMax = null)
         {
             m_parent = parent;
@@ -112,12 +120,12 @@ namespace Sandbox.Graphics.GUI
             }
         }
 
-        public void Append(StringBuilder text, MyFontEnum font, float scale, Vector4 color)
+        public void Append(StringBuilder text, string font, float scale, Vector4 color)
         {
             Append(text.ToString(), font, scale, color);
         }
 
-        public void Append(string text, MyFontEnum font, float scale, Vector4 color)
+        public void Append(string text, string font, float scale, Vector4 color)
         {
             string[] paragraphs = text.Split(LINE_SEPARATORS, StringSplitOptions.None);
 
@@ -167,7 +175,7 @@ namespace Sandbox.Graphics.GUI
             m_sizeDirty = true;
         }
 
-        public void AppendLine(StringBuilder text, MyFontEnum font, float scale, Vector4 color)
+        public void AppendLine(StringBuilder text, string font, float scale, Vector4 color)
         {
             Append(text, font, scale, color);
             AppendLine();
@@ -179,7 +187,7 @@ namespace Sandbox.Graphics.GUI
             AppendLine();
         }
 
-        private void AppendParagraph(string paragraph, MyFontEnum font, float scale, Vector4 color)
+        private void AppendParagraph(string paragraph, string font, float scale, Vector4 color)
         {
             m_helperSb.Clear();
             m_helperSb.Append(paragraph);

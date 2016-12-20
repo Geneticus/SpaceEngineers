@@ -1,6 +1,6 @@
 #include <Frame.hlsli>
 
-#define COLLISION_THICKNESS 0.1
+#define COLLISION_THICKNESS 1000.0
 
 #define EMITTERFLAG_STREAKS 1
 #define EMITTERFLAG_COLLIDE 2
@@ -9,6 +9,9 @@
 #define EMITTERFLAG_LIGHT 0x10
 #define EMITTERFLAG_VOLUMETRICLIGHT 0x20
 #define EMITTERFLAG_DONOTSIMULATE 0x80
+#define EMITTERFLAG_RANDOM_ROTATION_ENABLED 0x200
+#define EMITTERFLAG_LOCALROTATION 0x400
+#define EMITTERFLAG_LOCALANDCAMERAROTATION 0x800
 
 #define MAX_PARTICLE_COLLISIONS 10
 
@@ -31,7 +34,7 @@ struct EmittersStructuredBuffer
     float   Velocity;
     
     float   VelocityVariance;
-	float   DirectionCone;
+	float   DirectionInnerCone;
 	float   DirectionConeVariance;
     float   RotationVelocityVariance;
 	
@@ -63,7 +66,19 @@ struct EmittersStructuredBuffer
     matrix  RotationMatrix;
 
     float3  PositionDelta;
-    float   _Pad0;
+    float   MotionInheritance;
+
+    float3  ParticleRotationRow0;
+    float   ParticleLifeSpanVar;
+    float3  ParticleRotationRow1;
+    float   _pad0;
+    float3  ParticleRotationRow2;
+    float   _pad1;
+
+    float   ParticleThickness[4];
+    float2  ParticleThicknessKeys;
+    float   _pad2;
+    float   _pad3;
 };
 
 // Particle structures
@@ -83,8 +98,8 @@ struct Particle
     float3  Origin;
     uint    CollisionCount;         // Keep track of how many times the particle has collided
 
-    float   RotationVelocity;
     float3  Acceleration;
+    float   RotationVelocity;
 };
 
 // Bindings
@@ -92,6 +107,7 @@ struct Particle
 
 // The opaque scene depth buffer read as a texture
 Texture2D<float>      g_DepthTexture                    : register(t0);
+Texture2D<float4>     g_GBuffer1Texture                 : register(t2);
 
 // A buffer containing the pre-computed view space positions of the particles
 StructuredBuffer<EmittersStructuredBuffer> g_Emitters   : register(t1);

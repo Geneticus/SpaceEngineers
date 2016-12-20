@@ -190,8 +190,9 @@ namespace VRageRender
             }
         }
 
-        internal void BuildProxy(out MyRenderableProxy_2 proxy, out UInt64 key)
+        internal unsafe void BuildProxy(out MyRenderableProxy_2 proxy, out UInt64 key)
         {
+            MyCommon.GetObjectCB(sizeof(MyMergeInstancingConstants));
             var material = MyMeshMaterials1.GetProxyId(MyMeshMaterials1.MaterialRkIndex.Get(m_rootMaterialRK, MyMeshMaterialId.NULL));
             proxy = new MyRenderableProxy_2
             {
@@ -201,10 +202,10 @@ namespace VRageRender
 
                 ObjectSrvs = new MySrvTable { StartSlot = MyCommon.INSTANCE_INDIRECTION, Srvs = m_mergeGroup.m_srvs, BindFlag = MyBindFlag.BIND_VS, Version = this.GetHashCode() },
 
-                DepthShaders = GetMergeInstancing(X.TEXT_(MyMaterialShaders.DEPTH_PASS), MyShaderUnifiedFlags.DEPTH_ONLY),
-                HighlightShaders = GetMergeInstancing(X.TEXT_(MyMaterialShaders.HIGHLIGHT_PASS)),
-                Shaders = GetMergeInstancing(X.TEXT_(MyMaterialShaders.GBUFFER_PASS)),
-                ForwardShaders = GetMergeInstancing(X.TEXT_(MyMaterialShaders.FORWARD_PASS), MyShaderUnifiedFlags.USE_SHADOW_CASCADES),
+                DepthShaders = GetMergeInstancing(MyMaterialShaders.DEPTH_PASS_ID, MyShaderUnifiedFlags.DEPTH_ONLY),
+                HighlightShaders = GetMergeInstancing(MyMaterialShaders.HIGHLIGHT_PASS_ID),
+                Shaders = GetMergeInstancing(MyMaterialShaders.GBUFFER_PASS_ID),
+                ForwardShaders = GetMergeInstancing(MyMaterialShaders.FORWARD_PASS_ID, MyShaderUnifiedFlags.USE_SHADOW_CASCADES),
 
                 RenderFlags = MyRenderableProxyFlags.DepthSkipTextures,
 
@@ -371,8 +372,8 @@ namespace VRageRender
 
         internal void PropagateMatrixChange(MyActor child)
         {
-            var matrix = child.m_relativeTransform.HasValue
-                        ? (MatrixD)child.m_relativeTransform.Value * Owner.WorldMatrix
+            var matrix = child.RelativeTransform.HasValue
+                        ? (MatrixD)child.RelativeTransform.Value * Owner.WorldMatrix
                         : Owner.WorldMatrix;
             child.SetMatrix(ref matrix);
         }
@@ -471,19 +472,19 @@ namespace VRageRender
 
             m_children.Add(child);
 
-            if (child.m_relativeTransform == null)
+            if (child.RelativeTransform == null)
             {
-                child.m_relativeTransform = (Matrix)(child.WorldMatrix * MatrixD.Invert(Owner.WorldMatrix));
+                child.RelativeTransform = (Matrix)(child.WorldMatrix * MatrixD.Invert(Owner.WorldMatrix));
             }
 
-            if (!Owner.m_localAabb.HasValue)
+            if (!Owner.LocalAabb.HasValue)
             {
-                Owner.m_localAabb = child.m_localAabb;
+                Owner.LocalAabb = child.LocalAabb;
             }
             else
             {
-                var localAabb = child.m_localAabb.Value;
-                Owner.m_localAabb = Owner.m_localAabb.Value.Include(ref localAabb);
+                var localAabb = child.LocalAabb.Value;
+                Owner.LocalAabb = Owner.LocalAabb.Value.Include(ref localAabb);
             }
 
             PropagateMatrixChange(child);
@@ -497,12 +498,9 @@ namespace VRageRender
             var model = child.GetRenderable().GetModel();
             var material = MyMeshes.GetMeshPart(model, 0, 0).Info.Material;
 
-            MeshPartId part1;
-            bool AreMultipleParts = MyMeshes.TryGetMeshPart(model, 0, 1, out part1);
-
             bool fracture = model.Info.RuntimeGenerated || model.Info.Dynamic;
 
-            if (MyMeshMaterials1.IsMergable(material) && MyBigMeshTable.Table.IsMergable(model) && !fracture && !AreMultipleParts)
+            if (MyMeshMaterials1.IsMergable(material) && MyBigMeshTable.Table.IsMergable(model) && !fracture)
             {
                 child.GetGroupLeaf().Mergeable = true;
 

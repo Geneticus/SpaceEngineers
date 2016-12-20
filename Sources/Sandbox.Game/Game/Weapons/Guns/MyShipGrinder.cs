@@ -90,6 +90,7 @@ namespace Sandbox.Game.Weapons
 
         protected override bool Activate(HashSet<MySlimBlock> targets)
         {
+            int successTargets = targets.Count;
             m_otherGrid = null;
             if (targets.Count > 0)
             {
@@ -104,6 +105,13 @@ namespace Sandbox.Game.Weapons
                         continue;
 
                     m_otherGrid = block.CubeGrid;
+
+                    bool tmp2 = m_otherGrid.Physics == null || !m_otherGrid.Physics.Enabled;
+                    if (tmp2)
+                    {
+                        successTargets--;
+                        continue;
+                    }
 
                     float damage = MySession.Static.GrinderSpeedMultiplier * MyShipGrinderConstants.GRINDER_AMOUNT_PER_SECOND * coefficient;
                     MyDamageInformation damageInfo = new MyDamageInformation(false, damage, MyDamageType.Grind, EntityId);
@@ -131,11 +139,11 @@ namespace Sandbox.Game.Weapons
                         block.CubeGrid.RazeBlock(block.Min);
                     }
                 }
-                if (targets.Count > 0)
+                if (successTargets > 0)
                     SetBuildingMusic(200);
             }
-            m_wantsToShake = targets.Count != 0;
-            return targets.Count != 0;
+            m_wantsToShake = successTargets != 0;
+            return successTargets != 0;
         }
 
         private void EmptyBlockInventories(MyCubeBlock block)
@@ -237,8 +245,8 @@ namespace Sandbox.Game.Weapons
             MyLight light = MyLights.AddLight();
             light.Start(MyLight.LightTypeEnum.PointLight, Vector3.Zero, new Vector4(1.0f, 0.8f, 0.6f, 1.0f), 2.0f, 10.0f);
             light.GlareMaterial = "GlareWelder";
-            light.GlareOn = true;
-            light.GlareQuerySize = 1;
+            light.GlareOn = light.LightOn;
+            light.GlareQuerySize = 0.4f;
             light.GlareType = VRageRender.Lights.MyGlareTypeEnum.Normal;
             return light;
         }

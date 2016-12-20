@@ -58,6 +58,9 @@ namespace Sandbox.Game.Multiplayer
             public Vector3D Coords;
             public bool ShowOnHud;
             public bool IsFinal;
+            public bool AlwaysVisible;
+            public long EntityId;
+            public Color GPSColor;
         }
 
         struct ModifyMsg
@@ -69,11 +72,12 @@ namespace Sandbox.Game.Multiplayer
             [Serialize(MyObjectFlags.Nullable)]
             public string Description;
             public Vector3D Coords;
+            public Color GPSColor;
         }
 
         #region add_GPS
         //ADD:
-        public void SendAddGps(long identityId, ref MyGps gps)
+        public void SendAddGps(long identityId, ref MyGps gps, long entityId = -1)
         {
             var msg = new AddMsg();
             msg.IdentityId = identityId;
@@ -82,6 +86,9 @@ namespace Sandbox.Game.Multiplayer
             msg.Coords = gps.Coords;
             msg.ShowOnHud = gps.ShowOnHud;
             msg.IsFinal = (gps.DiscardAt == null ? true : false);
+            msg.AlwaysVisible = gps.AlwaysVisible;
+            msg.EntityId = entityId;
+            msg.GPSColor = gps.GPSColor;
 
             MyMultiplayer.RaiseStaticEvent(s => MyGpsCollection.OnAddGps, msg);
         }
@@ -94,10 +101,14 @@ namespace Sandbox.Game.Multiplayer
             gps.Description = msg.Description;
             gps.Coords = msg.Coords;
             gps.ShowOnHud = msg.ShowOnHud;
+            gps.AlwaysVisible = msg.AlwaysVisible;
             gps.DiscardAt = null;
+            gps.GPSColor = msg.GPSColor;
             if (!msg.IsFinal)
                 gps.SetDiscardAt();
             gps.UpdateHash();
+            if(msg.EntityId > 0)
+                gps.SetEntity(MyEntities.GetEntityById(msg.EntityId));
             if (MySession.Static.Gpss.AddPlayerGps(msg.IdentityId, ref gps))
             {//new entry succesfully added
                 if (gps.ShowOnHud && msg.IdentityId == MySession.Static.LocalPlayerId)
@@ -145,6 +156,7 @@ namespace Sandbox.Game.Multiplayer
                     if (gps.ShowOnHud)
                         MyHud.GpsMarkers.UnregisterMarker(gps);
                     gpsList.Remove(gpsHash);
+                    gps.Close();
                     var handler = MySession.Static.Gpss.ListChanged;
                     if (handler != null)
                         handler(identityId);
@@ -164,6 +176,7 @@ namespace Sandbox.Game.Multiplayer
             msg.Description = gps.Description;
             msg.Coords = gps.Coords;
             msg.Hash = gps.Hash;
+            msg.GPSColor = gps.GPSColor;
 
             MyMultiplayer.RaiseStaticEvent(s => MyGpsCollection.ModifyRequest, msg);
         }
@@ -194,6 +207,7 @@ namespace Sandbox.Game.Multiplayer
                     gps.Description = msg.Description;
                     gps.Coords = msg.Coords;
                     gps.DiscardAt = null;//finalize at edit
+                    gps.GPSColor = msg.GPSColor;
                     var handler = MySession.Static.Gpss.GpsChanged;//because of name in table
                     if (handler != null)
                     {
@@ -282,7 +296,7 @@ namespace Sandbox.Game.Multiplayer
         }
         #endregion showOnHUD
 
-        #region alwaysVisib;e
+        #region alwaysVisible
         //SHOW ON HUD:
         public void ChangeAlwaysVisible(long identityId, int gpsHash, bool alwaysVisible)
         {
@@ -333,7 +347,52 @@ namespace Sandbox.Game.Multiplayer
 
             }
         }
-        #endregion alwaysVisib
+        #endregion
+
+        #region color
+        //SHOW ON HUD:
+        public void ChangeColor(long identityId, int gpsHash, Color color)
+        {
+            SendChangeColor(identityId, gpsHash, color);
+        }
+        void SendChangeColor(long identityId, int gpsHash, Color color)
+        {
+            MyMultiplayer.RaiseStaticEvent(s => MyGpsCollection.ColorRequest, identityId, gpsHash, color);
+        }
+
+        [Event, Reliable, Server]
+        static void ColorRequest(long identityId, int gpsHash, Color color)
+        {
+            Dictionary<int, MyGps> gpsList;
+            var found = MySession.Static.Gpss.m_playerGpss.TryGetValue(identityId, out gpsList);
+
+            if (found)
+                MyMultiplayer.RaiseStaticEvent(s => MyGpsCollection.ColorSuccess, identityId, gpsHash, color);
+        }
+
+        [Event, Reliable, Server, Broadcast]
+        static void ColorSuccess(long identityId, int gpsHash, Color color)
+        {
+            Dictionary<int, MyGps> gpsList;
+            var result = MySession.Static.Gpss.m_playerGpss.TryGetValue(identityId, out gpsList);
+            if (result)
+            {
+                MyGps gps;
+                result = gpsList.TryGetValue(gpsHash, out gps);
+                if (result)
+                {
+                    gps.GPSColor = color;
+                    gps.DiscardAt = null;//finalize
+
+                    var handler = MySession.Static.Gpss.GpsChanged;
+                    if (handler != null)
+                        handler(identityId, gpsHash);
+                }
+
+            }
+        }
+        #endregion
+
         #endregion network
 
         //<IdentityId < hash of gps, gps > >

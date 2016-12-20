@@ -10,6 +10,7 @@ using VRageMath;
 using VRageRender;
 using VRageRender.Messages;
 using Defaults = VRage.Game.MyObjectBuilder_EnvironmentDefinition.Defaults;
+using EnvironmentalParticleSettings = VRage.Game.MyObjectBuilder_EnvironmentDefinition.EnvironmentalParticleSettings;
 
 namespace Sandbox.Definitions
 {
@@ -22,6 +23,8 @@ namespace Sandbox.Definitions
         public MyEnvironmentDefinition()
         {
             ShadowSettings = new MyShadowsSettings();
+            NewPipelineSettings = new MyNewPipelineSettings();
+            MaterialsSettings = new MyMaterialsSettings();
         }
 
         public MyFogProperties FogProperties = MyFogProperties.Default;
@@ -30,12 +33,16 @@ namespace Sandbox.Definitions
         public MySSAOSettings SSAOSettings = MySSAOSettings.Default;
         public MyHBAOData HBAOSettings = MyHBAOData.Default;
         public MyShadowsSettings ShadowSettings { get; private set; }
+        public MyNewPipelineSettings NewPipelineSettings { get; private set; }
+        public MyMaterialsSettings MaterialsSettings { get; private set; }
 
         public float LargeShipMaxSpeed = Defaults.LargeShipMaxSpeed;
         public float SmallShipMaxSpeed = Defaults.SmallShipMaxSpeed;
         public Color ContourHighlightColor = Defaults.ContourHighlightColor;
         public float ContourHighlightThickness = Defaults.ContourHighlightThickness;
         public float HighlightPulseInSeconds = Defaults.HighlightPulseInSeconds;
+
+        public List<EnvironmentalParticleSettings> EnvironmentalParticles = new List<EnvironmentalParticleSettings>();
 
         private float m_largeShipMaxAngularSpeed = Defaults.LargeShipMaxAngularSpeed;
         private float m_smallShipMaxAngularSpeed = Defaults.SmallShipMaxAngularSpeed;
@@ -83,6 +90,8 @@ namespace Sandbox.Definitions
             SSAOSettings = objBuilder.SSAOSettings;
             HBAOSettings = objBuilder.HBAOSettings;
             ShadowSettings.CopyFrom(objBuilder.ShadowSettings);
+            NewPipelineSettings.CopyFrom(objBuilder.NewPipelineSettings);
+            MaterialsSettings.CopyFrom(objBuilder.MaterialsSettings);
             SmallShipMaxSpeed = objBuilder.SmallShipMaxSpeed;
             LargeShipMaxSpeed = objBuilder.LargeShipMaxSpeed;
             SmallShipMaxAngularSpeed = objBuilder.SmallShipMaxAngularSpeed;
@@ -92,6 +101,7 @@ namespace Sandbox.Definitions
             HighlightPulseInSeconds = objBuilder.HighlightPulseInSeconds;
             EnvironmentTexture = objBuilder.EnvironmentTexture;
             EnvironmentOrientation = objBuilder.EnvironmentOrientation;
+            EnvironmentalParticles = objBuilder.EnvironmentalParticles;
         }
 
         public override MyObjectBuilder_DefinitionBase GetObjectBuilder()
@@ -104,6 +114,8 @@ namespace Sandbox.Definitions
             result.SSAOSettings = SSAOSettings;
             result.HBAOSettings = HBAOSettings;
             result.ShadowSettings.CopyFrom(ShadowSettings);
+            result.NewPipelineSettings.CopyFrom(NewPipelineSettings);
+            result.MaterialsSettings.CopyFrom(MaterialsSettings);
             result.SmallShipMaxSpeed = this.SmallShipMaxSpeed;
             result.LargeShipMaxSpeed = this.LargeShipMaxSpeed;
             result.SmallShipMaxAngularSpeed = this.SmallShipMaxAngularSpeed;
@@ -113,6 +125,7 @@ namespace Sandbox.Definitions
             result.HighlightPulseInSeconds = this.HighlightPulseInSeconds;
             result.EnvironmentTexture = this.EnvironmentTexture;
             result.EnvironmentOrientation = this.EnvironmentOrientation;
+            result.EnvironmentalParticles = this.EnvironmentalParticles;
 
             return result;
         }

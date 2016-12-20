@@ -130,18 +130,32 @@ namespace VRageRender
                 else MyRenderProxy.Assert(false, "invalid emitter id: " + def[i].GID);
             }
         }
-        internal static void UpdateTransforms(uint[] GIDs, MatrixD[] transforms)
+        internal static void UpdateTransforms(MyGPUEmitterTransformUpdate[] emitters)
         {
-            MyRenderProxy.Assert(GIDs.Length == transforms.Length);
-            for (int i = 0; i < GIDs.Length; i++)
+            for (int i = 0; i < emitters.Length; i++)
             {
                 MyLiveData emitter;
-                if (m_emitters.TryGetValue(GIDs[i], out emitter))
+                if (m_emitters.TryGetValue(emitters[i].GID, out emitter))
                 {
-                    emitter.GPUEmitter.WorldPosition = transforms[i].Translation;
-                    emitter.GPUEmitter.Data.RotationMatrix = MatrixD.Transpose(transforms[i]);
+                    emitter.GPUEmitter.WorldPosition = emitters[i].Transform.Translation;
+                    emitter.GPUEmitter.Data.RotationMatrix = MatrixD.Transpose(emitters[i].Transform);
+                    emitter.GPUEmitter.Data.Gravity = emitters[i].Gravity;
+                    emitter.GPUEmitter.Data.Scale = emitters[i].Scale;
+                    emitter.GPUEmitter.ParticlesPerSecond = emitters[i].ParticlesPerSecond;
                 }
-                else MyRenderProxy.Assert(false, "invalid emitter id: " + GIDs[i]);
+                else MyRenderProxy.Assert(false, "invalid emitter id: " + emitters[i].GID);
+            }
+        }
+        internal static void UpdateLight(MyGPUEmitterLight[] emitters)
+        {
+            for (int i = 0; i < emitters.Length; i++)
+            {
+                MyLiveData emitter;
+                if (m_emitters.TryGetValue(emitters[i].GID, out emitter))
+                {
+                    emitter.GPUEmitter.ParticlesPerSecond = emitters[i].ParticlesPerSecond;
+                }
+                else MyRenderProxy.Assert(false, "invalid emitter id: " + emitters[i].GID);
             }
         }
         internal static void ReloadTextures()
@@ -229,7 +243,7 @@ namespace VRageRender
                         texts = GetTextureArrayFileList();
                     }
                     if (texts.Length > 0)
-                        m_textureArray = arrayManager.CreateFromFiles("gpuParticles", texts, MyFileTextureEnum.GPUPARTICLES);
+                        m_textureArray = arrayManager.CreateFromFiles("gpuParticles", texts, MyFileTextureEnum.GPUPARTICLES, "", false);
                 }
 
                 m_textureArrayDirty = false;
@@ -262,11 +276,10 @@ namespace VRageRender
 
             // sort emitters!
             List<MyLiveData> emitters = m_emitters.Values.ToList();
-            //if (emitters.Count > MAX_LIVE_EMITTERS)
+            if (emitters.Count > MAX_LIVE_EMITTERS)
                 emitters.Sort();
 
             int maxEmitterIndex = -1;
-            uint textureIndex = 0;
             int unassociatedCount = 0;
             int skipCount = 0;
             int unsortedCount = 0;
@@ -311,12 +324,8 @@ namespace VRageRender
                         emitter.ParticlesEmittedFraction = toEmit - emitter.GPUEmitter.Data.NumParticlesToEmitThisFrame;
                     }
 
-                    if (string.IsNullOrEmpty(emitter.GPUEmitter.AtlasTexture))
-                    {
-                        MyRenderProxy.Assert(m_textureArrayIndices.ContainsKey(emitter.GPUEmitter.AtlasTexture));
-                        textureIndex = m_textureArrayIndices[emitter.GPUEmitter.AtlasTexture].Index;
-                    }
-                    else textureIndex = 0;
+                    var textureIndex = m_textureArrayIndices.ContainsKey(emitter.GPUEmitter.AtlasTexture) ? 
+                        m_textureArrayIndices[emitter.GPUEmitter.AtlasTexture].Index : 0;
 
                     int bufferIndex = emitter.BufferIndex;
                     data[bufferIndex] = emitter.GPUEmitter.Data;
@@ -324,7 +333,7 @@ namespace VRageRender
                     data[bufferIndex].RotationMatrix.M14 = pos.X;
                     data[bufferIndex].RotationMatrix.M24 = pos.Y;
                     data[bufferIndex].RotationMatrix.M34 = pos.Z;
-                    data[bufferIndex].PositionDelta = emitter.LastWorldPosition - emitter.GPUEmitter.WorldPosition;
+                    data[bufferIndex].PositionDelta = emitter.GPUEmitter.WorldPosition - emitter.LastWorldPosition;
                     data[bufferIndex].TextureIndex1 |= textureIndex << (ATLAS_INDEX_BITS + ATLAS_DIMENSION_BITS * 2);
 
                     if (bufferIndex > maxEmitterIndex)

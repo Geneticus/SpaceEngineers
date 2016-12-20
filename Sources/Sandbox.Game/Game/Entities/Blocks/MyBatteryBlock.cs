@@ -75,7 +75,7 @@ namespace Sandbox.Game.Entities
 
         public float CurrentInput
         {
-            get { if (ResourceSink != null) return ResourceSink.CurrentInput; return 0; }
+            get { if (ResourceSink != null) return ResourceSink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId); return 0; }
         }
 
         public bool IsCharging
@@ -150,11 +150,11 @@ namespace Sandbox.Game.Entities
             m_storedPower.ValueChanged += (x) => CapacityChanged();
 	    }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MyBatteryBlock>())
                 return;
-
+            base.CreateTerminalControls();
             var recharge = new MyTerminalControlCheckbox<MyBatteryBlock>("Recharge", MySpaceTexts.BlockPropertyTitle_Recharge, MySpaceTexts.ToolTipBatteryBlock);
             recharge.Getter = (x) => x.OnlyRecharge;
             recharge.Setter = (x, v) => x.OnlyRecharge = v;
@@ -298,7 +298,7 @@ namespace Sandbox.Game.Entities
 
         private void CalculateInputTimeRemaining()
         {
-			if (ResourceSink.CurrentInput != 0)
+            if (ResourceSink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId) != 0)
 				TimeRemaining = (MaxStoredPower - CurrentStoredPower) / (ResourceSink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId) / SourceComp.ProductionToCapacityMultiplierByType(MyResourceDistributorComponent.ElectricityId));
             else
                 TimeRemaining = 0;
@@ -407,7 +407,7 @@ namespace Sandbox.Game.Entities
             MyValueFormatter.AppendWorkHoursInBestUnit(MaxStoredPower, DetailedInfo);
             DetailedInfo.Append("\n");
             DetailedInfo.AppendStringBuilder(MyTexts.Get(MySpaceTexts.BlockPropertyProperties_CurrentInput));
-			MyValueFormatter.AppendWorkInBestUnit(ResourceSink.CurrentInput, DetailedInfo);
+            MyValueFormatter.AppendWorkInBestUnit(ResourceSink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId), DetailedInfo);
             DetailedInfo.Append("\n");
             DetailedInfo.AppendStringBuilder(MyTexts.Get(MySpaceTexts.BlockPropertyProperties_CurrentOutput));
 			MyValueFormatter.AppendWorkInBestUnit(SourceComp.CurrentOutput, DetailedInfo);
@@ -552,8 +552,7 @@ namespace Sandbox.Game.Entities
 
         void ComponentStack_IsFunctionalChanged()
         {
-            if(!IsFunctional)
-                CurrentStoredPower = 0;
+            CurrentStoredPower = IsFunctional ? BlockDefinition.InitialStoredPowerRatio * BlockDefinition.MaxStoredPower : 0;
             UpdateMaxOutputAndEmissivity();
         }
 

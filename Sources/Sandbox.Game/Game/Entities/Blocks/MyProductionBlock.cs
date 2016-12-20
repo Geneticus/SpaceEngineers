@@ -176,7 +176,7 @@ namespace Sandbox.Game.Entities.Cube
 
         protected override bool CheckIsWorking()
         {
-			return ResourceSink.IsPowered && base.CheckIsWorking();
+            return ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && base.CheckIsWorking();
         }
 
         #endregion Properties
@@ -212,11 +212,11 @@ namespace Sandbox.Game.Entities.Cube
             Components.ComponentAdded += OnComponentAdded;
         }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MyProductionBlock>())
                 return;
-
+            base.CreateTerminalControls();
             var useConveyorSystem = new MyTerminalControlOnOffSwitch<MyProductionBlock>("UseConveyor", MySpaceTexts.Terminal_UseConveyorSystem);
             useConveyorSystem.Getter = (x) => x.UseConveyorSystem;
             useConveyorSystem.Setter = (x, v) => x.UseConveyorSystem = v;
@@ -293,6 +293,9 @@ namespace Sandbox.Game.Entities.Cube
                     if (deserializedItem.Blueprint != null)
                     {
                         m_queue.Add(deserializedItem);
+                    }
+                    else
+                    {
                         MySandboxGame.Log.WriteLine(string.Format("Could not add item into production block's queue: Blueprint {0} was not found.", item.Id));
                     }
                 }
@@ -718,7 +721,7 @@ namespace Sandbox.Game.Entities.Cube
         {
             ProfilerShort.Begin("UpdateProduction");
             int currentTime = MySandboxGame.TotalGamePlayTimeInMilliseconds;
-			if (ResourceSink.IsPowered)
+            if (ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
             {
                 UpdateProduction(currentTime - m_lastUpdateTime);
             }
@@ -855,7 +858,7 @@ namespace Sandbox.Game.Entities.Cube
      
         private float ComputeRequiredPower()
         {
-            return (Enabled && IsFunctional) ? (IsProducing) ? GetOperationalPowerConsumption()
+            return (Enabled && IsFunctional) ? (IsProducing || !IsQueueEmpty) ? GetOperationalPowerConsumption()
                                                              : ProductionBlockDefinition.StandbyPowerConsumption
                                              : 0.0f;
         }
@@ -867,7 +870,7 @@ namespace Sandbox.Game.Entities.Cube
 
         private void Receiver_IsPoweredChanged()
         {
-			if (!ResourceSink.IsPowered)
+            if (!ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
                 IsProducing = false;
             UpdateIsWorking();
         }

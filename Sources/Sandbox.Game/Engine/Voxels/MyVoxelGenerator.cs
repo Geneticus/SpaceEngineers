@@ -15,6 +15,7 @@ using Sandbox.Game.Entities.Planet;
 using Sandbox.Game.WorldEnvironment;
 using VRage.Profiler;
 using VRage.Voxels;
+using VRage.Utils;
 
 namespace Sandbox.Engine.Voxels
 {
@@ -102,17 +103,17 @@ namespace Sandbox.Engine.Voxels
 
         public override void SendPaintRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationBox(Boundaries, Transformation, newMaterialIndex, MyVoxelBase.OperationType.Paint);
+            voxel.RequestVoxelOperationBox(Boundaries, Transformation, newMaterialIndex, OperationType.Paint);
         }
 
         public override void SendCutOutRequest(MyVoxelBase voxel)
         {
-            voxel.RequestVoxelOperationBox(Boundaries, Transformation, 0, MyVoxelBase.OperationType.Cut);
+            voxel.RequestVoxelOperationBox(Boundaries, Transformation, 0, OperationType.Cut);
         }
 
         public override void SendFillRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationBox(Boundaries, Transformation, newMaterialIndex, MyVoxelBase.OperationType.Fill);
+            voxel.RequestVoxelOperationBox(Boundaries, Transformation, newMaterialIndex, OperationType.Fill);
         }
     }
 
@@ -148,17 +149,17 @@ namespace Sandbox.Engine.Voxels
         }
         public override void SendCutOutRequest(MyVoxelBase voxel)
         {
-            voxel.RequestVoxelOperationSphere(Center, Radius, 0, MyVoxelBase.OperationType.Cut);
+            voxel.RequestVoxelOperationSphere(Center, Radius, 0, OperationType.Cut);
         }
 
         public override void SendPaintRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationSphere(Center, Radius, newMaterialIndex, MyVoxelBase.OperationType.Paint);
+            voxel.RequestVoxelOperationSphere(Center, Radius, newMaterialIndex, OperationType.Paint);
         }
 
         public override void SendFillRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationSphere(Center, Radius, newMaterialIndex, MyVoxelBase.OperationType.Fill);
+            voxel.RequestVoxelOperationSphere(Center, Radius, newMaterialIndex, OperationType.Fill);
         }
     }
 
@@ -224,17 +225,17 @@ namespace Sandbox.Engine.Voxels
 
         public override void SendPaintRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationElipsoid(Radius, Transformation, newMaterialIndex, MyVoxelBase.OperationType.Paint);
+            voxel.RequestVoxelOperationElipsoid(Radius, Transformation, newMaterialIndex, OperationType.Paint);
         }
 
         public override void SendCutOutRequest(MyVoxelBase voxel)
         {
-            voxel.RequestVoxelOperationElipsoid(Radius, Transformation, 0, MyVoxelBase.OperationType.Cut);
+            voxel.RequestVoxelOperationElipsoid(Radius, Transformation, 0, OperationType.Cut);
         }
 
         public override void SendFillRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationElipsoid(Radius, Transformation, newMaterialIndex, MyVoxelBase.OperationType.Fill);
+            voxel.RequestVoxelOperationElipsoid(Radius, Transformation, newMaterialIndex, OperationType.Fill);
         }
     }
 
@@ -274,17 +275,17 @@ namespace Sandbox.Engine.Voxels
 
         public override void SendPaintRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationRamp(Boundaries, RampNormal, RampNormalW, Transformation, newMaterialIndex, MyVoxelBase.OperationType.Paint);
+            voxel.RequestVoxelOperationRamp(Boundaries, RampNormal, RampNormalW, Transformation, newMaterialIndex, OperationType.Paint);
         }
 
         public override void SendCutOutRequest(MyVoxelBase voxel)
         {
-            voxel.RequestVoxelOperationRamp(Boundaries, RampNormal, RampNormalW, Transformation, 0, MyVoxelBase.OperationType.Cut);
+            voxel.RequestVoxelOperationRamp(Boundaries, RampNormal, RampNormalW, Transformation, 0, OperationType.Cut);
         }
 
         public override void SendFillRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationRamp(Boundaries, RampNormal, RampNormalW, Transformation, newMaterialIndex, MyVoxelBase.OperationType.Fill);
+            voxel.RequestVoxelOperationRamp(Boundaries, RampNormal, RampNormalW, Transformation, newMaterialIndex, OperationType.Fill);
         }
     }
 
@@ -327,17 +328,17 @@ namespace Sandbox.Engine.Voxels
 
         public override void SendPaintRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationCapsule(A, B, Radius, Transformation, newMaterialIndex, MyVoxelBase.OperationType.Paint);
+            voxel.RequestVoxelOperationCapsule(A, B, Radius, Transformation, newMaterialIndex, OperationType.Paint);
         }
 
         public override void SendCutOutRequest(MyVoxelBase voxel)
         {
-            voxel.RequestVoxelOperationCapsule(A, B, Radius, Transformation, 0, MyVoxelBase.OperationType.Cut);
+            voxel.RequestVoxelOperationCapsule(A, B, Radius, Transformation, 0, OperationType.Cut);
         }
 
         public override void SendFillRequest(MyVoxelBase voxel, byte newMaterialIndex)
         {
-            voxel.RequestVoxelOperationCapsule(A, B, Radius, Transformation, newMaterialIndex, MyVoxelBase.OperationType.Fill);
+            voxel.RequestVoxelOperationCapsule(A, B, Radius, Transformation, newMaterialIndex, OperationType.Fill);
         }
     }
     #endregion
@@ -352,9 +353,19 @@ namespace Sandbox.Engine.Voxels
 
         public static void MakeCrater(MyVoxelBase voxelMap, BoundingSphereD sphere, Vector3 direction, MyVoxelMaterialDefinition material)
         {
+            if (voxelMap == null)
+            {
+                return;
+            }
+
+            if (voxelMap.Storage == null)
+            {
+                MyLog.Default.WriteLine("Storage shouldn't be null for Voxel:" + voxelMap);
+            }
+
             ProfilerShort.Begin("MakeCrater");
 
-            Vector3 normal = Vector3.Normalize(sphere.Center - voxelMap.RootVoxel.WorldMatrix.Translation);
+            Vector3 normal = voxelMap.RootVoxel != null ? Vector3.Normalize(sphere.Center - voxelMap.RootVoxel.WorldMatrix.Translation) : Vector3.Normalize(sphere.Center - voxelMap.WorldMatrix.Translation);
 
             Vector3I minCorner, maxCorner;
             {
@@ -514,8 +525,10 @@ namespace Sandbox.Engine.Voxels
                             {
                                 continue;
                             }
-
-                            m_cache.Material(ref cachePos, newMaterial.Index);
+                            if (newMaterial != null)
+                            {
+                                m_cache.Material(ref cachePos, newMaterial.Index);
+                            }
                             changed = true;
                         }
 
@@ -548,7 +561,7 @@ namespace Sandbox.Engine.Voxels
                 MyShapeSphere sphereShape = new MyShapeSphere();
                 sphereShape.Center = sphere.Center;
                 sphereShape.Radius = (float)(sphere.Radius*1.5);
-                OnVoxelChanged(MyVoxelBase.OperationType.Cut, voxelMap, sphereShape);
+                OnVoxelChanged(OperationType.Cut, voxelMap, sphereShape);
                 ProfilerShort.End();
             }
 
@@ -661,46 +674,50 @@ namespace Sandbox.Engine.Voxels
             for (pos.X = minCorner.X; pos.X <= maxCorner.X; ++pos.X)
                 for (pos.Y = minCorner.Y; pos.Y <= maxCorner.Y; ++pos.Y)
                     for (pos.Z = minCorner.Z; pos.Z <= maxCorner.Z; ++pos.Z)
-            {
-                // get original amount
-                var relPos = pos - cacheMin;
-                var lin = m_cache.ComputeLinear(ref relPos);
-                var original = m_cache.Content(lin);
+                    {
+                        // get original amount
+                        var relPos = pos - cacheMin;
+                        var lin = m_cache.ComputeLinear(ref relPos);
+                        var original = m_cache.Content(lin);
 
-                if (original == MyVoxelConstants.VOXEL_CONTENT_EMPTY) // if there is nothing to remove
-                    continue;
+                        if (original == MyVoxelConstants.VOXEL_CONTENT_EMPTY) // if there is nothing to remove
+                            continue;
 
-                Vector3D spos = (Vector3D)(pos - voxelMap.StorageMin) * MyVoxelConstants.VOXEL_SIZE_IN_METRES;
-                var volume = shape.GetVolume(ref spos);
+                        Vector3D spos = (Vector3D)(pos - voxelMap.StorageMin) * MyVoxelConstants.VOXEL_SIZE_IN_METRES;
+                        var volume = shape.GetVolume(ref spos);
 
-                if (volume == 0f) // if there is no intersection
-                    continue;
+                        if (volume == 0f) // if there is no intersection
+                            continue;
 
-                var maxRemove = (int)(volume * MyVoxelConstants.VOXEL_CONTENT_FULL);
-                var toRemove = maxRemove;// (int)(maxRemove * voxelMat.DamageRatio);
-                var newVal = Math.Max(original - toRemove, 0);//MathHelper.Clamp(original - toRemove, 0, original-maxRemove);
-                var removed  = original - newVal;
+                        var maxRemove = (int)(volume * MyVoxelConstants.VOXEL_CONTENT_FULL);
+                        var toRemove = maxRemove;// (int)(maxRemove * voxelMat.DamageRatio);
+                        var newVal = Math.Max(original - toRemove, 0);//MathHelper.Clamp(original - toRemove, 0, original-maxRemove);
+                        var removed = original - newVal;
 
-                if (!onlyCheck && !onlyApplyMaterial)
-                    m_cache.Content(lin, (byte)newVal);
+                        if (!onlyCheck && !onlyApplyMaterial)
+                            m_cache.Content(lin, (byte)newVal);
 
-                originalSum += original;
-                removedSum += removed;
+                        originalSum += original;
+                        removedSum += removed;
 
-                if (readMaterial)
-                    voxelMat = MyDefinitionManager.Static.GetVoxelMaterialDefinition(m_cache.Material(lin));
+                        var material = m_cache.Material(lin);
+                        if (material != MyVoxelConstants.NULL_MATERIAL)
+                        {
+                            if (readMaterial)
+                                voxelMat = MyDefinitionManager.Static.GetVoxelMaterialDefinition(material);
 
-                if (exactCutOutMaterials != null)
-                {
-                    int value = 0;
-                    exactCutOutMaterials.TryGetValue(voxelMat, out value);
-                    value += (MyFakes.ENABLE_REMOVED_VOXEL_CONTENT_HACK ? (int)(removed * 3.9f) : removed);
-                    exactCutOutMaterials[voxelMat] = value;
-                }
+                            if (exactCutOutMaterials != null)
+                            {
+                                int value = 0;
+                                exactCutOutMaterials.TryGetValue(voxelMat, out value);
+                                value += (MyFakes.ENABLE_REMOVED_VOXEL_CONTENT_HACK ? (int)(removed * 3.9f) : removed);
+                                exactCutOutMaterials[voxelMat] = value;
+                            }
 
-                if (applyDamageMaterial && voxelMat.HasDamageMaterial && !onlyCheck)
-                    m_cache.Material(lin, voxelMat.DamagedMaterialId);
-            }
+                            if (applyDamageMaterial && voxelMat.HasDamageMaterial && !onlyCheck)
+                                m_cache.Material(lin, voxelMat.DamagedMaterialId);
+                        }
+                    }
 
             if (removedSum > 0 && updateSync && Sync.IsServer)
             {
@@ -720,7 +737,7 @@ namespace Sandbox.Engine.Voxels
                 //RemoveSmallVoxelsUsingChachedVoxels();
 
                 var dataTypeFlags = applyDamageMaterial ? MyStorageDataTypeFlags.ContentAndMaterial : MyStorageDataTypeFlags.Content;
-                if (MyFakes.LOG_NAVMESH_GENERATION) MyAIComponent.Static.Pathfinding.VoxelPathfinding.DebugLog.LogStorageWrite(voxelMap, m_cache, dataTypeFlags, cacheMin, cacheMax);
+                if (MyFakes.LOG_NAVMESH_GENERATION && MyAIComponent.Static.Pathfinding != null) MyAIComponent.Static.Pathfinding.GetPathfindingLog().LogStorageWrite(voxelMap, m_cache, dataTypeFlags, cacheMin, cacheMax);
                 voxelMap.Storage.WriteRange(m_cache, dataTypeFlags, ref cacheMin, ref cacheMax);
             }
             ProfilerShort.End();
@@ -731,7 +748,7 @@ namespace Sandbox.Engine.Voxels
             shape.Transformation = oldTranmsform;
 
             if (removedSum > 0)
-                OnVoxelChanged(MyVoxelBase.OperationType.Cut, voxelMap, shape);
+                OnVoxelChanged(OperationType.Cut, voxelMap, shape);
 
             ProfilerShort.End();
         }
@@ -808,7 +825,7 @@ namespace Sandbox.Engine.Voxels
             }
 
             if (retValue > 0)
-                OnVoxelChanged(MyVoxelBase.OperationType.Fill, voxelMap, shape);
+                OnVoxelChanged(OperationType.Fill, voxelMap, shape);
 
             return retValue;
         }
@@ -899,7 +916,7 @@ namespace Sandbox.Engine.Voxels
             }
 
             if (changedVolumeAmount > 0)
-                OnVoxelChanged(MyVoxelBase.OperationType.Cut, voxelMap, shape);
+                OnVoxelChanged(OperationType.Cut, voxelMap, shape);
 
             return changedVolumeAmount;
         }
@@ -1026,7 +1043,7 @@ namespace Sandbox.Engine.Voxels
             cellMaxCorner = new Vector3I(Math.Min(maxCorner.X, cellMinCorner.X + CELL_SIZE), Math.Min(maxCorner.Y, cellMinCorner.Y + CELL_SIZE), Math.Min(maxCorner.Z, cellMinCorner.Z + CELL_SIZE));
         }
 
-        private static void OnVoxelChanged(MyVoxelBase.OperationType type, MyVoxelBase voxelMap, MyShape shape)
+        private static void OnVoxelChanged(OperationType type, MyVoxelBase voxelMap, MyShape shape)
         {
             if (Sync.IsServer)
             {
@@ -1047,8 +1064,8 @@ namespace Sandbox.Engine.Voxels
                             grid.Physics.Shape.RecalculateConnectionsToWorld(grid.GetBlocks());
                         }
 
-                        if (type == MyVoxelBase.OperationType.Cut)
-                            grid.TestDynamic = true;
+                        if (type == OperationType.Cut)
+                            grid.TestDynamic = MyCubeGrid.MyTestDynamicReason.GridSplit;
                     }
                 }
 

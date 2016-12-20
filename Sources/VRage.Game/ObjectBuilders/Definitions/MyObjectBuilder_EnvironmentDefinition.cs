@@ -32,6 +32,39 @@ namespace VRage.Game
         public MyHBAOData HBAOSettings = MyHBAOData.Default;
 
         public MyShadowsSettings ShadowSettings = new MyShadowsSettings();
+        public MyNewPipelineSettings NewPipelineSettings = new MyNewPipelineSettings();
+        public MyMaterialsSettings MaterialsSettings = new MyMaterialsSettings();
+
+        [ProtoContract]
+        public struct EnvironmentalParticleSettings
+        {
+            [ProtoMember]
+            public SerializableDefinitionId Id;
+
+            [ProtoMember]
+            public string Material;
+
+            [ProtoMember]
+            public Vector4 Color;
+
+            [ProtoMember]
+            public float MaxSpawnDistance;
+
+            [ProtoMember]
+            public float DespawnDistance;
+
+            [ProtoMember]
+            public float Density;
+
+            [ProtoMember]
+            public int MaxLifeTime;
+
+            [ProtoMember]
+            public int MaxParticles;
+        }
+
+        [ProtoMember, XmlArrayItem("ParticleType")]
+        public List<EnvironmentalParticleSettings> EnvironmentalParticles = new List<EnvironmentalParticleSettings>();
 
         public float SmallShipMaxSpeed = Defaults.SmallShipMaxSpeed;
         public float LargeShipMaxSpeed = Defaults.LargeShipMaxSpeed;

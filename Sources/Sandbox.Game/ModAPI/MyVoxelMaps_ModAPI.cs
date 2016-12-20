@@ -4,6 +4,7 @@ using Sandbox.Game.World;
 using Sandbox.Game.World.Generator;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -19,7 +20,7 @@ namespace Sandbox.Game.Entities
         static MyShapeCapsule m_capsuleShape = new MyShapeCapsule();
         static MyShapeSphere m_sphereShape = new MyShapeSphere();
         static MyShapeRamp m_rampShape = new MyShapeRamp();
-
+        static readonly List<MyVoxelBase> m_voxelsTmpStorage = new List<MyVoxelBase>(); 
 
         void IMyVoxelMaps.Clear()
         {
@@ -33,7 +34,11 @@ namespace Sandbox.Game.Entities
 
         IMyVoxelBase IMyVoxelMaps.GetOverlappingWithSphere(ref BoundingSphereD sphere)
         {
-            return GetAllOverlappingWithSphere(ref sphere).FirstOrDefault();
+            m_voxelsTmpStorage.Clear();
+            GetAllOverlappingWithSphere(ref sphere, m_voxelsTmpStorage);
+            if(m_voxelsTmpStorage.Count == 0) return null;
+
+            return m_voxelsTmpStorage[0];
         }
 
         IMyVoxelBase IMyVoxelMaps.GetVoxelMapWhoseBoundingBoxIntersectsBox(ref VRageMath.BoundingBoxD boundingBox, IMyVoxelBase ignoreVoxelMap)
@@ -126,6 +131,33 @@ namespace Sandbox.Game.Entities
             }
         }
 
+        void IMyVoxelMaps.MakeCrater(IMyVoxelBase voxelMap, BoundingSphereD sphere, Vector3 normal, byte materialIdx)
+        {
+            var material = MyDefinitionManager.Static.GetVoxelMaterialDefinition(materialIdx);
+            MyVoxelGenerator.MakeCrater((MyVoxelBase)voxelMap, sphere, normal, material);
+        }
 
+        List<MyVoxelBase> m_voxelCache = new List<MyVoxelBase>();
+        void IMyVoxelMaps.GetAllOverlappingWithSphere(ref BoundingSphereD sphere, List<IMyVoxelBase> voxels)
+        {
+            Debug.Assert(m_voxelCache.Count == 0, "Voxel cache list not cleared after last use");
+            GetAllOverlappingWithSphere(ref sphere, m_voxelCache);
+
+            foreach (var item in m_voxelCache)
+                voxels.Add(item);
+
+            m_voxelCache.Clear();
+        }
+
+        // Allocates
+        List<IMyVoxelBase> IMyVoxelMaps.GetAllOverlappingWithSphere(ref BoundingSphereD sphere)
+        {
+            Debug.Assert(m_voxelCache.Count == 0, "Voxel cache list not cleared after last use");
+            GetAllOverlappingWithSphere(ref sphere, m_voxelCache);
+
+            var list = m_voxelCache.ConvertAll<IMyVoxelBase>((x) => (IMyVoxelBase)x);
+            m_voxelCache.Clear();
+            return list;
+        }
     }
 }

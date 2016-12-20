@@ -12,6 +12,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Sandbox.Game.Screens;
+using Sandbox.Game.World;
 using VRage;
 using VRage;
 using VRage.FileSystem;
@@ -190,7 +192,14 @@ namespace Sandbox.Game.Gui
         {
             base.HandleInput(receivedFocusInThisUpdate);
 
-            if (MyInput.Static.IsNewKeyPressed(MyKeys.F12) || MyInput.Static.IsNewKeyPressed(MyKeys.F11) || MyInput.Static.IsNewKeyPressed(MyKeys.F10))
+            if (MyInput.Static.IsNewKeyPressed(MyKeys.F11) && MySession.Static.IsServer)
+            {
+                // Show Scripting tools
+                MyScreenManager.AddScreen(new MyGuiScreenScriptingTools());
+                CloseScreen();
+            }
+
+            if (MyInput.Static.IsNewKeyPressed(MyKeys.F12) || MyInput.Static.IsNewKeyPressed(MyKeys.F10))
             {
                 this.CloseScreen();
             }

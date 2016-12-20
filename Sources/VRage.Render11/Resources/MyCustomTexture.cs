@@ -58,6 +58,13 @@ namespace VRage.Render11.Resources
                 get { return m_owner.Size3; }
             }
 
+            public int MipmapCount
+            {
+                get { return 1; }
+            }
+
+            public Format Format { get { return m_format; } }
+
             public void Init(MyCustomTexture owner, Format format)
             {
                 m_owner = owner;
@@ -132,6 +139,11 @@ namespace VRage.Render11.Resources
             public Vector3I Size3
             {
                 get { return new Vector3I(m_size.X, m_size.Y, 1); }
+            }
+
+            public int MipmapCount
+            {
+                get { return 1; }
             }
 
             public Resource Resource
@@ -224,7 +236,7 @@ namespace VRage.Render11.Resources
             if (texture == null)
                 return;
 
-            MyCustomTexture textureInternal = (MyCustomTexture) texture;
+            MyCustomTexture textureInternal = (MyCustomTexture)texture;
 
             if (m_isDeviceInit)
                 textureInternal.OnDeviceEnd();

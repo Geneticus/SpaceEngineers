@@ -167,11 +167,11 @@ namespace SpaceEngineers.Game.Entities.Blocks
             m_lockModeSync.ValueChanged += x => OnLockModeChanged();
         }
 
-        private static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MyLandingGear>())
                 return;
-
+            base.CreateTerminalControls();
             var stateWriter = new MyTerminalControl<MyLandingGear>.WriterDelegate((b, sb) => b.WriteLockStateValue(sb));
 
             var lockBtn = new MyTerminalControlButton<MyLandingGear>("Lock", MySpaceTexts.BlockActionTitle_Lock, MySpaceTexts.Blank, (b) => b.RequestLandingGearLock());
@@ -431,6 +431,10 @@ namespace SpaceEngineers.Game.Entities.Blocks
                         if (entity == null)// || entity.Parent != null)
                             continue;
 
+                        if (entity.GetPhysicsBody() == null)
+                            continue;
+
+
                         if (entity.GetPhysicsBody().WeldInfo.Children.Count > 0)
                         {
                             Matrix t2;
@@ -517,6 +521,10 @@ namespace SpaceEngineers.Game.Entities.Blocks
                             MyCubeBlock.UpdateEmissiveParts(Render.RenderObjectIDs[0], 1.0f, Color.Black, Color.Black);
                         break;
                 }
+            }
+            else
+            {
+                MyCubeBlock.UpdateEmissiveParts(Render.RenderObjectIDs[0], 1.0f, Color.Black, Color.Black);
             }
         }
 
@@ -738,7 +746,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
             StartSound(m_failedAttachSound);
         }
 
-        private void Attach(long entityID, Vector3 gearSpacePivot, CompressedPositionOrientation otherBodySpacePivot,bool force = false)
+        private void Attach(long entityID, Vector3 gearSpacePivot, CompressedPositionOrientation otherBodySpacePivot, bool force = false)
         {
             m_attachedEntityId = entityID;
             MyEntity otherEntity;
@@ -766,7 +774,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
 
                     if (entity is MyVoxelBase)
                     {
-                        if (CubeGrid.Physics.RigidBody.IsFixed == false)
+                        if (CubeGrid.Physics.RigidBody.IsFixed == false && !CubeGrid.IsStatic)
                         {
                             CubeGrid.Physics.ConvertToStatic();
                             m_converted = true;
@@ -865,7 +873,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
 
         private bool CanWeldTo(MyEntity entity, ref Matrix otherBodySpacePivot)
         {
-            if (BreakForce < MyObjectBuilder_LandingGear.MaxSolverImpulse)
+            if (Sync.IsServer && BreakForce < MyObjectBuilder_LandingGear.MaxSolverImpulse)
                 return false;
 
             MyCubeGrid grid = entity as MyCubeGrid;
@@ -873,7 +881,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
             if (grid == null)
             {
                 var block = entity as MyCubeBlock;
-                if(block != null)
+                if (block != null)
                 {
                     grid = block.CubeGrid;
                 }
@@ -915,8 +923,11 @@ namespace SpaceEngineers.Game.Entities.Blocks
 
             if (m_converted)
             {
-                CubeGrid.Physics.ConvertToDynamic(CubeGrid.GridSizeEnum == MyCubeSize.Large);
-                m_converted = false;
+                if ((!CubeGrid.IsStatic || !(attachedTo is MyVoxelBase)))
+                {
+                    CubeGrid.Physics.ConvertToDynamic(CubeGrid.GridSizeEnum == MyCubeSize.Large);
+                    m_converted = false;
+                }
             }
 
             if (MyFakes.WELD_LANDING_GEARS && MyWeldingGroups.Static.LinkExists(EntityId, CubeGrid, (MyEntity)m_attachedTo))
@@ -949,7 +960,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
                 //temporary fix by Gregory for the Landing gears do not want to lock bug. This should be check further though
             }
             else if (entity.Physics == null)
-            {        
+            {
                 if (LockMode == LandingGearMode.Locked)
                 {
                     if (Sync.IsServer)
@@ -987,8 +998,11 @@ namespace SpaceEngineers.Game.Entities.Blocks
         }
 
         [Event, Reliable, Server]
-        private void ResetLockConstraint(bool locked,bool force = false)
+        private void ResetLockConstraint(bool locked, bool force = false)
         {
+            if (CubeGrid == null)
+                return;
+
             if (CubeGrid.Physics == null)
                 return;
 
@@ -1032,7 +1046,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
             remove { StateChanged -= value; }
         }
 
-        IMyEntity ModAPI.Ingame.IMyLandingGear.GetAttachedEntity()
+        IMyEntity ModAPI.IMyLandingGear.GetAttachedEntity()
         {
             return m_attachedTo;
         }
@@ -1060,7 +1074,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
             }
         }
 
-        private void AttachEntity(Vector3D pivot, MyEntity otherEntity,bool force =false)
+        private void AttachEntity(Vector3D pivot, MyEntity otherEntity, bool force = false)
         {
             var gearClusterMatrix = CubeGrid.Physics.RigidBody.GetRigidBodyMatrix();
             var otherClusterMatrix = otherEntity.Physics.RigidBody.GetRigidBodyMatrix();
@@ -1076,7 +1090,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
             long OtherEntity = otherEntity.EntityId;
 
             MatrixD masterToSlave = CubeGrid.WorldMatrix * MatrixD.Invert(otherEntity.WorldMatrix);
-            m_attachedState.Value = new State() {Force = force, OtherEntityId = OtherEntity, GearPivotPosition = gearPivotPosition, OtherPivot = otherPivot, MasterToSlave = masterToSlave };
+            m_attachedState.Value = new State() { Force = force, OtherEntityId = OtherEntity, GearPivotPosition = gearPivotPosition, OtherPivot = otherPivot, MasterToSlave = masterToSlave };
             Attach(otherEntity, gearPivotPosition, other);
         }
 
@@ -1124,6 +1138,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
             if (Sync.IsServer)
             {
                 CubeGrid.OnGridSplit -= CubeGrid_OnGridSplit;
+                CubeGrid.OnIsStaticChanged -= CubeGrid_OnIsStaticChanged;
             }
         }
 
@@ -1149,12 +1164,24 @@ namespace SpaceEngineers.Game.Entities.Blocks
                 }
 
                 CubeGrid.OnGridSplit += CubeGrid_OnGridSplit;
+                CubeGrid.OnIsStaticChanged += CubeGrid_OnIsStaticChanged;
             }
         }
 
         protected void CubeGrid_OnGridSplit(MyCubeGrid grid1, MyCubeGrid grid2)
         {
-            ResetLockConstraint(true,true);
+            ResetLockConstraint(true, true);
+        }
+
+        protected void CubeGrid_OnIsStaticChanged(bool isStatic)
+        {
+            //GK: For now take into account only VoxelBase. TODO: check what happens when Cubegrid is attached
+            if (!isStatic && m_attachedTo is MyVoxelBase)
+            {
+                m_converted = false;
+                ResetLockConstraint(false, true);
+                m_needsToRetryLock = true;
+            }
         }
 
         public IMyEntity GetAttachedEntity()

@@ -84,6 +84,9 @@ namespace Sandbox.Game.Entities.Cube
             gridBuilder.DestructibleBlocks = false;
             foreach (var block in gridBuilder.CubeBlocks)
             {
+                block.Owner = 0;
+                block.ShareMode = MyOwnershipShareModeEnum.None;
+                block.EntityId = 0;
                 var functionalBlock = block as MyObjectBuilder_FunctionalBlock;
                 if (functionalBlock != null)
                 {
@@ -175,10 +178,9 @@ namespace Sandbox.Game.Entities.Cube
             }
         }
 
-        public override void Activate()
+        public override void Activate(Action callback = null)
         {
-            ChangeClipboardPreview(true);
-            IsActive = true;
+            ActivateNoAlign(callback);
             m_firstUpdateAfterNewBlueprint = true;
         }
     }

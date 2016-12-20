@@ -87,12 +87,12 @@ namespace Sandbox.Graphics.GUI
 
         public class StyleDefinition
         {
-            public MyFontEnum HeaderFontHighlight;
-            public MyFontEnum HeaderFontNormal;
+            public string HeaderFontHighlight;
+            public string HeaderFontNormal;
             public string HeaderTextureHighlight;
             public MyGuiBorderThickness Padding;
-            public MyFontEnum RowFontHighlight;
-            public MyFontEnum RowFontNormal;
+            public string RowFontHighlight;
+            public string RowFontNormal;
             public float RowHeight;
             public string RowTextureHighlight;
             public float TextScale;
@@ -121,7 +121,7 @@ namespace Sandbox.Graphics.GUI
         /// <summary>
         /// Index computed from scrollbar.
         /// </summary>
-        private int m_visibleRowIndexOffset;
+        protected int m_visibleRowIndexOffset;
 
         private int m_lastSortedColumnIdx;
 
@@ -271,6 +271,17 @@ namespace Sandbox.Graphics.GUI
 
         public void Clear()
         {
+            foreach (var row in m_rows)
+            {
+                foreach (var cell in row.Cells)
+                {
+                    if (cell.Control != null)
+                    {
+                        cell.Control.OnRemoving();
+                        cell.Control.Clear();
+                    }
+                }
+            }
             m_rows.Clear();
             SelectedRowIndex = null;
             RefreshScrollbar();
@@ -464,7 +475,10 @@ namespace Sandbox.Graphics.GUI
         public void ScrollToSelection()
         {
             if (SelectedRow == null)
+            {
+                m_visibleRowIndexOffset = 0;
                 return;
+            }
 
             int selectedIdx = SelectedRowIndex.Value;
 
@@ -583,6 +597,11 @@ namespace Sandbox.Graphics.GUI
                     if (cell.ToolTip != null)
                         m_toolTip = cell.ToolTip;
                 }
+            }
+
+            foreach (var control in Controls.GetVisibleControls())
+            {
+                control.ShowToolTip();
             }
 
             base.ShowToolTip();
@@ -704,12 +723,14 @@ namespace Sandbox.Graphics.GUI
                         else
                         if (cell != null && cell.Text != null)
                         {
+                            float iconTextOffset = 0;
                             if (cell.Icon.HasValue)
                             {
                                 var iconPosition = MyUtils.GetCoordAlignedFromTopLeft(cellPos, cellSize, cell.IconOriginAlign);
                                 var icon = cell.Icon.Value;
                                 var ratios = Vector2.Min(icon.SizeGui, cellSize) / icon.SizeGui;
                                 float scale = Math.Min(ratios.X, ratios.Y);
+                                iconTextOffset = icon.SizeGui.X;
                                 MyGuiManager.DrawSpriteBatch(
                                     texture: (HasHighlight) ? icon.Highlight : icon.Normal,
                                     normalizedCoord: iconPosition,
@@ -719,6 +740,7 @@ namespace Sandbox.Graphics.GUI
                             }
 
                             var textPos = MyUtils.GetCoordAlignedFromCenter(cellPos + 0.5f * cellSize, cellSize, meta.TextAlign);
+                            textPos.X += iconTextOffset;
                             MyGuiManager.DrawString(rowFont, cell.Text, textPos,
                                 TextScaleWithLanguage,
                                 (cell.TextColor != null) ? cell.TextColor : ApplyColorMaskModifiers(ColorMask, Enabled, transitionAlpha),
@@ -908,6 +930,7 @@ namespace Sandbox.Graphics.GUI
             var position = new Vector2(posTopRight.X - (margin.Right + m_scrollBar.Size.X),
                                        posTopRight.Y + margin.Top);
             m_scrollBar.Layout(position, Size.Y - (margin.Top + margin.Bottom));
+            m_scrollBar.ChangeValue(0);
         }
 
         private void RefreshVisualStyle()

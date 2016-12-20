@@ -22,7 +22,18 @@ namespace Sandbox.Game.Entities
     public class MySoundPair
     {
         public static MySoundPair Empty = new MySoundPair();
-        static StringBuilder m_cache = new StringBuilder();
+        [ThreadStatic]
+        static StringBuilder m_cache;
+
+        static StringBuilder Cache
+        {
+            get 
+            {
+                if (m_cache == null)
+                    m_cache = new StringBuilder();
+                return m_cache; 
+            }
+        }
 
 		//jn:TODO create properties on cues or something
 		private MyCueId m_arcade;
@@ -36,12 +47,12 @@ namespace Sandbox.Game.Entities
             Init(null);
         }
 
-        public MySoundPair(string cueName)
+        public MySoundPair(string cueName, bool useLog = true)
         {
-            Init(cueName);
+            Init(cueName, useLog);
         }
 
-        public void Init(string cueName)
+        public void Init(string cueName, bool useLog = true)
         {
             if (string.IsNullOrEmpty(cueName) || MySandboxGame.IsDedicated || MyAudio.Static == null)
             {
@@ -56,14 +67,16 @@ namespace Sandbox.Game.Entities
                     m_realistic = m_arcade;
                     return;
                 }
-                m_cache.Clear();
-                m_cache.Append("Arc").Append(cueName);
-                m_arcade = MyAudio.Static.GetCueId(m_cache.ToString());
-                m_cache.Clear();
-                m_cache.Append("Real").Append(cueName);
-                m_realistic = MyAudio.Static.GetCueId(m_cache.ToString());
+                Cache.Clear();
+                Cache.Append("Arc").Append(cueName);
+                m_arcade = MyAudio.Static.GetCueId(Cache.ToString());
+                Cache.Clear();
+                Cache.Append("Real").Append(cueName);
+                m_realistic = MyAudio.Static.GetCueId(Cache.ToString());
 
                 //Debug.Assert(m_arcade.Hash != MyStringHash.NullOrEmpty || m_realistic.Hash != MyStringHash.NullOrEmpty, string.Format("Could not find any sound for '{0}'", cueName));
+                if (useLog)
+                {
                 if (m_arcade.Hash == MyStringHash.NullOrEmpty && m_realistic.Hash == MyStringHash.NullOrEmpty)
                     MySandboxGame.Log.WriteLine(string.Format("Could not find any sound for '{0}'", cueName));
                 else
@@ -74,6 +87,7 @@ namespace Sandbox.Game.Entities
                         string.Format("Could not find realistic sound for '{0}'", cueName);
                 }
             }
+        }
         }
 
         public void Init(MyCueId cueId)
@@ -136,16 +150,16 @@ namespace Sandbox.Game.Entities
             var cueId = MyAudio.Static.GetCueId(cueName);
             if (cueId.Hash != MyStringHash.NullOrEmpty)
                 return cueId;
-            m_cache.Clear();
+            Cache.Clear();
             if (MySession.Static.Settings.RealisticSound && MyFakes.ENABLE_NEW_SOUNDS)
             {
-                m_cache.Append("Real").Append(cueName);
-                return MyAudio.Static.GetCueId(m_cache.ToString());
+                Cache.Append("Real").Append(cueName);
+                return MyAudio.Static.GetCueId(Cache.ToString());
             }
             else
             {
-                m_cache.Append("Arc").Append(cueName);
-                return MyAudio.Static.GetCueId(m_cache.ToString());
+                Cache.Append("Arc").Append(cueName);
+                return MyAudio.Static.GetCueId(Cache.ToString());
             }
         }
     }
@@ -201,6 +215,8 @@ namespace Sandbox.Game.Entities
         public event Action<MyEntity3DSoundEmitter> StoppedPlaying;
 
         public bool Loop { get; private set; }
+
+        public bool CanPlayLoopSounds = true;
 
         public bool IsPlaying { get { return m_sound != null && m_sound.IsPlaying; } }
 
@@ -294,7 +310,13 @@ namespace Sandbox.Game.Entities
 
             m_useRealisticByDefault = (MySession.Static != null && MySession.Static.Settings.RealisticSound && MyFakes.ENABLE_NEW_SOUNDS);
             if (MySession.Static != null && MySession.Static.Settings.RealisticSound && MyFakes.ENABLE_NEW_SOUNDS && useStaticList && entity != null && MyFakes.ENABLE_NEW_SOUNDS_QUICK_UPDATE)
-                m_entityEmitters.Add(this);
+            {
+                lock (m_entityEmitters)
+                {
+                    m_entityEmitters.Add(this);
+                }
+            }
+                
         }
 
         ~MyEntity3DSoundEmitter()
@@ -446,8 +468,8 @@ namespace Sandbox.Game.Entities
                         }
                     }
                 }
-                if (firstCubeGrid == null)
-                    return false;
+                    if (firstCubeGrid == null)
+                        return false;
                 if (firstCubeGrid == secondCubeGrid)
                     return true;//character is standing on this grid
                 if (MyCubeGridGroups.Static.Physical.HasSameGroup(firstCubeGrid, secondCubeGrid))
@@ -474,8 +496,8 @@ namespace Sandbox.Game.Entities
                                 {
                                     if ((entity is MyVoxelBase) && (entity as MyVoxelBase == Entity as MyVoxelBase))
                                         return true;//character is standing on ship that is connected to this voxel via landing gears
-                                }
-                            }
+                }
+            }
                         }
                     }
                 }
@@ -625,7 +647,7 @@ namespace Sandbox.Game.Entities
                 return m_effectNoHelmetNoOxygen;//no helmet in space
             if (m_lastSoundData != null && cockpit != null && cockpit.BlockDefinition != null && cockpit.BlockDefinition.IsPressurized && cockpit.CubeGrid != null && cockpit.CubeGrid.GridSizeEnum == VRage.Game.MyCubeSize.Small)
                 return m_lastSoundData.RealisticFilter;//no helmet in small ship in space
-            return MyStringHash.NullOrEmpty;//no helmet in oxygen
+                return MyStringHash.NullOrEmpty;//no helmet in oxygen
         }
 
         private bool CheckForSynchronizedSounds()
@@ -810,7 +832,7 @@ namespace Sandbox.Game.Entities
             Force2D = force2D;
             m_alwaysHearOnRealistic = alwaysHearOnRealistic;
             m_playing2D = (ShouldPlay2D() && !Force3D) || force2D || Force2D;
-            Loop = MyAudio.Static.IsLoopable(SoundId) && !skipToEnd;
+            Loop = MyAudio.Static.IsLoopable(SoundId) && !skipToEnd && CanPlayLoopSounds;
             if (!SoundId.IsNull)
             {
                 if (Loop && MySession.Static.ElapsedPlayTime.TotalSeconds < 6)
@@ -946,26 +968,30 @@ namespace Sandbox.Game.Entities
             if (now == 0 || Math.Abs(m_lastUpdate - now) < 5)
                 return;
             m_lastUpdate = now;
-            for (int i = 0; i < m_entityEmitters.Count; i++)
+            lock (m_entityEmitters)
             {
-                if (m_entityEmitters[i].Entity != null && m_entityEmitters[i].Entity.Closed == false)
+                for (int i = 0; i < m_entityEmitters.Count; i++)
                 {
-                    if ((m_entityEmitters[i].IsPlaying && updatePlaying) || (!m_entityEmitters[i].IsPlaying && updateNotPlaying))
+                    if (m_entityEmitters[i] != null && m_entityEmitters[i].Entity != null && m_entityEmitters[i].Entity.Closed == false)
                     {
-                        m_entityEmitters[i].Update();
+                        if ((m_entityEmitters[i].IsPlaying && updatePlaying) || (!m_entityEmitters[i].IsPlaying && updateNotPlaying))
+                        {
+                            m_entityEmitters[i].Update();
+                        }
                     }
-                }
-                else if (removeUnused)
-                {
-                    m_entityEmitters.RemoveAt(i);
-                    i--;
+                    else if (removeUnused)
+                    {
+                        m_entityEmitters.RemoveAt(i);
+                        i--;
+                    }
                 }
             }
         }
 
         public static void ClearEntityEmitters()
         {
-            m_entityEmitters.Clear();
+            lock (m_entityEmitters)
+                m_entityEmitters.Clear();
         }
 
         #endregion

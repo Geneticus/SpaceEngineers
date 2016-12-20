@@ -179,11 +179,23 @@ namespace VRage.Utils
         {
             return IsZero(value.X, epsilon) && IsZero(value.Y, epsilon) && IsZero(value.Z, epsilon);
         }
+        public static bool IsZero(ref Vector3 value, float epsilon = MyMathConstants.EPSILON)
+        {
+            return IsZero(value.X, epsilon) && IsZero(value.Y, epsilon) && IsZero(value.Z, epsilon);
+        }
         public static bool IsZero(Vector3D value, float epsilon = MyMathConstants.EPSILON)
         {
             return IsZero(value.X, epsilon) && IsZero(value.Y, epsilon) && IsZero(value.Z, epsilon);
         }
+        public static bool IsZero(ref Vector3D value, float epsilon = MyMathConstants.EPSILON)
+        {
+            return IsZero(value.X, epsilon) && IsZero(value.Y, epsilon) && IsZero(value.Z, epsilon);
+        }
         public static bool IsZero(Quaternion value, float epsilon = MyMathConstants.EPSILON)
+        {
+            return IsZero(value.X, epsilon) && IsZero(value.Y, epsilon) && IsZero(value.Z, epsilon) && IsZero(value.W, epsilon);
+        }
+        public static bool IsZero(ref Quaternion value, float epsilon = MyMathConstants.EPSILON)
         {
             return IsZero(value.X, epsilon) && IsZero(value.Y, epsilon) && IsZero(value.Z, epsilon) && IsZero(value.W, epsilon);
         }
@@ -306,8 +318,8 @@ namespace VRage.Utils
         /// </summary>
         public static void GenerateQuad(out MyQuadD quad, ref Vector3D position, float width, float height, ref MatrixD matrix)
         {
-            Vector3 billboardAxisX = matrix.Left * width;
-            Vector3 billboardAxisY = matrix.Up * height;
+            Vector3D billboardAxisX = matrix.Left * width;
+            Vector3D billboardAxisY = matrix.Up * height;
 
             //	Coordinates of four points of a billboard's quad
             quad.Point0 = position + billboardAxisX + billboardAxisY;

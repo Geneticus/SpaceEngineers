@@ -207,13 +207,14 @@ public void Main(string argument) {{
             set { m_userId = value; }
         }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MyProgrammableBlock>())
                 return;
-
+            base.CreateTerminalControls();
             var console = new MyTerminalControlButton<MyProgrammableBlock>("Edit", MySpaceTexts.TerminalControlPanel_EditCode, MySpaceTexts.TerminalControlPanel_EditCode_Tooltip, (b) => b.SendOpenEditorRequest());
             console.Visible = (b) => MyFakes.ENABLE_PROGRAMMABLE_BLOCK && MySession.Static.EnableIngameScripts;
+            console.Enabled = (b) => MySession.Static.IsScripter;
             MyTerminalControlFactory.AddControl(console);
 
             var arg = new MyTerminalControlTextbox<MyProgrammableBlock>("ConsoleCommand", MySpaceTexts.TerminalControlPanel_RunArgument, MySpaceTexts.TerminalControlPanel_RunArgument_ToolTip);
@@ -226,7 +227,12 @@ public void Main(string argument) {{
             terminalRun.Visible = (b) => MyFakes.ENABLE_PROGRAMMABLE_BLOCK && MySession.Static.EnableIngameScripts;
             terminalRun.Enabled = (b) => b.IsWorking == true && b.IsFunctional == true;
             MyTerminalControlFactory.AddControl(terminalRun);
-            
+
+            var recompile = new MyTerminalControlButton<MyProgrammableBlock>("Recompile", MySpaceTexts.TerminalControlPanel_Recompile, MySpaceTexts.TerminalControlPanel_Recompile_Tooltip, (b) => b.Recompile());
+            recompile.Visible = (b) => MyFakes.ENABLE_PROGRAMMABLE_BLOCK && MySession.Static.EnableIngameScripts;
+            recompile.Enabled = (b) => b.IsWorking == true && b.IsFunctional == true;
+            MyTerminalControlFactory.AddControl(recompile);
+
             var runAction = new MyTerminalAction<MyProgrammableBlock>("Run", MyTexts.Get(MySpaceTexts.TerminalControlPanel_RunCode), OnRunApplied, null, MyTerminalActionIcons.START);
             runAction.Enabled = (b) => b.IsFunctional == true;
             runAction.DoUserParameterRequest = RequestRunArgument;
@@ -499,6 +505,7 @@ public void Main(string argument) {{
 
         public void Run(string argument)
         {
+            MySimpleProfiler.Begin("Scripts");
             if (this.IsWorking == false || this.IsFunctional == false)
             {
                 return;
@@ -513,6 +520,7 @@ public void Main(string argument) {{
             {
                SendRunProgramRequest(argument);
             }
+            MySimpleProfiler.End("Scripts");
         }
 
         private void SetDetailedInfo(string detailedInfo)
@@ -531,7 +539,7 @@ public void Main(string argument) {{
             sinkComp.Init(
               blockDefinition.ResourceSinkGroup,
               0.0005f,
-              () => (Enabled && IsFunctional) ? ResourceSink.MaxRequiredInput : 0f);
+              () => (Enabled && IsFunctional) ? ResourceSink.MaxRequiredInputByType(MyResourceDistributorComponent.ElectricityId) : 0f);
             sinkComp.IsPoweredChanged += PowerReceiver_IsPoweredChanged;
             ResourceSink = sinkComp;
 
@@ -787,7 +795,7 @@ public void Main(string argument) {{
 
         protected override bool CheckIsWorking()
         {
-            return ResourceSink.IsPowered && base.CheckIsWorking();
+            return ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && base.CheckIsWorking();
         }
 
         public override void UpdateAfterSimulation()
@@ -915,6 +923,11 @@ public void Main(string argument) {{
         [Event, Reliable, Server,Broadcast]
         void UpdateProgram(byte[] program)
         {
+            if (!MySession.Static.IsUserScripter(MyEventContext.Current.Sender.Value))
+            {
+                MyEventContext.ValidationFailed();
+                return;
+            }
             UpdateProgram(StringCompressor.DecompressString(program));
         }
 
@@ -1005,7 +1018,7 @@ public void Main(string argument) {{
                     elapsedTimeTicks = (ticks - m_startTicks) * STOPWATCH_TICKS_FREQUENCY;
                     m_startTicks = ticks;
                 }
-                var scaledTicks = (long)(elapsedTimeTicks * Sync.ServerSimulationRatio);
+                var scaledTicks = (long)(elapsedTimeTicks);
                 TimeSinceLastRun = new TimeSpan(scaledTicks);
                 LastRunTimeMs = m_lastMainRunTimeMs;
             }

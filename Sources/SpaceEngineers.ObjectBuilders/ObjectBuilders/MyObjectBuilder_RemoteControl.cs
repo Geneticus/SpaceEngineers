@@ -6,6 +6,7 @@ using VRageMath;
 using VRage.ObjectBuilders;
 using VRage.ModAPI;
 using VRage.Serialization;
+using VRage.Game.ObjectBuilders.AI;
 
 namespace Sandbox.Common.ObjectBuilders
 {
@@ -27,6 +28,9 @@ namespace Sandbox.Common.ObjectBuilders
         public int FlightMode;
 
         [ProtoMember]
+        public long BindedCamera = 0;
+
+        [ProtoMember]
         public int CurrentWaypointIndex = -1;
 
         [ProtoMember]
@@ -41,6 +45,10 @@ namespace Sandbox.Common.ObjectBuilders
 
         [ProtoMember]
         public bool CollisionAvoidance = false;
+
+        [ProtoMember]
+        [Serialize(MyObjectFlags.Nullable)]
+        public MyObjectBuilder_AutomaticBehaviour AutomaticBehaviour = null;
         
         /// <summary>
         /// Obsolete. Use Waypoints instead.
@@ -68,6 +76,9 @@ namespace Sandbox.Common.ObjectBuilders
 
         [ProtoMember]
         public float WaypointThresholdDistance;
+
+        [ProtoMember]
+        public bool IsMainRemoteControl = false;
 
         public override void Remap(IMyRemapHelper remapHelper)
         {

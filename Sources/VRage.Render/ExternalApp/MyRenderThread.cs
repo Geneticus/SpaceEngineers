@@ -39,7 +39,7 @@ namespace VRageRender.ExternalApp
         MyTimeSpan m_frameStart;
         MyTimeSpan m_appEventsTime;
 
-        volatile bool m_stopped = false;
+        int m_stopped = 0; // Integer because interlocked doesn't work with bools
 
         IMyRenderWindow m_renderWindow;
         MyRenderQualityEnum m_currentQuality;
@@ -123,7 +123,7 @@ namespace VRageRender.ExternalApp
         {
             if (MyRenderProxy.EnableAppEventsCall)
             {
-                if ((m_timer.Elapsed - m_appEventsTime).Miliseconds > 10)
+                if ((m_timer.Elapsed - m_appEventsTime).Milliseconds > 10)
                 {
 #if !XB1
                     Application.DoEvents();
@@ -159,17 +159,17 @@ namespace VRageRender.ExternalApp
         /// </summary>
         public void Exit()
         {
-            Debug.Assert(!m_stopped, "Already stopped");
-            m_stopped = true;
+            if (Interlocked.Exchange(ref m_stopped, 1) == 1)
+                return;
 
             if (SystemThread != null)
             {
                 // TODO: OP! Should be done better
                 try
-				{
+                {
 #if !XB1
-					if (!m_form.IsDisposed)
-                       m_form.Invoke(new Action(OnExit));
+                    if (!m_form.IsDisposed)
+                        m_form.Invoke(new Action(OnExit));
 #endif
                 }
                 catch
@@ -221,7 +221,15 @@ namespace VRageRender.ExternalApp
             UpdateSize();
             
             //RenderLoop.UseCustomDoEvents = true;
-            RenderLoop.Run(m_form, RenderCallback);
+            //RenderLoop.Run(m_form, RenderCallback);
+
+            m_form.Show();
+            while (m_form.Visible)
+            {
+                Application.DoEvents();
+                if (m_form.Visible)
+                    RenderCallback();
+            }
 
             UnloadContent();
 
@@ -328,8 +336,11 @@ namespace VRageRender.ExternalApp
                 {
                     MyRenderProxy.Present();
                 }
-                catch (MyDeviceLostException)
+                catch (MyDeviceErrorException e)
                 {
+                    // Present() ended up with an error -- don't try to recover
+                    MyRenderProxy.Error(e.Message, shouldTerminate: true);
+                    Exit();
                 }
                 this.DoAfterPresent();
             }

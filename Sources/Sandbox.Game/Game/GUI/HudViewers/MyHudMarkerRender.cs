@@ -276,6 +276,7 @@ namespace Sandbox.Game.GUI.HudViewers
             public PointOfInterestType POIType { get; private set; }
             public MyRelationsBetweenPlayerAndBlock Relationship { get; private set; }
             public MyEntity Entity { get; private set; }
+            public Color DefaultColor = new Color(117, 201, 241); 
 
             public StringBuilder Text { get; private set; }
 
@@ -525,7 +526,7 @@ namespace Sandbox.Game.GUI.HudViewers
             /// <param name="color"></param>
             /// <param name="fontColor"></param>
             /// <param name="font"></param>
-            public void GetColorAndFontForRelationship(MyRelationsBetweenPlayerAndBlock relationship, out Color color, out Color fontColor, out MyFontEnum font)
+            public void GetColorAndFontForRelationship(MyRelationsBetweenPlayerAndBlock relationship, out Color color, out Color fontColor, out string font)
             {
                 color = Color.White;
                 fontColor = Color.White;
@@ -561,7 +562,7 @@ namespace Sandbox.Game.GUI.HudViewers
             /// <param name="poiColor">The colour of the POI.</param>
             /// <param name="fontColor">The colour that should be used with this font.</param>
             /// <param name="font">The font to be used for this POI.</param>
-            public void GetPOIColorAndFontInformation(out Color poiColor, out Color fontColor, out MyFontEnum font)
+            public void GetPOIColorAndFontInformation(out Color poiColor, out Color fontColor, out string font)
             {
                 poiColor = Color.White;
                 fontColor = Color.White;
@@ -591,8 +592,8 @@ namespace Sandbox.Game.GUI.HudViewers
 
                     // GPS is always blue
                     case PointOfInterestType.GPS:
-                        poiColor = new Color(117, 201, 241);
-                        fontColor = new Color(117, 201, 241);
+                        poiColor = DefaultColor;
+                        fontColor = DefaultColor;
                         font = MyFontEnum.Blue;
                         break;
                 }
@@ -657,7 +658,7 @@ namespace Sandbox.Game.GUI.HudViewers
                 //ProfilerShort.BeginNextBlock("Obtain style");
                 Color markerColor = Color.White;
                 Color fontColor = Color.White;
-                MyFontEnum font = MyFontEnum.White;
+                string font = MyFontEnum.White;
                 GetPOIColorAndFontInformation(out markerColor, out fontColor, out font);
 
                 //  This will bound the rectangle in circle, although it isn't real circle because we work in [0,1] dimensions, 
@@ -1338,13 +1339,14 @@ namespace Sandbox.Game.GUI.HudViewers
             poi.SetText(entityName);
         }
 
-        public void AddGPS(Vector3D worldPosition, string name, bool alwaysVisible)
+        public void AddGPS(Vector3D worldPosition, string name, bool alwaysVisible, Color color)
         {
             // Don't add poi if we're not displaying them
             if (SignalDisplayMode == SignalMode.Off) return;
 
             PointOfInterest poi = m_pointOfInterestPool.Allocate();
             m_pointsOfInterest.Add(poi);
+            poi.DefaultColor = color;
             poi.Reset();
             poi.SetState(worldPosition, PointOfInterest.PointOfInterestType.GPS, MyRelationsBetweenPlayerAndBlock.Owner);
             poi.SetText(name);
@@ -1357,10 +1359,11 @@ namespace Sandbox.Game.GUI.HudViewers
             //if (SignalDisplayMode == SignalMode.Off) return;
 
             PointOfInterest poi = m_pointOfInterestPool.Allocate();
-            m_pointsOfInterest.Add(poi);
             poi.Reset();
+            poi.AlwaysVisible = true;
             poi.SetState(worldPosition, PointOfInterest.PointOfInterestType.ButtonMarker, MyRelationsBetweenPlayerAndBlock.Owner);
             poi.SetText(name);
+            m_pointsOfInterest.Add(poi);
         }
 
         public void AddOre(Vector3D worldPosition, string name)
@@ -1460,6 +1463,13 @@ namespace Sandbox.Game.GUI.HudViewers
                 {
                     PointOfInterest poi = m_pointsOfInterest[i];
                     PointOfInterest groupPOI = null;
+
+                    if (poi.AlwaysVisible)
+                    {
+                        finalPOIs.Add(poi);
+                        continue;
+                    }
+
 
                     if (poi.AllowsCluster)
                     {

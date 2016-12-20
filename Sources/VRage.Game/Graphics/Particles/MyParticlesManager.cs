@@ -4,6 +4,8 @@ using ParallelTasks;
 using System;
 using System.Collections.Generic;
 using VRage.Generics;
+using VRage.Profiler;
+using VRage.Utils;
 using VRageMath;
 using VRageRender;
 using VRageRender.Messages;
@@ -22,16 +24,21 @@ namespace VRage.Game
             get { return m_paused; }
             set
             {
-                m_paused = value;
-                lock (m_particleEffectsForUpdate)
+                if (m_paused != value)
                 {
-                    foreach (MyParticleEffect effect in m_particleEffectsForUpdate)
-                        effect.SetDirty();
+                    m_paused = value;
+                    lock (m_particleEffectsForUpdate)
+                    {
+                        foreach (MyParticleEffect effect in m_particleEffectsForUpdate)
+                            effect.SetDirty();
+                    }
                 }
             }
         }
 
         public static Func<Vector3D, Vector3> CalculateGravityInPoint;
+
+        public static bool EnableCPUGenerations = true;
 
 
         #region Pools
@@ -47,6 +54,7 @@ namespace VRage.Game
         #endregion
 
         public static List<MyGPUEmitter> GPUEmitters = new List<MyGPUEmitter>();
+        public static List<MyGPUEmitterLight> GPUEmittersLight = new List<MyGPUEmitterLight>();
         public static List<MyGPUEmitterTransformUpdate> GPUEmitterTransforms = new List<MyGPUEmitterTransformUpdate>();
 
         static List<MyParticleEffect> m_effectsToDelete = new List<MyParticleEffect>();
@@ -163,8 +171,40 @@ namespace VRage.Game
             //TestGPUParticles();
         }
 
-
-
+        struct Statistics
+        {
+            public int GPUGens;
+            public int CPUGens;
+            public int Instances;
+        }
+        public static void LogEffects()
+        {
+            var stats = new Dictionary<string, Statistics>();
+            foreach (MyParticleEffect effect in m_particleEffectsForUpdate)
+            {
+                Statistics value;
+                if (stats.TryGetValue(effect.Name, out value))
+                {
+                    value.Instances++;
+                    stats[effect.Name] = value;
+                }
+                else
+                {
+                    value = new Statistics();
+                    foreach (var item in effect.GetGenerations())
+                    {
+                        if (item is MyParticleGPUGeneration)
+                            value.GPUGens++;
+                        else value.CPUGens++;
+                    }
+                    value.Instances = 1;
+                    stats[effect.Name] = value;
+                }
+            }
+            
+            foreach (var item in stats)
+                MyLog.Default.WriteLine(item.Key + ": #" + item.Value.Instances + " GPU " + item.Value.GPUGens + " CPU " + item.Value.CPUGens);
+        }
 
         private static void UpdateEffects()
         {
@@ -197,38 +237,38 @@ namespace VRage.Game
         public static void DrawStart()
         {
             GPUEmitters.Clear();
+            GPUEmittersLight.Clear();
             GPUEmitterTransforms.Clear();
         }
 
         public static void DrawEnd()
         {
+            ProfilerShort.Begin("GPU_SendData");
             if (GPUEmitters.Count > 0)
             {
-                var emitters = new MyGPUEmitter[GPUEmitters.Count];
-                for (int i = 0; i < GPUEmitters.Count; i++)
-                {
-                    emitters[i] = GPUEmitters[i];
-                }
-
-                MyRenderProxy.UpdateGPUEmitters(emitters);
+                MyRenderProxy.UpdateGPUEmitters(GPUEmitters.ToArray());
 
                 GPUEmitters.Clear();
             }
+            ProfilerShort.End();
 
+            ProfilerShort.Begin("GPU_SendPositions");
             if (GPUEmitterTransforms.Count > 0)
             {
-                var emitterUids = new uint[GPUEmitterTransforms.Count];
-                var emitterTransforms = new MatrixD[GPUEmitterTransforms.Count];
-                for (int i = 0; i < GPUEmitterTransforms.Count; i++)
-                {
-                    emitterUids[i] = GPUEmitterTransforms[i].GID;
-                    emitterTransforms[i] = GPUEmitterTransforms[i].Transform;
-                }
-
-                MyRenderProxy.UpdateGPUEmittersTransform(emitterUids, emitterTransforms);
+                MyRenderProxy.UpdateGPUEmittersTransform(GPUEmitterTransforms.ToArray());
 
                 GPUEmitterTransforms.Clear();
             }
+            ProfilerShort.End();
+
+            ProfilerShort.Begin("GPU_SendLightData");
+            if (GPUEmittersLight.Count > 0)
+            {
+                MyRenderProxy.UpdateGPUEmittersLight(GPUEmittersLight.ToArray());
+
+                GPUEmittersLight.Clear();
+            }
+            ProfilerShort.End();
         }
 
         public override void Draw()

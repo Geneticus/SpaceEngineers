@@ -19,7 +19,8 @@ namespace VRageRender.Import
         FOLIAGE,                    // Alpha masked foliage
 
         //Leave decal type last because it is alpha blended, meshes are sorted by this enum
-        DECAL,                      //  Decal with alpha blending
+        DECAL,                      //  Decal with alpha blending (premultiplied alpha)
+        DECAL_NOPREMULT,            //  Decal with alpha blending (no premultiplied alpha)
         DECAL_CUTOUT,               //  Decal with alpha cutout
         HOLO,                       //  Advanced type of blended object, it has some special features decal doesnt have (cull none, no physics, sorting..)
 
@@ -74,6 +75,14 @@ namespace VRageRender.Import
         public MyMaterialDescriptor m_MaterialDesc = null;
         public List<int> m_indices = new List<int>();
         public MyMeshDrawTechnique Technique = MyMeshDrawTechnique.MESH;
+
+        public string GetMaterialName()
+        {
+            string materialName = "";
+            if (m_MaterialDesc != null)
+                materialName = m_MaterialDesc.MaterialName;
+            return materialName;
+        }
 
         public bool Export(BinaryWriter writer)
         {

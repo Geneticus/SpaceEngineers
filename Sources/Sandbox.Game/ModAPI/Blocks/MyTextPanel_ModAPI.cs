@@ -65,6 +65,10 @@ namespace Sandbox.Game.Entities.Blocks
             {
                 m_publicDescriptionHelper.Clear();
             }
+            if (value.Length + m_publicDescriptionHelper.Length > MAX_NUMBER_CHARACTERS)
+            {
+                value = value.Remove(MAX_NUMBER_CHARACTERS - m_publicDescriptionHelper.Length);
+            }
             m_publicDescriptionHelper.Append(value);
             SendChangeDescriptionMessage(m_publicDescriptionHelper, true);
             return true;

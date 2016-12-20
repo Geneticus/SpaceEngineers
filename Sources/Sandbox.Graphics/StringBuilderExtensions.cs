@@ -15,7 +15,7 @@ namespace System.Text
         /// <summary>
         /// Inserts newlines into text to make it fit size.
         /// </summary>
-        public static void Autowrap(this StringBuilder sb, float width, MyFontEnum font, float textScale)
+        public static void Autowrap(this StringBuilder sb, float width, string font, float textScale)
         {
             int inputPos = 0;
             int wordCount = 0;
@@ -41,7 +41,7 @@ namespace System.Text
                         m_tmp.AppendLine();
                         inputPos = MoveSpaces(sb, inputPos);
                         wordCount = 0;
-                        width = measuredWidth;
+                        //width = measuredWidth;
                     }
                     else
                     {
@@ -50,6 +50,7 @@ namespace System.Text
                         m_tmp.AppendLine();
                         inputPos = MoveSpaces(sb, inputPos);
                         wordCount = 0;
+                        width = MyGuiManager.MeasureString(font, m_tmp, textScale).X;
                     }
                 }
             }

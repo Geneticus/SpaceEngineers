@@ -357,13 +357,16 @@ namespace SpaceEngineers.AI
             planet.CorrectSpawnLocation(ref spawnPos, 2.0f);
 
             MyAgentDefinition botBehavior = GetAnimalDefinition(animalSpawnInfo) as MyAgentDefinition;
-            if (botBehavior.Id.SubtypeName == Wolf_SUBTYPE_ID && MySession.Static.EnableWolfs)
+            if (botBehavior != null)
             {
-                MyAIComponent.Static.SpawnNewBot(botBehavior, spawnPos);
-            }
-            else if (botBehavior.Id.SubtypeName != Wolf_SUBTYPE_ID && MySession.Static.EnableSpiders)
-            {
-                MyAIComponent.Static.SpawnNewBot(botBehavior, spawnPos);
+                if (botBehavior.Id.SubtypeName == Wolf_SUBTYPE_ID && MySession.Static.EnableWolfs)
+                {
+                    MyAIComponent.Static.SpawnNewBot(botBehavior, spawnPos);
+                }
+                else if (botBehavior.Id.SubtypeName != Wolf_SUBTYPE_ID && MySession.Static.EnableSpiders)
+                {
+                    MyAIComponent.Static.SpawnNewBot(botBehavior, spawnPos);
+                }
             }
         }
 

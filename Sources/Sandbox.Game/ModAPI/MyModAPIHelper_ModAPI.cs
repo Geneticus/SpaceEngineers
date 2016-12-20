@@ -36,6 +36,7 @@ namespace Sandbox.ModAPI
             MyAPIGateway.PrefabManager = MyPrefabManager.Static;
             MyAPIGateway.Input = (VRage.ModAPI.IMyInput)VRage.Input.MyInput.Static;
             MyAPIGateway.TerminalControls = MyTerminalControls.Static;
+            MyAPIGateway.Gui = new MyGuiModHelpers();
         }
 
         [StaticEventOwner]
@@ -141,7 +142,7 @@ namespace Sandbox.ModAPI
                 System.Net.IPEndPoint endpoint;
                 if (System.Net.IPAddressExtensions.TryParseEndpoint(address, out endpoint))
                 {
-                    Sandbox.Game.Gui.MyGuiScreenMainMenu.UnloadAndExitToMenu();
+                    MySessionLoader.UnloadAndExitToMenu();
                     MySandboxGame.Services.SteamService.SteamAPI.PingServer(System.Net.IPAddressExtensions.ToIPv4NetworkOrder(endpoint.Address), (ushort)endpoint.Port);
                 }
             }

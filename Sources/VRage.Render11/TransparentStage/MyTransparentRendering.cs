@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SharpDX.Direct3D;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using VRage;
 using VRage.Profiler;
 using VRage.Render11.Common;
 using VRage.Render11.Profiler;
@@ -15,9 +13,9 @@ namespace VRageRender
 {
     internal class MyTransparentRendering : MyImmediateRC
     {
-        public const float PROXIMITY_DECALS_SQ_TH = 2.25f;         // 1.5m
+        private const float PROXIMITY_DECALS_SQ_TH = 2.25f;         // 1.5m
 
-        private static HashSet<uint> m_windowsWithDecals;
+        private static HashSet<uint> m_glassWithDecals;
         private static PixelShaderId m_psResolve;
         static PixelShaderId m_psOverlappingHeatMap;
         static PixelShaderId m_psOverlappingHeatMapInGrayscale;
@@ -27,7 +25,7 @@ namespace VRageRender
         {
             MyGPUParticleRenderer.Init();
 
-            m_windowsWithDecals = new HashSet<uint>();
+            m_glassWithDecals = new HashSet<uint>();
             if (m_distances == null)
                 m_distances = new float[] { PROXIMITY_DECALS_SQ_TH, 0 };
 
@@ -58,23 +56,18 @@ namespace VRageRender
                 RC.ClearRtv(coverageTarget, new SharpDX.Color4(1, 1, 1, 1));//0,0,0,0));
             }
 
-            if (MyRender11.MultisamplingEnabled)
-                RC.SetRtvs(MyScreenDependants.m_resolvedDepth, MyDepthStencilAccess.ReadOnly, accumTarget, coverageTarget);
-            else
-                RC.SetRtvs(MyGBuffer.Main.DepthStencil, MyDepthStencilAccess.ReadOnly, accumTarget, coverageTarget);
+            RC.SetRtvs(MyGBuffer.Main.ResolvedDepthStencil, MyDepthStencilAccess.ReadOnly, accumTarget, coverageTarget);
         }
-        internal static void SetupStandard()
+
+        private static void SetupStandard()
         {
             RC.SetScreenViewport();
             RC.SetBlendState(MyBlendStateManager.BlendAlphaPremult);
 
-            if (MyRender11.MultisamplingEnabled)
-                RC.SetRtvs(MyScreenDependants.m_resolvedDepth, MyDepthStencilAccess.ReadOnly, MyGBuffer.Main.LBuffer);
-            else
-                RC.SetRtvs(MyGBuffer.Main.DepthStencil, MyDepthStencilAccess.ReadOnly, MyGBuffer.Main.LBuffer);
+            RC.SetRtvs(MyGBuffer.Main.ResolvedDepthStencil, MyDepthStencilAccess.ReadOnly, MyGBuffer.Main.LBuffer);
         }
 
-        internal static void SetupTargets(IUavTexture accumTarget, IUavTexture coverageTarget, bool clear)
+        private static void SetupTargets(IUavTexture accumTarget, IUavTexture coverageTarget, bool clear)
         {
             if (MyRender11.DebugOverrides.OIT)
                 SetupOIT(accumTarget, coverageTarget, clear);
@@ -82,7 +75,7 @@ namespace VRageRender
                 SetupStandard();
         }
 
-        internal static void ResolveOIT(ISrvBindable accumTarget, ISrvBindable coverageTarget)
+        private static void ResolveOIT(ISrvBindable accumTarget, ISrvBindable coverageTarget)
         {
             RC.SetDepthStencilState(MyDepthStencilStateManager.IgnoreDepthStencil);
             RC.SetBlendState(MyBlendStateManager.BlendWeightedTransparencyResolve);
@@ -91,7 +84,6 @@ namespace VRageRender
             RC.PixelShader.SetSrv(0, accumTarget);
             RC.PixelShader.SetSrv(1, coverageTarget);
             MyScreenPass.DrawFullscreenQuad(null);
-            RC.SetRtv(null);
         }
 
         static bool IsUsedOverlappingHeatMap()
@@ -121,93 +113,105 @@ namespace VRageRender
             heatMap.Release();
         }
 
-        internal static void Render()
+        internal static void Render(IRtvTexture gbuffer1Copy)
         {
             IBorrowedUavTexture accumTarget = MyManagers.RwTexturesPool.BorrowUav("MyTransparentRendering.AccumTarget", Format.R16G16B16A16_Float);
-            IBorrowedUavTexture coverageTarget = MyManagers.RwTexturesPool.BorrowUav("MyTransparentRendering.CoverageTarget",Format.R16_UNorm);
- 
+            IBorrowedUavTexture coverageTarget = MyManagers.RwTexturesPool.BorrowUav("MyTransparentRendering.CoverageTarget", Format.R16_UNorm);
+
             ProfilerShort.Begin("Atmosphere");
             MyGpuProfiler.IC_BeginBlock("Atmosphere");
             if (MyRender11.DebugOverrides.Atmosphere)
-                MyAtmosphereRenderer.Render();
+                MyAtmosphereRenderer.RenderGBuffer();
 
             ProfilerShort.BeginNextBlock("Clouds");
             MyGpuProfiler.IC_BeginNextBlock("Clouds");
             if (MyRender11.DebugOverrides.Clouds)
                 MyCloudRenderer.Render();
-            MyGpuProfiler.IC_EndBlock();
+
+            var depthResource = MyGBuffer.Main.ResolvedDepthStencil;
 
             // setup weighted blended OIT targets + blend states
-            SetupTargets(accumTarget, coverageTarget, true);
+            if (MyRender11.Settings.DrawBillboards)
+            {
+                ProfilerShort.BeginNextBlock("Billboards");
+                MyGpuProfiler.IC_BeginNextBlock("Billboards");
+                MyBillboardRenderer.Gather();
 
-            IDepthStencil depthResource;
-            if (MyRender11.MultisamplingEnabled)
-                depthResource = MyScreenDependants.m_resolvedDepth;
-            else
-                depthResource = MyGBuffer.Main.DepthStencil;
+                MyBillboardRenderer.RenderAdditveBottom(depthResource.SrvDepth);
 
-            m_windowsWithDecals.Clear();
-            ProfilerShort.BeginNextBlock("Billboards");
-            MyGpuProfiler.IC_BeginBlock("Billboards");
-            bool resetBindings = MyBillboardRenderer.Gather(HandleWindow);
-            if (resetBindings)
-                SetupTargets(accumTarget, coverageTarget, false);
+                SetupTargets(accumTarget, coverageTarget, true);
 
-            MyBillboardRenderer.Render(depthResource.SrvDepth);
-            
+                MyBillboardRenderer.RenderStandard(depthResource.SrvDepth);
+            }
+            else SetupTargets(accumTarget, coverageTarget, true);
+
             ProfilerShort.BeginNextBlock("GPU Particles");
             MyGpuProfiler.IC_BeginNextBlock("GPU Particles");
             if (MyRender11.DebugOverrides.GPUParticles)
-                MyGPUParticleRenderer.Run(depthResource.SrvDepth);
-            MyGpuProfiler.IC_EndBlock();
+                MyGPUParticleRenderer.Run(depthResource.SrvDepth, MyGBuffer.Main.GBuffer1);
 
             // Render decals on transparent surfaces in 2 steps: first far, second proximity
-            float intervalMax = MyScreenDecals.VISIBLE_DECALS_SQ_TH;
-            for (int it = 0; it < m_distances.Length; it++)
+            if (MyRender11.Settings.DrawGlass)
             {
-                float intervalMin = m_distances[it];
+                ProfilerShort.BeginNextBlock("Static glass");
+                MyGpuProfiler.IC_BeginNextBlock("Static glass");
+                m_glassWithDecals.Clear();
+                MyStaticGlassRenderer.Render(HandleGlass);
 
-                ProfilerShort.BeginNextBlock("Billboards - Depth Only");
-                MyGpuProfiler.IC_BeginBlock("Billboards - Depth Only");
-                bool windowsFound = MyBillboardRenderer.RenderWindowsDepthOnly(depthResource, MyGlobalResources.Gbuffer1Copy, intervalMin, intervalMax);
-                MyGpuProfiler.IC_EndBlock();
-
-                if (windowsFound)
+                float intervalMax = MyScreenDecals.VISIBLE_DECALS_SQ_TH;
+                for (int it = 0; it < m_distances.Length; it++)
                 {
-                    SetupTargets(accumTarget, coverageTarget, false);
+                    float intervalMin = m_distances[it];
 
-                    ProfilerShort.BeginNextBlock("Render decals - Transparent");
-                    MyGpuProfiler.IC_BeginBlock("Render decals - Transparent");
-                    MyScreenDecals.Draw(true, m_windowsWithDecals);
-                    MyGpuProfiler.IC_EndBlock();
+                    ProfilerShort.BeginNextBlock("Glass - Depth Only");
+                    MyGpuProfiler.IC_BeginNextBlock("Glass - Depth Only");
+                    //TODO: This code should properly render glass decals, that they are visible when looking through window on another window
+                    // Anyway, it is italian code and it doesnt work. Solve after Beta
+                    bool glassFound = MyStaticGlassRenderer.RenderGlassDepthOnly(depthResource, gbuffer1Copy, intervalMin, intervalMax);
+
+                   // if (glassFound)
+                    {
+                        SetupTargets(accumTarget, coverageTarget, false);
+
+                        ProfilerShort.BeginNextBlock("Render decals - Transparent");
+                        MyGpuProfiler.IC_BeginNextBlock("Render decals - Transparent");
+                        MyScreenDecals.Draw(gbuffer1Copy, true/*, m_glassWithDecals*/);
+                    }
+
+                    intervalMax = intervalMin;
                 }
-
-                intervalMax = intervalMin;
             }
 
             if (IsUsedOverlappingHeatMap())
                 DisplayOverlappingHeatMap(accumTarget, coverageTarget, MyRender11.Settings.DisplayTransparencyHeatMapInGrayscale);
 
-            MyGpuProfiler.IC_BeginBlock("OIT Resolve");
+            MyGpuProfiler.IC_BeginNextBlock("OIT Resolve");
             // resolve weighted blended OIT in  accum / coverage to LBuffer
             if (MyRender11.DebugOverrides.OIT)
                 ResolveOIT(accumTarget, coverageTarget);
-            else RC.SetRtv(null);
+
+            ProfilerShort.BeginNextBlock("Billboards");
+            MyGpuProfiler.IC_BeginNextBlock("Billboards");
+            if (MyRender11.Settings.DrawBillboards)
+                MyBillboardRenderer.RenderAdditveTop(depthResource.SrvDepth);
+
+            RC.SetRtv(null);
+
             MyGpuProfiler.IC_EndBlock();
 
-             coverageTarget.Release();
+            coverageTarget.Release();
             accumTarget.Release();
 
             ProfilerShort.End();
         }
 
-        /// <returns>True if window has decals and is not too far</returns>
-        static bool HandleWindow(MyBillboard billboard)
+        /// <returns>True if window glass decals and is not too far</returns>
+        static bool HandleGlass(MyRenderCullResultFlat result, double viewDistanceSquared)
         {
-            uint parentID = (uint)billboard.ParentID;
-            if (MyScreenDecals.HasEntityDecals(parentID) && billboard.DistanceSquared < MyScreenDecals.VISIBLE_DECALS_SQ_TH)
+            uint id = result.RenderProxy.Parent.Owner.ID;
+            if (MyScreenDecals.HasEntityDecals(id) && viewDistanceSquared < MyScreenDecals.VISIBLE_DECALS_SQ_TH)
             {
-                m_windowsWithDecals.Add(parentID);
+                m_glassWithDecals.Add(id);
                 return true;
             }
 

@@ -24,6 +24,7 @@ namespace Sandbox.Game.Gui
             base.RecreateControls(constructor);
 
             m_scale = 0.7f;
+            m_sliderDebugScale = 0.7f;
 
             AddCaption("GBuffer Debug", Color.Yellow.ToVector4());
             AddShareFocusHint();
@@ -40,11 +41,15 @@ namespace Sandbox.Game.Gui
             m_cbs.Add(AddCheckBox("Glossiness", MyRenderProxy.Settings.DisplayGbufferGlossiness, (x) => MyRenderProxy.Settings.DisplayGbufferGlossiness = x.IsChecked));
             m_cbs.Add(AddCheckBox("Metalness", MyRenderProxy.Settings.DisplayGbufferMetalness, (x) => MyRenderProxy.Settings.DisplayGbufferMetalness = x.IsChecked));
             m_cbs.Add(AddCheckBox("NDotL", MyRenderProxy.Settings.DisplayNDotL, (x) => MyRenderProxy.Settings.DisplayNDotL = x.IsChecked));
+            m_cbs.Add(AddCheckBox("LOD", MyRenderProxy.Settings.DisplayGbufferLOD, (x) => MyRenderProxy.Settings.DisplayGbufferLOD = x.IsChecked));
             m_cbs.Add(AddCheckBox("Ambient occlusion", MyRenderProxy.Settings.DisplayGbufferAO, (x) => MyRenderProxy.Settings.DisplayGbufferAO = x.IsChecked));
             m_cbs.Add(AddCheckBox("Emissive", MyRenderProxy.Settings.DisplayEmissive, (x) => MyRenderProxy.Settings.DisplayEmissive = x.IsChecked));
             m_cbs.Add(AddCheckBox("Edge mask", MyRenderProxy.Settings.DisplayEdgeMask, (x) => MyRenderProxy.Settings.DisplayEdgeMask = x.IsChecked));
             m_cbs.Add(AddCheckBox("Depth", MyRenderProxy.Settings.DisplayDepth, (x) => MyRenderProxy.Settings.DisplayDepth = x.IsChecked));
             m_cbs.Add(AddCheckBox("Stencil", MyRenderProxy.Settings.DisplayStencil, (x) => MyRenderProxy.Settings.DisplayStencil = x.IsChecked));
+            m_currentPosition.Y += 0.01f;
+
+            m_cbs.Add(AddCheckBox("Reprojection test", MyRenderProxy.Settings.DisplayReprojectedDepth, (x) => MyRenderProxy.Settings.DisplayReprojectedDepth = x.IsChecked));
             m_currentPosition.Y += 0.01f;
 
             AddLabel("Environment light", Color.Yellow.ToVector4(), 1.2f);

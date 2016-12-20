@@ -102,15 +102,27 @@ namespace VRage.Audio
         private Reverb m_reverb = null;
         private bool m_applyReverb = false;
 
+        //global volume change
+        private float m_globalVolumeLevel = 1f;
+        private float m_globalVolumeTarget = 1f;
+        private float m_globalVolumeIncrement = 1f;
+        private bool m_globalVolumeRaising = true;
+        private bool m_globalVolumeChanging = false;
+
+
         Dictionary<MyCueId, MySoundData>.ValueCollection IMyAudio.CueDefinitions { get { return m_canPlay ? m_cueBank.CueDefinitions : null; } }
         List<MyStringId> IMyAudio.GetCategories() { return m_canPlay ? m_cueBank.GetCategories() : null; }
         MySoundData IMyAudio.GetCue(MyCueId cueId) { return m_canPlay ? m_cueBank.GetCue(cueId) : null; }
         Dictionary<MyStringId, List<MyCueId>> IMyAudio.GetAllMusicCues() { return m_cueBank != null ? m_cueBank.GetMusicCues() : null; }
 
+        int IMyAudio.SampleRate { get { return m_masterVoice != null ? m_masterVoice.VoiceDetails.InputSampleRate : 0; } }
+
         public MySoundData SoloCue { get; set; }
         public bool GameSoundIsPaused { get; private set; }
         private bool m_useVolumeLimiter = false;
         private bool m_useSameSoundLimiter = false;
+        private bool m_enableReverb = false;
+        private bool m_reverbSet = false;
         private bool m_soundLimiterReady = false;
         private bool m_soundLimiterSet = false;
         bool IMyAudio.UseVolumeLimiter
@@ -133,6 +145,25 @@ namespace VRage.Audio
             set
             {
                 m_useSameSoundLimiter = value;
+            }
+        }
+        bool IMyAudio.EnableReverb
+        {
+            get
+            {
+                return m_enableReverb;
+            }
+            set
+            {
+                m_enableReverb = value;
+                if (!m_reverbSet && value && m_masterVoice != null && m_masterVoice.VoiceDetails.InputSampleRate <= MyAudio.MAX_SAMPLE_RATE)
+                {
+                    m_reverb = new Reverb(m_audioEngine);
+                    EffectDescriptor descriptor = new EffectDescriptor(m_reverb, m_masterVoice.VoiceDetails.InputChannelCount);
+                    m_gameAudioVoice.SetEffectChain(descriptor);
+                    m_gameAudioVoice.DisableEffect(0);
+                    m_reverbSet = true;
+                }
             }
         }
 
@@ -233,10 +264,6 @@ namespace VRage.Audio
                 m_gameAudioVoice.SetVolume(0);
                 m_musicAudioVoice.SetVolume(0);
             }
-
-            m_reverb = new Reverb(m_audioEngine);
-            m_gameAudioVoice.SetEffectChain(new EffectDescriptor(m_reverb, masterDetails.InputChannelCount));
-            m_gameAudioVoice.DisableEffect(0);
         }
 
         public void SetReverbParameters(float diffusion, float roomSize)
@@ -245,6 +272,48 @@ namespace VRage.Audio
             newParameters.Diffusion = MyMath.Clamp(diffusion, Reverb.MinimumDiffusion, Reverb.MaximumDiffusion);
             newParameters.RoomSize = MyMath.Clamp(roomSize, Reverb.MinimumRoomsize, Reverb.MaximumRoomsize);
             m_reverb.Parameter = newParameters;*/
+        }
+
+        public void ChangeGlobalVolume(float level, float time)
+        {
+            level = MyMath.Clamp(level, 0, 1f);
+            m_globalVolumeChanging = false;
+            if (level != m_globalVolumeLevel)
+            {
+                if (time <= 0f)
+                {
+                    m_globalVolumeLevel = level;
+                    if (m_musicAudioVoice != null)
+                        m_musicAudioVoice.SetVolume(m_volumeMusic * level);
+                    if (m_hudAudioVoice != null)
+                        m_hudAudioVoice.SetVolume(m_volumeHud * level);
+                    if (m_gameAudioVoice != null)
+                        m_gameAudioVoice.SetVolume(m_volumeDefault * level);
+                }
+                else
+                {
+                    m_globalVolumeChanging = true;
+                    m_globalVolumeIncrement = ((level - m_globalVolumeLevel) / 60f) / time;
+                    m_globalVolumeTarget = level;
+                    m_globalVolumeRaising = level > m_globalVolumeLevel;
+                }
+            }
+        }
+
+        private void GlobalVolumeUpdate()
+        {
+            m_globalVolumeLevel += m_globalVolumeIncrement;
+            if((m_globalVolumeRaising && m_globalVolumeLevel >= m_globalVolumeTarget) || (!m_globalVolumeRaising && m_globalVolumeLevel <= m_globalVolumeTarget))
+            {
+                m_globalVolumeLevel = m_globalVolumeTarget;
+                m_globalVolumeChanging = false;
+            }
+            if (m_musicAudioVoice != null)
+                m_musicAudioVoice.SetVolume(m_volumeMusic * m_globalVolumeLevel);
+            if (m_hudAudioVoice != null)
+                m_hudAudioVoice.SetVolume(m_volumeHud * m_globalVolumeLevel);
+            if (m_gameAudioVoice != null)
+                m_gameAudioVoice.SetVolume(m_volumeDefault * m_globalVolumeLevel);
         }
 
         public void EnableMasterLimiter(bool enable)
@@ -333,9 +402,9 @@ namespace VRage.Audio
                 {
                     if (m_cueBank != null)
                         m_cueBank.SetAudioEngine(m_audioEngine);
-                    m_gameAudioVoice.SetVolume(m_volumeDefault);
-                    m_hudAudioVoice.SetVolume(m_volumeHud);
-                    m_musicAudioVoice.SetVolume(m_volumeMusic);
+                    m_gameAudioVoice.SetVolume(m_volumeDefault * m_globalVolumeLevel);
+                    m_hudAudioVoice.SetVolume(m_volumeHud * m_globalVolumeLevel);
+                    m_musicAudioVoice.SetVolume(m_volumeMusic * m_globalVolumeLevel);
                     //TODO: JN reinit sounds so they play
                     m_3Dsounds.Clear();
 
@@ -363,15 +432,8 @@ namespace VRage.Audio
             m_canPlay = true;
             try
             {
-                if (sounds.Count > 0)
-                {
-                    Init();
-                }
-                else
-                {
-                    MyLog.Default.WriteLine("Unable to load audio data. Game continues, but without sound", LoggingOptions.AUDIO);
-                    m_canPlay = false;
-                }
+                // has to be called, as others can access the initialized members
+                Init();
             }
             catch (Exception ex)
             {
@@ -414,7 +476,7 @@ namespace VRage.Audio
                     if (m_musicCue != null)
                     {
                         m_musicCue.SetOutputVoices(m_musicAudioVoiceDesc);
-                        m_musicAudioVoice.SetVolume(m_volumeMusic);
+                        m_musicAudioVoice.SetVolume(m_volumeMusic * m_globalVolumeLevel);
                     }
 
                     UpdateMusic(0);
@@ -471,6 +533,7 @@ namespace VRage.Audio
             }
 
             m_canPlay = false;
+            m_reverbSet = false;
 
             MyLog.Default.WriteLine("MyAudio.UnloadData - END");
         }
@@ -497,20 +560,26 @@ namespace VRage.Audio
         {
             get
             {
-                if (!m_canPlay)
+                if (!m_canPlay || !m_enableReverb)
                     return false;
 
                 if (m_cueBank == null)
+                    return false;
+
+                if (m_masterVoice.VoiceDetails.InputSampleRate > MyAudio.MAX_SAMPLE_RATE)
                     return false;
 
                 return m_applyReverb;
             }
             set
             {
-                if (!m_canPlay)
+                if (!m_canPlay || !m_reverbSet)
                     return;
 
                 if (m_cueBank == null)
+                    return;
+
+                if (!m_enableReverb && !m_applyReverb)
                     return;
 
                 if (m_gameAudioVoice != null)
@@ -548,7 +617,7 @@ namespace VRage.Audio
 
                 //  We need to clamp the volume, because app fails if we set it with zero value
                 m_volumeMusic = MathHelper.Clamp(value, MyAudioConstants.MUSIC_MASTER_VOLUME_MIN, MyAudioConstants.MUSIC_MASTER_VOLUME_MAX);
-                m_musicAudioVoice.SetVolume(m_volumeMusic);
+                m_musicAudioVoice.SetVolume(m_volumeMusic * m_globalVolumeLevel);
 
                 if (OnSetVolumeMusic != null)
                     OnSetVolumeMusic(m_volumeMusic);
@@ -577,7 +646,7 @@ namespace VRage.Audio
 
                 //  We need to clamp the volume, because app fails if we set it with zero value
                 m_volumeHud = MathHelper.Clamp(value, MyAudioConstants.GAME_MASTER_VOLUME_MIN, MyAudioConstants.GAME_MASTER_VOLUME_MAX);
-                m_hudAudioVoice.SetVolume(m_volumeHud);
+                m_hudAudioVoice.SetVolume(m_volumeHud * m_globalVolumeLevel);
 
                 if (OnSetVolumeHud != null)
                     OnSetVolumeHud(m_volumeHud);
@@ -606,7 +675,7 @@ namespace VRage.Audio
 
                 //  We need to clamp the volume, because app fails if we set it with zero value
                 m_volumeDefault = MathHelper.Clamp(value, MyAudioConstants.GAME_MASTER_VOLUME_MIN, MyAudioConstants.GAME_MASTER_VOLUME_MAX);
-                m_gameAudioVoice.SetVolume(m_volumeDefault);
+                m_gameAudioVoice.SetVolume(m_volumeDefault * m_globalVolumeLevel);
 
                 if (OnSetVolumeGame != null)
                     OnSetVolumeGame(m_volumeDefault);
@@ -679,7 +748,7 @@ namespace VRage.Audio
             {
                 GameSoundIsPaused = false;
                 if (!Mute)
-                    m_gameAudioVoice.SetVolume(m_volumeDefault);
+                    m_gameAudioVoice.SetVolume(m_volumeDefault * m_globalVolumeLevel);
 
                 m_canUpdate3dSounds = true;
                 if (m_musicCue != null)
@@ -711,9 +780,9 @@ namespace VRage.Audio
                         if (m_canPlay)
                         {
                             if (!GameSoundIsPaused)
-                                m_gameAudioVoice.SetVolume(m_volumeDefault);
+                                m_gameAudioVoice.SetVolume(m_volumeDefault * m_globalVolumeLevel);
 
-                            m_musicAudioVoice.SetVolume(m_volumeMusic);
+                            m_musicAudioVoice.SetVolume(m_volumeMusic * m_globalVolumeLevel);
                         }
                     }
                 }
@@ -768,7 +837,7 @@ namespace VRage.Audio
             if (m_musicCue != null)
             {
                 m_musicCue.SetOutputVoices(m_musicAudioVoiceDesc);
-                m_musicAudioVoice.SetVolume(m_volumeMusic);
+                m_musicAudioVoice.SetVolume(m_volumeMusic * m_globalVolumeLevel);
             }
             return m_musicCue;
         }
@@ -798,7 +867,7 @@ namespace VRage.Audio
         public void MuteHud(bool mute)
         {
             if (m_canPlay)
-                m_hudAudioVoice.SetVolume(mute ? 0f : m_volumeHud);
+                m_hudAudioVoice.SetVolume(mute ? 0f : m_volumeHud * m_globalVolumeLevel);
         }
 
         public bool HasAnyTransition()
@@ -832,6 +901,8 @@ namespace VRage.Audio
                 UpdateMusic(stepSizeInMS);
                 Update3DCuesPositions();
                 m_effectBank.Update(stepSizeInMS);
+                if (m_globalVolumeChanging)
+                    GlobalVolumeUpdate();
             }
         }
 
@@ -854,7 +925,7 @@ namespace VRage.Audio
                 else if ((m_musicCue != null) && m_musicCue.IsPlaying)
                 {
                     if ((m_musicAudioVoice.Volume > 0f) && m_musicOn)
-                        m_musicAudioVoice.SetVolume((1f - (float)m_timeFromTransitionStart / TRANSITION_TIME) * m_volumeAtTransitionStart);
+                        m_musicAudioVoice.SetVolume((1f - (float)m_timeFromTransitionStart / TRANSITION_TIME) * m_volumeAtTransitionStart * m_globalVolumeLevel);
                 }
             }
 
@@ -869,7 +940,7 @@ namespace VRage.Audio
                 // it there is current transition to play, we play it and set state to playing
                 if (m_currentTransition != null)
                 {
-                    m_musicAudioVoice.SetVolume(m_volumeMusic);
+                    m_musicAudioVoice.SetVolume(m_volumeMusic * m_globalVolumeLevel);
                     PlayMusicByTransition(m_currentTransition.Value);
                     m_nextTransitions.Remove(m_currentTransition.Value.Priority);
                     m_musicState = MyMusicState.Playing;
@@ -956,7 +1027,6 @@ namespace VRage.Audio
             MyStringId transitionCategory = category ?? m_cueBank.GetRandomTransitionCategory(ref transitionEnum, ref NO_RANDOM);
             // we set this transition as next
             m_nextTransitions[priority] = new MyMusicTransition(priority, transitionEnum, transitionCategory);
-            MyTrace.Send(TraceWindow.Server, string.Format("Applying transition {0} {1} (priority = {2})", transitionEnum, transitionCategory, priority));
 
             // if new transition has lower priority then current, we don't want apply new transition now
             if ((m_currentTransition != null) && (m_currentTransition.Value.Priority > priority))
@@ -1017,7 +1087,7 @@ namespace VRage.Audio
                 if (m_musicCue != null)
                 {
                     m_musicCue.SetOutputVoices(m_musicAudioVoiceDesc);
-                    m_musicAudioVoice.SetVolume(m_volumeMusic);
+                    m_musicAudioVoice.SetVolume(m_volumeMusic * m_globalVolumeLevel);
                 }
             }
         }
@@ -1064,22 +1134,25 @@ namespace VRage.Audio
                 return;
 
             int counter = 0;
-            while (counter < m_3Dsounds.Count)
+            lock (m_3Dsounds)
             {
-                if (m_3Dsounds[counter].Sound == null)
+                while (counter < m_3Dsounds.Count)
                 {
-                    m_3Dsounds.Remove(m_3Dsounds[counter]);
-                }
-                else if (!m_3Dsounds[counter].Sound.IsPlaying)
-                {
-                    m_3Dsounds[counter].Sound = null;
-                    m_3Dsounds.Remove(m_3Dsounds[counter]);
-                }
-                else
-                {
-                    if (updatePosition)
-                        Update3DCuePosition(m_3Dsounds[counter]);
-                    ++counter;
+                    if (m_3Dsounds[counter].Sound == null)
+                    {
+                        m_3Dsounds.Remove(m_3Dsounds[counter]);
+                    }
+                    else if (!m_3Dsounds[counter].Sound.IsPlaying)
+                    {
+                        m_3Dsounds[counter].Sound = null;
+                        m_3Dsounds.Remove(m_3Dsounds[counter]);
+                    }
+                    else
+                    {
+                        if (updatePosition)
+                            Update3DCuePosition(m_3Dsounds[counter]);
+                        ++counter;
+                    }
                 }
             }
         }
@@ -1199,8 +1272,8 @@ namespace VRage.Audio
             if ((SoloCue != null) && (SoloCue != cue))
                 return null;
 
-			int waveNumberToIgnore = (source != null ? source.LastPlayedWaveNumber : -1);
-			var sound = m_cueBank.GetVoice(cueId, out waveNumber, type, waveNumberToIgnore);
+            int waveNumberToIgnore = (source != null ? source.LastPlayedWaveNumber : -1);
+            var sound = m_cueBank.GetVoice(cueId, out waveNumber, type, waveNumberToIgnore);
             var originalType = type;
             if (sound == null && source != null && source.Force3D)
             {
@@ -1217,16 +1290,15 @@ namespace VRage.Audio
             {
                 float variation = VolumeVariation(cue);
                 volume = MathHelper.Clamp(volume + variation, 0f, 1f);
-            }       
+            }
             sound.SetVolume(volume);
-            var wave = m_cueBank.GetWave(m_sounds.ItemAt(0), MySoundDimensions.D2, 0, MyCueBank.CuePart.Start);
-
+            
             float semitones = cue.Pitch;
             if (cue.PitchVariation != 0f)
                 semitones += PitchVariation(cue);
             if (cue.DisablePitchEffects)
                 semitones = 0f;
-            if(semitones != 0f)
+            if (semitones != 0f)
                 sound.FrequencyRatio = SemitonesToFrequencyRatio(semitones);
             else
                 sound.FrequencyRatio = 1f;

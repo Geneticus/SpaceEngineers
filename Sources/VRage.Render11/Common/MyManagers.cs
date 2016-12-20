@@ -1,4 +1,11 @@
-﻿using VRage.Render11.LightingStage.Shadows;
+﻿using VRage.Render11.GeometryStage;
+using VRage.Render11.GeometryStage2;
+using VRage.Render11.GeometryStage2.Common;
+using VRage.Render11.GeometryStage2.Culling;
+using VRage.Render11.GeometryStage2.Instancing;
+using VRage.Render11.GeometryStage2.Model;
+using VRage.Render11.GeometryStage2.Rendering;
+using VRage.Render11.LightingStage.Shadows;
 using VRage.Render11.Resources;
 using VRageRender;
 
@@ -16,10 +23,19 @@ namespace VRage.Render11.Common
         void OnDeviceEnd();
     }
 
-    interface IManagerCallback
+    interface IManagerUnloadData
     {
         void OnUnloadData();
+    }
+
+    interface IManagerFrameEnd
+    {
         void OnFrameEnd();
+    }
+
+    interface IManagerUpdate
+    {
+        void OnUpdate();
     }
 
     class MyManagers
@@ -39,13 +55,27 @@ namespace VRage.Render11.Common
         public static MyDepthStencilManager DepthStencils = new MyDepthStencilManager();
         public static MyArrayTextureManager ArrayTextures = new MyArrayTextureManager();
 
-        public static MyRwTexturePool RwTexturesPool = new MyRwTexturePool();
+        public static MyBorrowedRwTextureManager RwTexturesPool = new MyBorrowedRwTextureManager();
+        public static MyDynamicFileArrayTextureManager DynamicFileArrayTextures = new MyDynamicFileArrayTextureManager();
         public static MyRwTextureCatalog RwTexturesCatalog = new MyRwTextureCatalog();
         public static MyGlobalResources GlobalResources = new MyGlobalResources();
+
+        public static MyBufferManager Buffers = new MyBufferManager();
 
         public static MyShadowCoreManager ShadowCore = new MyShadowCoreManager();
         public static MyShadowManager Shadow = new MyShadowManager();
         public static MyEnvironmentProbe EnvironmentProbe = new MyEnvironmentProbe();
+        public static MyGeometryTextureSystem GeometryTextureSystem = new MyGeometryTextureSystem();
+
+        public static MyShaderBundleManager ShaderBundles = new MyShaderBundleManager();
+        public static MyIDGeneratorManager IDGenerator = new MyIDGeneratorManager(); 
+        public static MyMaterialManager Materials = new MyMaterialManager();
+        public static MyModelBufferManager ModelBuffers = new MyModelBufferManager();
+        public static MyModelFactory ModelFactory = new MyModelFactory();
+        public static MyInstanceManager Instances = new MyInstanceManager();
+
+        public static GeometryStage2.Rendering.MyGeometryRenderer GeometryRenderer = new GeometryStage2.Rendering.MyGeometryRenderer();
+        public static MyHierarchicalCulledEntitiesManager HierarchicalCulledEntities = new MyHierarchicalCulledEntitiesManager();
 
         static MyGeneralManager m_generalManager = new MyGeneralManager();
 
@@ -66,15 +96,27 @@ namespace VRage.Render11.Common
             m_generalManager.RegisterManager(MyManagers.CustomTextures);
             m_generalManager.RegisterManager(MyManagers.DepthStencils);
             m_generalManager.RegisterManager(MyManagers.FileArrayTextures);
+            m_generalManager.RegisterManager(MyManagers.DynamicFileArrayTextures);
             m_generalManager.RegisterManager(MyManagers.ArrayTextures);
 
             m_generalManager.RegisterManager(MyManagers.RwTexturesCatalog);
             m_generalManager.RegisterManager(MyManagers.RwTexturesPool);
             m_generalManager.RegisterManager(MyManagers.GlobalResources);
 
+            m_generalManager.RegisterManager(MyManagers.Buffers);
+
             m_generalManager.RegisterManager(MyManagers.ShadowCore);
             m_generalManager.RegisterManager(MyManagers.Shadow);
             m_generalManager.RegisterManager(MyManagers.EnvironmentProbe);
+            m_generalManager.RegisterManager(MyManagers.GeometryTextureSystem);
+
+            m_generalManager.RegisterManager(MyManagers.IDGenerator);
+            m_generalManager.RegisterManager(MyManagers.Materials);
+            m_generalManager.RegisterManager(MyManagers.ModelBuffers);
+            m_generalManager.RegisterManager(MyManagers.ModelFactory);
+            m_generalManager.RegisterManager(MyManagers.Instances);
+            m_generalManager.RegisterManager(MyManagers.GeometryRenderer);
+            m_generalManager.RegisterManager(MyManagers.HierarchicalCulledEntities);
         }
 
         public static void OnDeviceInit()
@@ -100,6 +142,11 @@ namespace VRage.Render11.Common
         public static void OnFrameEnd()
         {
             m_generalManager.OnFrameEnd();
+        }
+
+        public static void OnUpdate()
+        {
+            m_generalManager.OnUpdate();
         }
     }
 }

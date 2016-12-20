@@ -101,7 +101,7 @@ namespace Sandbox.Graphics.GUI
 
         public event LinkClicked OnLinkClicked;
 
-        public MyFontEnum Font
+        public string Font
         {
             get { return m_font; }
             set
@@ -113,7 +113,7 @@ namespace Sandbox.Graphics.GUI
                 }
             }
         }
-        private MyFontEnum m_font;
+        private string m_font;
 
         /// <summary>
         /// Gets or sets the color of the text.
@@ -123,6 +123,11 @@ namespace Sandbox.Graphics.GUI
         public Vector2 TextSize
         {
             get { return m_label.Size; }
+        }
+
+        public int NumberOfRows
+        {
+            get { return m_label.NumberOfRows; }
         }
 
         public float ScrollbarOffset
@@ -146,7 +151,7 @@ namespace Sandbox.Graphics.GUI
             Vector2? position = null,
             Vector2? size = null,
             Vector4? backgroundColor = null,
-            MyFontEnum font = MyFontEnum.Blue,
+            string font = MyFontEnum.Blue,
             float textScale = MyGuiConstants.DEFAULT_TEXT_SCALE,
             MyGuiDrawAlignEnum textAlign = MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_TOP,
             StringBuilder contents = null,
@@ -251,7 +256,7 @@ namespace Sandbox.Graphics.GUI
             AppendText(text, Font, TextScaleWithLanguage, TextColor.ToVector4());
         }
 
-        public void AppendText(StringBuilder text, MyFontEnum font, float scale, Vector4 color)
+        public void AppendText(StringBuilder text, string font, float scale, Vector4 color)
         {
             m_label.Append(text, font, scale, color);
             RecalculateScrollBar();
@@ -262,7 +267,7 @@ namespace Sandbox.Graphics.GUI
             AppendText(text, Font, TextScaleWithLanguage, TextColor.ToVector4());
         }
 
-        public void AppendText(string text, MyFontEnum font, float scale, Vector4 color)
+        public void AppendText(string text, string font, float scale, Vector4 color)
         {
             m_label.Append(text, font, scale, color);
             RecalculateScrollBar();
@@ -295,6 +300,7 @@ namespace Sandbox.Graphics.GUI
         public void Clear()
         {
             m_label.Clear();
+            m_scrollbar.SetPage(0);
             RecalculateScrollBar();
         }
 

@@ -26,8 +26,8 @@ namespace Sandbox.Graphics.GUI
         #region Styles
         public class StyleDefinition
         {
-            public MyFontEnum NormalFont;
-            public MyFontEnum HighlightFont;
+            public string NormalFont = MyFontEnum.Blue;
+            public string HighlightFont = MyFontEnum.White;
             public MyGuiCompositeTexture NormalTexture;
             public MyGuiCompositeTexture HighlightTexture;
             public Vector2? SizeOverride;
@@ -184,6 +184,30 @@ namespace Sandbox.Graphics.GUI
                 NormalFont       = MyFontEnum.ErrorMessageBoxText,
                 HighlightFont    = MyFontEnum.White,
                 Padding          = defaultPadding,
+            };
+
+            m_styles[(int)MyGuiControlButtonStyleEnum.Bug] = new StyleDefinition
+            {
+                NormalTexture    = MyGuiConstants.TEXTURE_BUTTON_BUG_NORMAL,
+                HighlightTexture = MyGuiConstants.TEXTURE_BUTTON_BUG_HIGHLIGHT
+            };
+
+            m_styles[(int)MyGuiControlButtonStyleEnum.Like] = new StyleDefinition
+            {
+                NormalTexture    = MyGuiConstants.TEXTURE_BUTTON_LIKE_NORMAL,
+                HighlightTexture = MyGuiConstants.TEXTURE_BUTTON_LIKE_HIGHLIGHT
+            };
+
+            m_styles[(int)MyGuiControlButtonStyleEnum.Envelope] = new StyleDefinition
+            {
+                NormalTexture    = MyGuiConstants.TEXTURE_BUTTON_ENVELOPE_NORMAL,
+                HighlightTexture = MyGuiConstants.TEXTURE_BUTTON_ENVELOPE_HIGHLIGHT
+            };
+
+            m_styles[(int)MyGuiControlButtonStyleEnum.Help] = new StyleDefinition
+            {
+                NormalTexture    = MyGuiConstants.TEXTURE_BUTTON_HELP_NORMAL,
+                HighlightTexture = MyGuiConstants.TEXTURE_BUTTON_HELP_HIGHLIGHT
             };
         }
 
@@ -472,7 +496,7 @@ namespace Sandbox.Graphics.GUI
 
         public MyGuiDrawAlignEnum TextAlignment = MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_CENTER;
 
-        public MyFontEnum TextFont;
+        public string TextFont;
 
         public bool DrawCrossTextureWhenDisabled = false;
 

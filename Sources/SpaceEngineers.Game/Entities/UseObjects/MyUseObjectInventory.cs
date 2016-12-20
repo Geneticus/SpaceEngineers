@@ -6,6 +6,7 @@ using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Gui;
 using Sandbox.Game.Localization;
 using Sandbox.Common;
+using Sandbox.Game.World;
 using VRage.Game.Entity.UseObject;
 using VRage.Import;
 using VRage.Input;
@@ -14,6 +15,8 @@ using VRageMath;
 using VRage.Game;
 using VRage.Game.Entity;
 using VRageRender.Import;
+using VRage.Game.ModAPI;
+using Sandbox.Game.World;
 
 namespace SpaceEngineers.Game.Entities.UseObjects
 {
@@ -77,7 +80,7 @@ namespace SpaceEngineers.Game.Entities.UseObjects
             if (block != null)
             {
                 var relation = block.GetUserRelationToOwner(user.ControllerInfo.ControllingIdentityId);
-                if (!relation.IsFriendly())
+                if (!relation.IsFriendly() && !MySession.Static.AdminSettings.HasFlag(AdminSettingsEnum.UseTerminals))
                 {
                     if (user.ControllerInfo.IsLocallyHumanControlled())
                     {

@@ -12,7 +12,7 @@ void __compute_shader(
 	uint ThreadIndex : SV_GroupIndex)
 {
 	uint2 texel = dispatchThreadID.xy;
-	float2 uv = (texel + 0.5f) / frame_.resolution;
+	float2 uv = (texel + 0.5f) / frame_.Screen.resolution;
 
     float3 sourceSample = Source[texel].xyz;
 	float3 color = sourceSample;
@@ -25,8 +25,9 @@ void __compute_shader(
 
 #ifndef DISABLE_COLOR_FILTERS
     color = ApplyBasicFilters(color);
-    color = VibranceFilter(color);
-    // FIXME
+    // FIXME - does not work correctly
+    //color = VibranceFilter(color);
+    // FIXME - does not work correctly
     //color = TemperatureFilter(color);
     color = SepiaFilter(color);
 #endif

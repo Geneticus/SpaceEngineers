@@ -65,6 +65,30 @@ namespace VRage.Game
         public short MaxBackupSaves = 5;
 
         [ProtoMember]
+
+
+        [Display(Name = "Max grid size")]
+        [GameRelation(Game.SpaceEngineers)]
+        [Range(0, int.MaxValue)]
+        public int MaxGridSize = 50000;
+
+        [ProtoMember]
+        [Display(Name = "Max blocks per player")]
+        [GameRelation(Game.SpaceEngineers)]
+        [Range(0, int.MaxValue)]
+        public int MaxBlocksPerPlayer = 100000;
+
+        [ProtoMember]
+        [Display(Name = "")]
+        [GameRelation(Game.SpaceEngineers)]
+        public bool EnableBlockLimits = true;
+
+        [ProtoMember]
+        [Display(Name = "Enable remote removal of owned blocks")]
+        [GameRelation(Game.SpaceEngineers)]
+        public bool EnableRemoteBlockRemoval = true;
+
+        [ProtoMember]
         [Display(Name = "Environment hostility")]
         [GameRelation(Game.SpaceEngineers)]
         // Only used in quickstart - Scenarios have there own Settings
@@ -112,11 +136,6 @@ namespace VRage.Game
         [Display(Name = "Enable spectator")]
         [GameRelation(Game.Shared)]
         public bool EnableSpectator = false;
-
-        [ProtoMember]
-        [Display(Name = "Remove trash")]
-        [GameRelation(Game.SpaceEngineers)]
-        public bool RemoveTrash = true;
 
         /// <summary>
         /// Size of the edge of the world area cube.
@@ -256,26 +275,24 @@ namespace VRage.Game
         public bool EnableConvertToStation = true;
 
         [ProtoMember]
-        [Display(Name = "Enable Sun Rotation")]
+        [Display(Name = "Enable station grid with voxel")]
+        [GameRelation(Game.SpaceEngineers)]
+        public bool StationVoxelSupport = false;
+
+        [ProtoMember]
+        [Display(Name = "Enable sun rotation")]
         [GameRelation(Game.SpaceEngineers)]
         public bool EnableSunRotation = true;
 
-        // Should have been named "EnableRespawnShips" to avoid a negative
-        // but it's alread public now
         [ProtoMember]
-        [Display(Name = "Disable respawn ships / carts")]
+        [Display(Name = "Enable respawn ships / carts")]
         [GameRelation(Game.Shared)]
-        public bool DisableRespawnShips = false;
+        public bool EnableRespawnShips = true;
 
         [ProtoMember]
         [Display(Name = "")]
         [GameRelation(Game.SpaceEngineers)]
         public bool ScenarioEditMode = false;
-
-        [ProtoMember]
-        [GameRelation(Game.MedievalEngineers)]
-        [Display(Name = "")]
-        public bool Battle = false;
 
         [ProtoMember]
         [Display(Name = "")]
@@ -288,7 +305,7 @@ namespace VRage.Game
         public bool CanJoinRunning = false;
 
         [ProtoMember]
-        public int PhysicsIterations = 4;
+        public int PhysicsIterations = 8;
 
         [ProtoMember]
         [Display(Name = "Sun rotation interval")]
@@ -336,7 +353,7 @@ namespace VRage.Game
         public bool? EnableSpiders;
 
         [ProtoMember]
-        [Display(Name = "Flora Density Multiplier")]
+        [Display(Name = "Flora density multiplier")]
         [GameRelation(Game.Shared)]
         public float FloraDensityMultiplier = 1f;
 
@@ -352,6 +369,32 @@ namespace VRage.Game
         //Max of any fracture pieces
         public int MaxActiveFracturePieces = 50;
 
+        [ProtoMember]
+        [Display(Name = "Block type limits")]
+        [GameRelation(Game.SpaceEngineers)]
+        public SerializableDictionary<string, short> BlockTypeLimits = new SerializableDictionary<string, short>(new Dictionary<string, short>
+        {
+            { "Assembler", 24 },
+            { "Refinery", 24 },
+            { "Blast Furnace", 24 },
+            { "Antenna", 30 },
+            { "Drill", 30 },
+            { "InteriorTurret", 50 },
+            { "GatlingTurret", 50 },
+            { "MissileTurret", 50 },
+            { "ExtendedPistonBase", 50 },
+            { "MotorStator", 50 },
+            { "MotorAdvancedStator", 50 },
+            { "ShipWelder", 100 },
+            { "ShipGrinder", 150 }
+        });
+
+        [ProtoMember]
+        [Display(Name = "Enable Scripter role")]
+        [GameRelation(Game.SpaceEngineers)]
+        public bool EnableScripterRole = false;
+
+
         public void LogMembers(MyLog log, LoggingOptions options)
         {
             log.WriteLine("Settings:");
@@ -366,6 +409,8 @@ namespace VRage.Game
                 log.WriteLine("EnableSpectator = " + EnableSpectator);
                 log.WriteLine("EnableCopyPaste = " + EnableCopyPaste);
                 log.WriteLine("MaxFloatingObjects = " + MaxFloatingObjects);
+                log.WriteLine("MaxGridSize = " + MaxGridSize);
+                log.WriteLine("MaxBlocksPerPlayer = " + MaxBlocksPerPlayer);
                 log.WriteLine("CargoShipsEnabled = " + CargoShipsEnabled);
                 log.WriteLine("EnvironmentHostility = " + EnvironmentHostility);
                 log.WriteLine("ShowPlayerNamesOnHud = " + ShowPlayerNamesOnHud);
@@ -387,7 +432,6 @@ namespace VRage.Game
                 log.WriteLine("DestructibleBlocks = " + DestructibleBlocks);
                 log.WriteLine("EnableIngameScripts = " + EnableIngameScripts);
                 log.WriteLine("ViewDistance = " + ViewDistance);
-                log.WriteLine("Battle = " + Battle);
                 log.WriteLine("Voxel destruction = " + EnableVoxelDestruction);
                 log.WriteLine("EnableStructuralSimulation = " + EnableStructuralSimulation);
                 log.WriteLine("MaxActiveFracturePieces = " + MaxActiveFracturePieces);
@@ -437,5 +481,6 @@ namespace VRage.Game
         public string WorldName = "";
         public bool PauseGameWhenEmpty = false;
         public bool IgnoreLastSession = false;
+        public string PremadeCheckpointPath = "";
     }
 }

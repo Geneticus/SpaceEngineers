@@ -2,6 +2,7 @@
 using Sandbox.Engine.Utils;
 using Sandbox.Game.Gui;
 using Sandbox.Game.Localization;
+using Sandbox.Game.World;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,23 +28,23 @@ namespace Sandbox.Graphics.GUI
 
 		public struct MyControlBlockInfoStyle
 		{
-			public MyFontEnum BlockNameLabelFont;
+            public string BlockNameLabelFont;
 			public MyStringId ComponentsLabelText;
-			public MyFontEnum ComponentsLabelFont;
+            public string ComponentsLabelFont;
 			public MyStringId InstalledRequiredLabelText;
-			public MyFontEnum InstalledRequiredLabelFont;
+            public string InstalledRequiredLabelFont;
             public MyStringId RequiredAvailableLabelText;
 			public MyStringId RequiredLabelText;
-			public MyFontEnum IntegrityLabelFont;
+            public string IntegrityLabelFont;
 			public Vector4 IntegrityBackgroundColor;
 			public Vector4 IntegrityForegroundColor;
 			public Vector4 IntegrityForegroundColorOverCritical;
 			public Vector4 LeftColumnBackgroundColor;
 			public Vector4 TitleBackgroundColor;
-			public MyFontEnum ComponentLineMissingFont;
-			public MyFontEnum ComponentLineAllMountedFont;
-			public MyFontEnum ComponentLineAllInstalledFont;
-			public MyFontEnum ComponentLineDefaultFont;
+            public string ComponentLineMissingFont;
+            public string ComponentLineAllMountedFont;
+            public string ComponentLineAllInstalledFont;
+            public string ComponentLineDefaultFont;
 			public Vector4 ComponentLineDefaultColor;
 			public bool EnableBlockTypeLabel;
 			public bool ShowAvailableComponents;
@@ -131,6 +132,7 @@ namespace Sandbox.Graphics.GUI
         MyGuiControlLabel m_componentsLabel;
         MyGuiControlLabel m_installedRequiredLabel;
         MyGuiControlLabel m_integrityLabel;
+        MyGuiControlLabel m_blockBuiltByLabel;
 
         //MyGuiControlPanel m_blockIconPanel;
         //MyGuiControlPanel m_blockIconPanelBackground;
@@ -249,6 +251,12 @@ namespace Sandbox.Graphics.GUI
 			m_installedRequiredLabel.TextScale = m_smallerFontSize * baseScale;
 			m_installedRequiredLabel.Font = m_style.InstalledRequiredLabelFont;
 			Elements.Add(m_installedRequiredLabel);
+
+            m_blockBuiltByLabel = new MyGuiControlLabel(text: String.Empty);
+            m_blockBuiltByLabel.OriginAlign = MyGuiDrawAlignEnum.HORISONTAL_RIGHT_AND_VERTICAL_TOP;
+            m_blockBuiltByLabel.TextScale = m_smallerFontSize * baseScale;
+            m_blockBuiltByLabel.Font = m_style.InstalledRequiredLabelFont;
+            Elements.Add(m_blockBuiltByLabel);
 
 			if (m_progressMode)
 			{
@@ -451,6 +459,9 @@ namespace Sandbox.Graphics.GUI
             }
 
             m_installedRequiredLabel.Position = topRight + new Vector2(-0.011f, 0.076f * baseScale);
+            m_blockBuiltByLabel.Position = rightColumn + new Vector2(0.006f, 0.07f * baseScale);
+            m_blockBuiltByLabel.OriginAlign = MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_BOTTOM;
+            m_blockBuiltByLabel.TextScale = 0.6f;
 
             //m_blockIconPanel.Position = topleft + new Vector2(0.0085f, 0.012f);
             //m_blockIconPanelBackground.Position = topleft + new Vector2(0.0085f, 0.012f);
@@ -486,7 +497,7 @@ namespace Sandbox.Graphics.GUI
                     if (i < BlockInfo.Components.Count)
                     {
                         var info = BlockInfo.Components[i];
-                        MyFontEnum font;
+                        string font;
                         Vector4 color = Vector4.One;
 
                         if (m_progressMode && BlockInfo.BlockIntegrity > 0)
@@ -553,6 +564,15 @@ namespace Sandbox.Graphics.GUI
                 if (BlockInfo.BlockName != null)
                     m_blockNameLabel.TextToDraw.Append(BlockInfo.BlockName);
                 m_blockNameLabel.TextToDraw.ToUpper();
+
+                m_blockBuiltByLabel.TextToDraw.Clear();
+                var identity = MySession.Static.Players.TryGetIdentity(BlockInfo.BlockBuiltBy);
+                if (identity != null)
+                {
+                    m_blockBuiltByLabel.TextToDraw.Append(MyTexts.GetString(MyCommonTexts.BuiltBy));
+                    m_blockBuiltByLabel.TextToDraw.Append(": ");
+                    m_blockBuiltByLabel.TextToDraw.Append(identity.DisplayName);
+                }
 
                 //m_blockIconPanel.BackgroundTexture = new MyGuiCompositeTexture(BlockInfo.BlockIcons[0]);
                 m_blockIconImage.SetTextures(BlockInfo.BlockIcons);

@@ -13,9 +13,6 @@ namespace VRageRender
         public string Skybox;
         public Quaternion SkyboxOrientation;
 
-        // CHECK-ME: affects just SkyboxBrightness parameter
-        public float PlanetFactor;
-
         public float DistanceToSun;         // In milions km
         public string SunMaterial;          // CHECK-ME: unused for now
         public bool SunBillboardEnabled;
@@ -66,7 +63,7 @@ namespace VRageRender
         public float EnvShadowFadeoutMultiplier;
 
         public float EnvAtmosphereBrightness;
-        public float _pad0, _pad1, _pad2;
+        public Vector3 __pad;
 
         static MyEnvironmentLightData()
         {

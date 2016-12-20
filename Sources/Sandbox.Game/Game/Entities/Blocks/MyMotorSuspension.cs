@@ -90,7 +90,7 @@ namespace Sandbox.Game.Entities.Cube
                 }
             }
         }
-        private HkRigidBody SafeBody { get { return (m_topGrid != null && m_topGrid.Physics != null) ? m_topGrid.Physics.RigidBody : null; } }
+        private HkRigidBody SafeBody { get { return (TopGrid != null && TopGrid.Physics != null) ? TopGrid.Physics.RigidBody : null; } }
 
         public bool Brake
         {
@@ -118,7 +118,7 @@ namespace Sandbox.Game.Entities.Cube
         private void PropagateFriction(float value)
         {
             m_updateFrictionNeeded = false;
-            var wheel = (m_topBlock as MyWheel);
+            var wheel = (TopBlock as MyWheel);
             if (wheel != null)
             {
                 wheel.Friction = MathHelper.Lerp(0, 32, value);
@@ -305,14 +305,20 @@ namespace Sandbox.Game.Entities.Cube
             m_friction.ValueChanged += (x) =>FrictionChanged();
             m_damping.ValueChanged += (x) => DampingChanged();
             m_strenth.ValueChanged += (x) => StrenghtChanged();
-            m_height.ValueChanged += (x) => ReattachConstraint();
-            m_suspensionTravel.ValueChanged += (x) => ReattachConstraint();
+            m_height.ValueChanged += (x) => HeigthChanged();
+            m_suspensionTravel.ValueChanged += (x) => HeigthChanged();
         }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MyMotorSuspension>())
                 return;
+            base.CreateTerminalControls();
+
+            var addWheelHead = new MyTerminalControlButton<MyMotorSuspension>("Add Top Part", MySpaceTexts.BlockActionTitle_AddWheel, MySpaceTexts.BlockActionTooltip_AddWheel, (b) => b.RecreateTop());
+            addWheelHead.Enabled = (b) => (b.TopBlock == null);
+            addWheelHead.EnableAction(MyTerminalActionIcons.STATION_ON);
+            MyTerminalControlFactory.AddControl(addWheelHead);
 
             var steering = new MyTerminalControlCheckbox<MyMotorSuspension>("Steering", MySpaceTexts.BlockPropertyTitle_Motor_Steering, MySpaceTexts.BlockPropertyDescription_Motor_Steering);
             steering.Getter = (x) => x.Steering;
@@ -445,20 +451,6 @@ namespace Sandbox.Game.Entities.Cube
             speed.EnableActionsWithReset();
             speed.Enabled = (x) => x.m_constraint != null;
             MyTerminalControlFactory.AddControl(speed);
-
-            var addWheel = new MyTerminalControlButton<MyMotorSuspension>("Add Wheel", MySpaceTexts.BlockActionTitle_AddWheel, MySpaceTexts.BlockActionTooltip_AddWheel, (b) => b.RecreateRotor());
-            addWheel.Enabled = (b) => (b.m_topBlock == null);
-            addWheel.EnableAction(MyTerminalActionIcons.STATION_ON);
-            MyTerminalControlFactory.AddControl(addWheel);
-        }
-
-        void ReattachConstraint()
-        {
-            if (m_constraint != null)
-            {
-                Reattach();
-                RaisePropertiesChanged();
-            }
         }
 
         void FrictionChanged()
@@ -494,6 +486,18 @@ namespace Sandbox.Game.Entities.Cube
             }
         }
 
+        void HeigthChanged()
+        {
+            if (SafeConstraint != null)
+            {
+                (m_constraint.ConstraintData as HkWheelConstraintData).SetSuspensionMinLimit(
+                    (BlockDefinition.MinHeight - m_height) * SuspensionTravel);
+                (m_constraint.ConstraintData as HkWheelConstraintData).SetSuspensionMaxLimit(
+                    (BlockDefinition.MaxHeight - m_height) * SuspensionTravel);
+                if (CubeGrid.Physics != null)
+                    CubeGrid.Physics.ForceActivate();
+            }
+        }
 
         public override void Init(MyObjectBuilder_CubeBlock objectBuilder, MyCubeGrid cubeGrid)
         {
@@ -533,9 +537,9 @@ namespace Sandbox.Game.Entities.Cube
 
         void CubeGrid_OnPhysicsChanged(MyEntity obj)
         {
-            if (CubeGrid.Physics == null || m_topGrid == null || m_topGrid.Physics == null)
+            if (CubeGrid.Physics == null || TopGrid == null || TopGrid.Physics == null)
                 return;
-            var rotorBody = m_topGrid.Physics.RigidBody;
+            var rotorBody = TopGrid.Physics.RigidBody;
             if (rotorBody == null)
                 return;
             var info = HkGroupFilter.CalcFilterInfo(rotorBody.Layer, CubeGrid.GetPhysicsBody().HavokCollisionSystemID, 1, 1);
@@ -575,7 +579,7 @@ namespace Sandbox.Game.Entities.Cube
         {
             var result = base.CheckIsWorking();
 
-            result &= (m_topBlock != null && m_topBlock.IsWorking);
+            result &= (TopBlock != null && TopBlock.IsWorking);
 
             return result;
         }
@@ -643,76 +647,68 @@ namespace Sandbox.Game.Entities.Cube
             Debug.Assert(m_constraint == null, "Already attached, call detach first!");
 
 
-            if (rotor is MyMotorRotor)
+            if (rotor is MyMotorRotor && base.Attach(rotor,updateGroup))
             {
-                if (CubeGrid.Physics != null && CubeGrid.Physics.Enabled)
+                CreateConstraint(rotor);
+                
+                PropagateFriction(m_friction);
+                UpdateIsWorking();
+
+                if (m_updateBrakeNeeded)
                 {
-                    m_topBlock = rotor;
-                    m_topGrid = m_topBlock.CubeGrid;
-                    var rotorBody = m_topGrid.Physics.RigidBody;
-                    rotorBody.MaxAngularVelocity = float.MaxValue;
-                    rotorBody.Restitution = 0.5f;
-                    CubeGrid.GetPhysicsBody().HavokWorld.BreakOffPartsUtil.UnmarkEntityBreakable(rotorBody);
-                    if (MyFakes.WHEEL_SOFTNESS)
-                    {
-                        HkUtils.SetSoftContact(rotorBody, null, MyPhysicsConfig.WheelSoftnessRatio, MyPhysicsConfig.WheelSoftnessVelocity);
-                    }
-                    var info = HkGroupFilter.CalcFilterInfo(rotorBody.Layer, CubeGrid.GetPhysicsBody().HavokCollisionSystemID, 1, 1);
-                    rotorBody.SetCollisionFilterInfo(info);
-                    HkWheelConstraintData data = new HkWheelConstraintData();
-                    var suspensionAx = PositionComp.LocalMatrix.Forward;
-                    var posA = DummyPosition + (suspensionAx * m_height);
-                    var posB = (rotor as MyMotorRotor).DummyPosLoc;
-                    var axisA = PositionComp.LocalMatrix.Up;
-                    var axisAPerp = PositionComp.LocalMatrix.Forward;
-                    var axisB = rotor.PositionComp.LocalMatrix.Up;
-                    //empirical values because who knows what havoc sees behind this 
-                    //docs say one value should mean same effect for 2 ton or 200 ton vehicle 
-                    //but we have virtual mass blocks so real mass doesnt corespond to actual "weight" in game and varying gravity
-                    data.SetSuspensionDamping(m_damping);
-                    data.SetSuspensionStrength(m_strenth);
-                    //Min/MaxHeight also define the limits of the suspension and SuspensionTravel lowers this limit
-                    data.SetSuspensionMinLimit((BlockDefinition.MinHeight - m_height) * SuspensionTravel);
-                    data.SetSuspensionMaxLimit((BlockDefinition.MaxHeight - m_height) * SuspensionTravel);
-                    data.SetInBodySpace(posB, posA, axisB, axisA, suspensionAx, suspensionAx, RotorGrid.Physics, CubeGrid.Physics);
-                    m_constraint = new HkConstraint(rotorBody, CubeGrid.Physics.RigidBody, data);
-
-                    m_constraint.WantRuntime = true;
-                    CubeGrid.Physics.AddConstraint(m_constraint);
-                    if (!m_constraint.InWorld)
-                    {
-                        Debug.Fail("Constraint not added!");
-                        CubeGrid.Physics.RemoveConstraint(m_constraint);
-                        m_constraint = null;
-                        return false;
-                    }
-                    m_constraint.Enabled = true;
-
-                    m_topBlock.Attach(this);
-                    m_isAttached = true;
-                    PropagateFriction(m_friction);
-                    UpdateIsWorking();
-
-                    if (m_updateBrakeNeeded)
-                    {
-                        UpdateBrake();
-                    }
-                    if (m_updateFrictionNeeded)
-                    {
-                        FrictionChanged();
-                    }
-
-
-                    if (updateGroup)
-                    {
-                        OnConstraintAdded(GridLinkTypeEnum.Physical, m_topGrid);
-                        OnConstraintAdded(GridLinkTypeEnum.Logical, m_topGrid);
-                    }
-
-                    return true;
+                    UpdateBrake();
                 }
+                return true;
             }
             return false;
+        }
+
+        protected override bool CreateConstraint(MyAttachableTopBlockBase rotor)
+        {
+            if (!base.CreateConstraint(rotor))
+                return false;
+            var rotorBody = TopGrid.Physics.RigidBody;
+            rotorBody.MaxAngularVelocity = float.MaxValue;
+            rotorBody.Restitution = 0.5f;
+            CubeGrid.GetPhysicsBody().HavokWorld.BreakOffPartsUtil.UnmarkEntityBreakable(rotorBody);
+            if (MyFakes.WHEEL_SOFTNESS)
+            {
+                HkUtils.SetSoftContact(rotorBody, null, MyPhysicsConfig.WheelSoftnessRatio,
+                    MyPhysicsConfig.WheelSoftnessVelocity);
+            }
+            var info = HkGroupFilter.CalcFilterInfo(rotorBody.Layer,
+                CubeGrid.GetPhysicsBody().HavokCollisionSystemID, 1, 1);
+            rotorBody.SetCollisionFilterInfo(info);
+            HkWheelConstraintData data = new HkWheelConstraintData();
+            var suspensionAx = PositionComp.LocalMatrix.Forward;
+            var posA = DummyPosition + (suspensionAx*m_height);
+            var posB = (rotor as MyMotorRotor).DummyPosLoc;
+            var axisA = PositionComp.LocalMatrix.Up;
+            var axisAPerp = PositionComp.LocalMatrix.Forward;
+            var axisB = rotor.PositionComp.LocalMatrix.Up;
+            data.SetInBodySpace(posB, posA, axisB, axisA, suspensionAx, suspensionAx, RotorGrid.Physics,
+                CubeGrid.Physics);
+            //empirical values because who knows what havoc sees behind this 
+            //docs say one value should mean same effect for 2 ton or 200 ton vehicle 
+            //but we have virtual mass blocks so real mass doesnt corespond to actual "weight" in game and varying gravity
+            data.SetSuspensionDamping(m_damping);
+            data.SetSuspensionStrength(m_strenth);
+            //Min/MaxHeight also define the limits of the suspension and SuspensionTravel lowers this limit
+            data.SetSuspensionMinLimit((BlockDefinition.MinHeight - m_height)*SuspensionTravel);
+            data.SetSuspensionMaxLimit((BlockDefinition.MaxHeight - m_height)*SuspensionTravel);
+            m_constraint = new HkConstraint(rotorBody, CubeGrid.Physics.RigidBody, data);
+
+            m_constraint.WantRuntime = true;
+            CubeGrid.Physics.AddConstraint(m_constraint);
+            if (!m_constraint.InWorld)
+            {
+                Debug.Fail("Constraint not added!");
+                CubeGrid.Physics.RemoveConstraint(m_constraint);
+                m_constraint = null;
+                return false;
+            }
+            m_constraint.Enabled = true;
+            return true;
         }
 
         public override void ComputeTopQueryBox(out Vector3D pos, out Vector3 halfExtents, out Quaternion orientation)
@@ -786,17 +782,24 @@ namespace Sandbox.Game.Entities.Cube
         {
             if (!IsWorking)
                 return;
-            if (m_topGrid == null || m_topGrid.Physics == null)
+            if (TopGrid == null || TopGrid.Physics == null)
                 return;
             //speed limiter
             if (CubeGrid.Physics.LinearVelocity.LengthSquared() > SpeedLimit * (1 / 3.6f) * SpeedLimit * (1 / 3.6f))
+                return;
+
+            //below optimized surfaceVelocity > speed limit
+            var wheelRadius = TopBlock.BlockDefinition.Size.X * TopGrid.GridSizeHalf;
+            var surfaceVelSq = TopGrid.Physics.AngularVelocity.LengthSquared();
+            var speedLimitSq = (SpeedLimit * (1 / 3.6f)) / wheelRadius;
+            speedLimitSq *= speedLimitSq;
+            if (surfaceVelSq > speedLimitSq)
                 return;
 
             var powerRatio = 1f;// m_rotorGrid.Physics.AngularVelocity.Length();
 
             if (MyFakes.SUSPENSION_POWER_RATIO)
             {
-                var wheelDiameter = m_topBlock.BlockDefinition.Size.X * m_topGrid.GridSize * 0.5f;
                 var lin = 1f;
                 if (MyDebugDrawSettings.DEBUG_DRAW_SUSPENSION_POWER)
                 {
@@ -816,7 +819,7 @@ namespace Sandbox.Game.Entities.Cube
 
                     }
                 }
-                lin = m_topGrid.Physics.AngularVelocity.Length() * wheelDiameter; // linear velocity at tire surface
+                lin = TopGrid.Physics.AngularVelocity.Length() * wheelRadius; // linear velocity at tire surface
                 powerRatio = 1 - ((lin - 10) / (CubeGrid.Physics.RigidBody.MaxLinearVelocity - 20));
                 powerRatio = MathHelper.Clamp(powerRatio, 0, 1);
                 if (MyDebugDrawSettings.DEBUG_DRAW_SUSPENSION_POWER)
@@ -827,15 +830,13 @@ namespace Sandbox.Game.Entities.Cube
             }
 
             force *= powerRatio;
-            {
-                var body = m_topGrid.Physics.RigidBody;
-                //VRageRender.MyRenderProxy.DebugDrawText2D(new Vector2(10, 60), "" + body.LinearVelocity.Length(), Color.Red, 1);
-                if (m_revolveInvert == forward)
-                    body.ApplyAngularImpulse(body.GetRigidBodyMatrix().Up * /*((3.5f + (float)Math.Pow(body.LinearVelocity.Length(),1.124f)) */ force);
-                else
-                    body.ApplyAngularImpulse(m_topGrid.WorldMatrix.Down * /*((3.5f + (float)Math.Pow(body.LinearVelocity.Length(), 1.124f)) */ force);
-                m_wasAccelerating = true;
-            }
+            var body = TopGrid.Physics.RigidBody;
+            //VRageRender.MyRenderProxy.DebugDrawText2D(new Vector2(10, 60), "" + body.LinearVelocity.Length(), Color.Red, 1);
+            if (m_revolveInvert == forward)
+                body.ApplyAngularImpulse(body.GetRigidBodyMatrix().Up * /*((3.5f + (float)Math.Pow(body.LinearVelocity.Length(),1.124f)) */ force);
+            else
+                body.ApplyAngularImpulse(TopGrid.WorldMatrix.Down * /*((3.5f + (float)Math.Pow(body.LinearVelocity.Length(), 1.124f)) */ force);
+            m_wasAccelerating = true;
         }
 
         internal void Right()
@@ -902,13 +903,13 @@ namespace Sandbox.Game.Entities.Cube
             if (!MySandboxGame.IsGameReady || m_soundEmitter == null)
                 return;
 
-            if (m_topGrid == null || m_topGrid.Physics == null)
+            if (TopGrid == null || TopGrid.Physics == null)
             {
                 m_soundEmitter.StopSound(true);
                 return;
             }
 
-            if (IsWorking && Math.Abs(m_topGrid.Physics.RigidBody.DeltaAngle.W - CubeGrid.Physics.RigidBody.DeltaAngle.W) > 0.0025f)
+            if (IsWorking && Math.Abs(TopGrid.Physics.RigidBody.DeltaAngle.W - CubeGrid.Physics.RigidBody.DeltaAngle.W) > 0.0025f)
                 m_soundEmitter.PlaySingleSound(BlockDefinition.PrimarySound, true);
             else
                 m_soundEmitter.StopSound(false);

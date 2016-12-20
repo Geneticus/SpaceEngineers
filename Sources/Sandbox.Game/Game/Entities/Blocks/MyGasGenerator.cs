@@ -82,11 +82,11 @@ namespace Sandbox.Game.Entities.Blocks
             ResourceSink = new MyResourceSinkComponent();
         }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MyGasGenerator>())
                 return;
-
+            base.CreateTerminalControls();
             var useConveyorSystem = new MyTerminalControlOnOffSwitch<MyGasGenerator>("UseConveyor", MySpaceTexts.Terminal_UseConveyorSystem);
             useConveyorSystem.Getter = (x) => x.UseConveyorSystem;
             useConveyorSystem.Setter = (x, v) => x.UseConveyorSystem = v;
@@ -495,7 +495,7 @@ namespace Sandbox.Game.Entities.Blocks
             DetailedInfo.Append(BlockDefinition.DisplayNameText);
             DetailedInfo.Append("\n");
             DetailedInfo.AppendStringBuilder(MyTexts.Get(MySpaceTexts.BlockPropertiesText_MaxRequiredInput));
-            MyValueFormatter.AppendWorkInBestUnit(ResourceSink.MaxRequiredInput, DetailedInfo);
+            MyValueFormatter.AppendWorkInBestUnit(ResourceSink.MaxRequiredInputByType(MyResourceDistributorComponent.ElectricityId), DetailedInfo);
 
             if (!MySession.Static.Settings.EnableOxygen)
             {

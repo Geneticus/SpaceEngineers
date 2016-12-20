@@ -1455,20 +1455,11 @@ namespace Sandbox.Game.Entities
                     writer.WriteLine("illum 2");
                     if (mat.IsGlass)
                     {
-                        foreach (var material in MyDefinitionManager.Static.GetTransparentMaterialDefinitions())
-                        {
-                            if(mat.DiffuseTexture.Equals(material.Texture, StringComparison.OrdinalIgnoreCase))
-                            {
-                                writer.WriteLine("Kd {0} {1} {2}", material.Color.Y, material.Color.Z, material.Color.W);
-                            };
-                        }
-
                         continue;
                     }
 
                     renderColoredTextureProperties textureToRenderProperties = new renderColoredTextureProperties();
                     textureToRenderProperties.ColorMaskHSV = mat.ColorMaskHSV;
-                    textureToRenderProperties.TextureName = mat.DiffuseTexture;
                     textureToRenderProperties.PathToSave = Path.Combine(folder, mat.NewDiffuseTexture);
                     texturesToRender.Add(textureToRenderProperties);
 
@@ -1587,11 +1578,20 @@ namespace Sandbox.Game.Entities
             // Remove character hits.
             m_tmpHitList.RemoveAll(delegate(MyPhysics.HitInfo hit)
             {
-                return (hit.HkHitInfo.GetHitEntity() == MySession.Static.ControlledEntity.Entity);
+                if (MySession.Static.ControlledEntity != null)
+                    return (hit.HkHitInfo.GetHitEntity() == MySession.Static.ControlledEntity.Entity);
+
+                return false;
             });
 
             if (m_tmpHitList.Count == 0)
+            {
+                MyGamePruningStructure.GetTopmostEntitiesOverlappingRay(ref line, m_lineOverlapList);
+                if (m_lineOverlapList.Count > 0)
+                    return m_lineOverlapList[0].Element.GetTopMostParent();
+
                 return null;
+            }
 
             return m_tmpHitList[0].HkHitInfo.GetHitEntity() as MyEntity;
         }
@@ -1898,7 +1898,9 @@ namespace Sandbox.Game.Entities
         /// <returns></returns>
         public static bool IsAabbInsideVoxel(MatrixD worldMatrix, BoundingBoxD localAabb, MyGridPlacementSettings settings)
         {
-
+            if(settings.VoxelPlacement==null)
+                return false;
+            
             var worldAabb = localAabb.TransformFast(ref worldMatrix);
 
             List<MyVoxelBase> voxels = new List<MyVoxelBase>();
@@ -1934,7 +1936,10 @@ namespace Sandbox.Game.Entities
             MyGridPlacementSettings settingsCopy = settings;
 
             if (testVoxel && !TestVoxelPlacement(blockDefinition, settingsCopy, dynamicBuildMode, worldMatrix, localAabb))
+            {
+                ProfilerShort.End();
                 return false;
+            }
 
             ProfilerShort.End();
 
@@ -1971,8 +1976,7 @@ namespace Sandbox.Game.Entities
                     result = !result;
 
                 if (result)
-            {
-                    ProfilerShort.End();
+                {
                     return false;
                 }
             }
@@ -2012,6 +2016,12 @@ namespace Sandbox.Game.Entities
 
             //we need new material for every HSV and texture combination, therefore we need to create new materials for each model
             List<MyExportModel.Material> newModelMaterials = CreateMaterialsForModel(materials, colorMaskHSV, renderModel);
+
+            //GK: extract model is obsolete functionallity. Maybe remove or refactor? Exporting useful mostly for creating prefab files
+            if (newModelMaterials.Count == 0)
+            {
+                return;
+            }
 
             for (int i = 0; i < modelVerticesCount; ++i)
             {
@@ -2059,37 +2069,37 @@ namespace Sandbox.Game.Entities
             List<MyExportModel.Material> modelMaterials = renderModel.GetMaterials();
             foreach (var material in modelMaterials)
             {
-                string diffuseTextureName = GetDiffuseTextureName(material.DiffuseTexture);
-                bool materialFound = false;
-                foreach (var savedMaterial in materials)
-                {
-                    if (savedMaterial.Value.DiffuseTexture.Equals(diffuseTextureName, StringComparison.OrdinalIgnoreCase) &&
-                        Math.Abs(savedMaterial.Value.ColorMaskHSV.X - colorMaskHSV.X) < 0.01f &&
-                        Math.Abs(savedMaterial.Value.ColorMaskHSV.Y - colorMaskHSV.Y) < 0.01f &&
-                        Math.Abs(savedMaterial.Value.ColorMaskHSV.Z - colorMaskHSV.Z) < 0.01f)
-                    {
-                        MyExportModel.Material newMaterial = material;
-                        newMaterial.DiffuseTexture = diffuseTextureName;
-                        //each time new material is created new name for this material is assgined e.g. Material_x
-                        //but model materials have they original name so we need to swap material name with created one
-                        newMaterial.Name = savedMaterial.Value.Name;
-                        newModelMaterials.Add(newMaterial);
-                        materialFound = true;
-                        break;
-                    }
-                }
-                if (false == materialFound)
-                {
-                    materialID++;
+                //string diffuseTextureName = GetDiffuseTextureName(material.DiffuseTexture);
+                //bool materialFound = false;
+                //foreach (var savedMaterial in materials)
+                //{
+                //    if (savedMaterial.Value.DiffuseTexture.Equals(diffuseTextureName, StringComparison.OrdinalIgnoreCase) &&
+                //        Math.Abs(savedMaterial.Value.ColorMaskHSV.X - colorMaskHSV.X) < 0.01f &&
+                //        Math.Abs(savedMaterial.Value.ColorMaskHSV.Y - colorMaskHSV.Y) < 0.01f &&
+                //        Math.Abs(savedMaterial.Value.ColorMaskHSV.Z - colorMaskHSV.Z) < 0.01f)
+                //    {
+                //        MyExportModel.Material newMaterial = material;
+                //        newMaterial.DiffuseTexture = diffuseTextureName;
+                //        //each time new material is created new name for this material is assgined e.g. Material_x
+                //        //but model materials have they original name so we need to swap material name with created one
+                //        newMaterial.Name = savedMaterial.Value.Name;
+                //        newModelMaterials.Add(newMaterial);
+                //        materialFound = true;
+                //        break;
+                //    }
+                //}
+                //if (false == materialFound)
+                //{
+                //    materialID++;
 
-                    MyExportModel.Material newMaterial = material;
-                    newMaterial.Name = "material_" + materialID.ToString();                 
-                    newMaterial.ColorMaskHSV = colorMaskHSV;
-                    newMaterial.DiffuseTexture = diffuseTextureName;
-                    newMaterial.NewDiffuseTexture = newMaterial.Name + ".png";                   
-                    newModelMaterials.Add(newMaterial);
-                    materials.Add(newMaterial.Name, newMaterial);
-                }
+                //    MyExportModel.Material newMaterial = material;
+                //    newMaterial.Name = "material_" + materialID.ToString();                 
+                //    newMaterial.ColorMaskHSV = colorMaskHSV;
+                //    newMaterial.DiffuseTexture = diffuseTextureName;
+                //    newMaterial.NewDiffuseTexture = newMaterial.Name + ".png";                   
+                //    newModelMaterials.Add(newMaterial);
+                //    materials.Add(newMaterial.Name, newMaterial);
+                //}
             }
             return newModelMaterials;
         }
@@ -2103,24 +2113,24 @@ namespace Sandbox.Game.Entities
                 baseTextureName = baseTextureName.Substring(0, textureName.LastIndexOf('_'));
             }
 
-            string srcDiffuseTex = Path.Combine(MyFileSystem.ContentPath, Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_cm" + Path.GetExtension(diffuseTextureName));
-            if (File.Exists(srcDiffuseTex))
-            {
-                return Path.Combine(Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_cm" + Path.GetExtension(diffuseTextureName));
-            }
+                string srcDiffuseTex = Path.Combine(MyFileSystem.ContentPath, Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_cm" + Path.GetExtension(diffuseTextureName));
+                if (File.Exists(srcDiffuseTex))
+                {
+                    return Path.Combine(Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_cm" + Path.GetExtension(diffuseTextureName));
+                }
 
             // Alternative/fallback paths to texture (dx9 leftovers)
             srcDiffuseTex = Path.Combine(MyFileSystem.ContentPath, Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_me" + Path.GetExtension(diffuseTextureName));
-            if (File.Exists(srcDiffuseTex))
-            {
-                return Path.Combine(Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_me" + Path.GetExtension(diffuseTextureName));
-            }
+                if (File.Exists(srcDiffuseTex))
+                {
+                    return Path.Combine(Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_me" + Path.GetExtension(diffuseTextureName));
+                }
 
-            srcDiffuseTex = Path.Combine(MyFileSystem.ContentPath, Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_de" + Path.GetExtension(diffuseTextureName));
-            if (File.Exists(srcDiffuseTex))
-            {
-                return Path.Combine(Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_de" + Path.GetExtension(diffuseTextureName));
-            }
+                srcDiffuseTex = Path.Combine(MyFileSystem.ContentPath, Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_de" + Path.GetExtension(diffuseTextureName));
+                if (File.Exists(srcDiffuseTex))
+                {
+                    return Path.Combine(Path.GetDirectoryName(diffuseTextureName), baseTextureName + "_de" + Path.GetExtension(diffuseTextureName));
+                }
 
             return diffuseTextureName;
         }
@@ -2309,7 +2319,7 @@ namespace Sandbox.Game.Entities
             foreach (var collison in m_physicsBoxQueryList)
             {
                 var entity = collison.Body.GetEntity(0) as MyEntity;
-                if (entity == null)
+                if (entity == null || entity.GetPhysicsBody() == null)
                     continue;
 
                 if (ignoreFracturedPieces && (entity is MyFracturedPiece))
@@ -2577,6 +2587,7 @@ namespace Sandbox.Game.Entities
             objectBuilder.EntityId = entityID;
             objectBuilder.Min = min;
             objectBuilder.BlockOrientation = orientation;
+            objectBuilder.BuiltBy = owner;
 
             if (definition.ContainsComputer())
             {
@@ -2705,19 +2716,23 @@ namespace Sandbox.Game.Entities
             }
         }
 
-        public static bool ShouldBeStatic(MyCubeGrid grid)
+        static bool ShouldBeStatic(MyCubeGrid grid, MyCubeGrid.MyTestDynamicReason testReason)
         {
             if (grid.GridSizeEnum == MyCubeSize.Small && MyCubeGridSmallToLargeConnection.Static != null &&
                 MyCubeGridSmallToLargeConnection.Static.TestGridSmallToLargeConnection(grid))
                 return true;
 
-
-            foreach (var block in grid.GetBlocks())
+            if (testReason == MyTestDynamicReason.GridSplit)
             {
-                if (IsInVoxels(block))
-                    return true;
+                foreach (var block in grid.GetBlocks())
+                {
+                    if (IsInVoxels(block))
+                        return true;
+                }
+                return false;
             }
-            return false;
+
+            return grid.IsStatic;
         }
 
         public static bool IsInVoxels(MySlimBlock block,bool checkForPhysics = true)
@@ -2755,6 +2770,16 @@ namespace Sandbox.Game.Entities
         {
             return MyCubeGridGroups.Static.BreakLink(type, linkId, parent, child);
         }
+
+        public static void ResetInfoGizmos()
+        {
+            ShowSenzorGizmos = false;
+            ShowGravityGizmos = false;
+            ShowCenterOfMass = false;
+            ShowGridPivot = false;
+            ShowAntennaGizmos = false;
+            ShowStructuralIntegrity = false;
+    }
     }
 
     struct BlockMaterial
@@ -2771,7 +2796,6 @@ namespace Sandbox.Game.Entities
             public string Name;
             public int FirstTri;
             public int LastTri;
-            public string DiffuseTexture;
             public string NormalTexture;
             public bool IsGlass;
             public Vector3 ColorMaskHSV;
@@ -2834,7 +2858,6 @@ namespace Sandbox.Game.Entities
                                 Name = materialName,
                                 FirstTri = mesh.IndexStart / 3,
                                 LastTri = mesh.IndexStart / 3 + mesh.TriCount - 1,
-                                DiffuseTexture = mesh.Material.DiffuseTexture,
                                 IsGlass = mesh.Material.DrawTechnique == MyMeshDrawTechnique.GLASS,
                             });
                         }
