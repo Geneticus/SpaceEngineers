@@ -1,5 +1,6 @@
 ﻿using SharpDX.Direct3D;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using VRage.Profiler;
@@ -7,7 +8,7 @@ using VRage.Render11.Common;
 using VRage.Render11.RenderContext;
 using VRage.Render11.Resources;
 using VRage.Utils;
-
+using VRageRender.Import;
 using Matrix = VRageMath.Matrix;
 
 namespace VRageRender
@@ -27,8 +28,7 @@ namespace VRageRender
 
     struct MyPassStats
     {
-        internal int Meshes;
-        internal int Submeshes;
+        internal int Draws;
         internal int Billboards;
         internal int Instances;
         internal int Triangles;
@@ -37,8 +37,7 @@ namespace VRageRender
 
         internal void Clear()
         {
-            Meshes = 0;
-            Submeshes = 0;
+            Draws = 0;
             Billboards = 0;
             ObjectConstantsChanges = 0;
             MaterialConstantsChanges = 0;
@@ -48,8 +47,7 @@ namespace VRageRender
 
         internal void Gather(MyPassStats other)
         {
-            Meshes += other.Meshes;
-            Submeshes += other.Submeshes;
+            Draws += other.Draws;
             Billboards += other.Billboards;
             Instances += other.Instances;
             Triangles += other.Triangles;
@@ -76,7 +74,7 @@ namespace VRageRender
         #region Local
         private MyRenderContext m_rc;
         internal MyPassLocals Locals;
-        internal MyPassStats Stats;
+        internal MyPassStats Stats = new MyPassStats();
         internal bool m_joined;
 
         internal long Elapsed;
@@ -90,7 +88,13 @@ namespace VRageRender
         internal Matrix ViewProjection;
         internal MyViewport Viewport;
         internal string DebugName;
+        internal int FrustumIndex;
         #endregion
+
+        protected virtual MyFrustumEnum FrustumType
+        {
+            get { return MyFrustumEnum.Unassigned; }
+        }
 
         internal int ProcessingMask { get; set; }
 
@@ -130,6 +134,7 @@ namespace VRageRender
             Viewport = default(MyViewport);
             DebugName = string.Empty;
             ProcessingMask = 0;
+            FrustumIndex = 0;
         }
 
         internal virtual void PerFrame()
@@ -164,12 +169,12 @@ namespace VRageRender
 
             RC.PixelShader.SetSrv(MyCommon.DITHER_8X8_SLOT, MyGeneratedTextureManager.Dithering8x8Tex);
 
-            if (MyBigMeshTable.Table.m_IB != StructuredBufferId.NULL)
+            if (MyBigMeshTable.Table.m_IB != null)
             {
                 var slotcounter = MyCommon.BIG_TABLE_INDICES;
-                RC.VertexShader.SetRawSrv(slotcounter++, MyBigMeshTable.Table.m_IB.Srv);
-                RC.VertexShader.SetRawSrv(slotcounter++, MyBigMeshTable.Table.m_VB_positions.Srv);
-                RC.VertexShader.SetRawSrv(slotcounter++, MyBigMeshTable.Table.m_VB_rest.Srv);
+                RC.VertexShader.SetSrv(slotcounter++, MyBigMeshTable.Table.m_IB);
+                RC.VertexShader.SetSrv(slotcounter++, MyBigMeshTable.Table.m_VB_positions);
+                RC.VertexShader.SetSrv(slotcounter++, MyBigMeshTable.Table.m_VB_rest);
             }
         }
 
@@ -231,6 +236,11 @@ namespace VRageRender
 
         internal void RecordCommands(MyRenderableProxy proxy)
         {
+            bool draw = true;
+            FilterRenderable(proxy, ref draw);
+            if (!draw)
+                return;
+
             RecordCommandsInternal(proxy);
         }
 
@@ -268,7 +278,7 @@ namespace VRageRender
             {
                 int size = sizeof(MyMergeInstancingConstants);
                 var buffer = new byte[sizeof(MyMergeInstancingConstants)];
-
+                
                 proxy.ObjectConstants = new MyConstantsPack()
                 {
                     BindFlag = MyBindFlag.BIND_VS,
@@ -321,7 +331,7 @@ namespace VRageRender
             {
                 if (proxy.DrawSubmesh.BonesMapping == null)
                 {
-                    mapping.WriteAndPosition(proxy.SkinningMatrices, 0, Math.Min(MyRender11Constants.SHADER_MAX_BONES, proxy.SkinningMatrices.Length));
+                    mapping.WriteAndPosition(proxy.SkinningMatrices, Math.Min(MyRender11Constants.SHADER_MAX_BONES, proxy.SkinningMatrices.Length));
                 }
                 else
                 {
@@ -343,15 +353,46 @@ namespace VRageRender
             else
                 buffers = proxy.MergedMesh.Buffers;
 
-            rc.SetVertexBuffer(0, buffers.VB0.Buffer, buffers.VB0.Stride);
-            rc.SetVertexBuffer(1, buffers.VB1.Buffer, buffers.VB1.Stride);
+            rc.SetVertexBuffer(0, buffers.VB0);
+            rc.SetVertexBuffer(1, buffers.VB1);
             
-            if (proxy.InstancingEnabled && proxy.Instancing.VB.Index != -1)
+            if (proxy.InstancingEnabled && proxy.Instancing.VB != null)
             {
-                rc.SetVertexBuffer(2, proxy.Instancing.VB.Buffer, proxy.Instancing.VB.Stride);
+                rc.SetVertexBuffer(2, proxy.Instancing.VB);
 
             }
-            rc.SetIndexBuffer(buffers.IB.Buffer, buffers.IB.Format);
+            rc.SetIndexBuffer(buffers.IB);
+        }
+
+        [Conditional("DEBUG")]
+        void FilterRenderable(MyRenderableProxy proxy, ref bool draw)
+        {
+            if (proxy.Material == MyMeshMaterialId.NULL)
+            {
+                if (proxy.VoxelCommonObjectData.IsValid)
+                    draw &= MyRender11.Settings.DrawVoxels;
+
+                return;
+            }
+
+            switch (proxy.Material.Info.Technique)
+            {
+                case MyMeshDrawTechnique.MESH:
+                {
+                    if (proxy.InstanceCount == 0)
+                        draw &= MyRender11.Settings.DrawMeshes;
+                    else
+                        draw &= MyRender11.Settings.DrawInstancedMeshes;
+                    break;
+                }
+                case MyMeshDrawTechnique.ALPHA_MASKED:
+                {
+                    draw &= MyRender11.Settings.DrawAlphamasked;
+                    if (proxy.Material.Info.Facing == MyFacingEnum.Impostor)
+                        draw &= MyRender11.Settings.DrawImpostors;
+                    break;
+                }
+            }
         }
 
         internal virtual MyRenderingPass Fork()
@@ -368,6 +409,7 @@ namespace VRageRender
             renderPass.m_isImmediate = m_isImmediate;
             renderPass.ViewProjection = ViewProjection;
             renderPass.Viewport = Viewport;
+            renderPass.FrustumIndex = FrustumIndex;
             renderPass.DebugName = DebugName;
             renderPass.ProcessingMask = ProcessingMask;
 
@@ -378,8 +420,8 @@ namespace VRageRender
         {
             Debug.Assert(!m_joined);
             m_joined = true;
-
-            MyRender11.GatherStats(Stats);
+            int passHash = ((int)FrustumType) << 10 | FrustumIndex;
+            MyRender11.GatherPassStats(passHash, DebugName, Stats);
         }
     }
 }

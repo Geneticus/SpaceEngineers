@@ -67,10 +67,10 @@
         <AOSpotLight>0.7</AOSpotLight>
 
         <SkyboxBrightness>1</SkyboxBrightness>
-        <EnvSkyboxBrightness>2</EnvSkyboxBrightness>
+        <EnvSkyboxBrightness>2.5</EnvSkyboxBrightness>
         <ShadowFadeoutMultiplier>0.02</ShadowFadeoutMultiplier>
         <EnvShadowFadeoutMultiplier>0</EnvShadowFadeoutMultiplier>
-        <EnvAtmosphereBrightness>0.15</EnvAtmosphereBrightness>
+        <EnvAtmosphereBrightness>1.0</EnvAtmosphereBrightness>
 
       </EnvironmentLight>
     </SunProperties>
@@ -144,7 +144,7 @@
 
       <BlurEnable>true</BlurEnable>
       <BlurRadius4>true</BlurRadius4>
-      <BlurSharpness>1.0</BlurSharpness>
+      <BlurSharpness>50.0</BlurSharpness>
 
       <BlurSharpnessFunctionEnable>false</BlurSharpnessFunctionEnable>
       <BlurSharpnessFunctionForegroundScale>4.0</BlurSharpnessFunctionForegroundScale>
@@ -165,6 +165,105 @@
         <DisplayFrozenShadowCascade>false</DisplayFrozenShadowCascade>
       </Data>
     </ShadowSettings>
+    
+    <NewPipelineSettings>
+      <!-- lodding selection is set here -->
+      <GBufferLodding>
+        <LodShift>0</LodShift>
+        <MinLod>0</MinLod>
+      </GBufferLodding>
+      <CascadeDepthLoddings>
+        <CascadeDepthLodding> <!-- shadow cascade num. 0 -->
+          <LodShift>0</LodShift>
+          <MinLod>0</MinLod>
+        </CascadeDepthLodding>
+        <CascadeDepthLodding> <!-- shadow cascade num. 1 -->
+          <LodShift>0</LodShift>
+          <MinLod>0</MinLod>
+        </CascadeDepthLodding>
+        <CascadeDepthLodding> <!-- shadow cascade num. 2 -->
+          <LodShift>0</LodShift>
+          <MinLod>0</MinLod>
+        </CascadeDepthLodding>
+        <CascadeDepthLodding> <!-- shadow cascade num. 3 -->
+          <LodShift>0</LodShift>
+          <MinLod>0</MinLod>
+        </CascadeDepthLodding>
+        <CascadeDepthLodding> <!-- shadow cascade num. 4 -->
+          <LodShift>0</LodShift>
+          <MinLod>0</MinLod>
+        </CascadeDepthLodding>
+        <CascadeDepthLodding> <!-- shadow cascade num. 5 -->
+          <LodShift>0</LodShift>
+          <MinLod>0</MinLod>
+        </CascadeDepthLodding>
+      </CascadeDepthLoddings>
+      <SingleDepthLodding>
+        <LodShift>0</LodShift>
+        <MinLod>0</MinLod>
+      </SingleDepthLodding>
+      <GlobalLodding>
+        <ObjectDistanceAdd>0</ObjectDistanceAdd>
+        <ObjectDistanceMult>1</ObjectDistanceMult>
+      </GlobalLodding>
+
+      <!-- If any of the following material names is found inside of the mwm, the object will be rendered with the old pipeline. Much slower but more versatile-->
+      <BlackListMaterials>
+        <BlackListMaterial>ScreenArea</BlackListMaterial>
+        <BlackListMaterial>Display</BlackListMaterial>
+      </BlackListMaterials>
+      
+      <!-- Parts with the following material name will not cast shadows -->
+      <NoShadowCasterMaterials>
+        <NoShadowCasterMaterial>TextAtlas</NoShadowCasterMaterial>
+        <NoShadowCasterMaterial>TextureAtlas</NoShadowCasterMaterial>
+        <NoShadowCasterMaterial>Decals</NoShadowCasterMaterial>
+        <NoShadowCasterMaterial>PanelingColorable</NoShadowCasterMaterial>
+        <NoShadowCasterMaterial>PanelingDarker</NoShadowCasterMaterial>
+      </NoShadowCasterMaterials>
+    </NewPipelineSettings>
+      
+    <!-- Deprecated -->
+    <MaterialsSettings>
+      <ChangeableMaterials>
+        <ChangeableMaterial>
+          <MaterialName>ScreenArea</MaterialName> <!-- used on LCD panels-->
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>Display</MaterialName>
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>Emissive</MaterialName>
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>Emissive0</MaterialName>
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>Emissive1</MaterialName>
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>Emissive2</MaterialName>
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>Emissive3</MaterialName>
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>Emissive4</MaterialName>
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>Glass</MaterialName> <!-- REMOVE-ME After cockpit converted to static glass -->
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>GlassInside</MaterialName>
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>GlassOutside</MaterialName>
+        </ChangeableMaterial>
+        <ChangeableMaterial>
+          <MaterialName>Glass</MaterialName>
+        </ChangeableMaterial>
+      </ChangeableMaterials>
+    </MaterialsSettings>
 
     <EnvironmentTexture>Textures\BackgroundCube\Final\BackgroundCube.dds</EnvironmentTexture>
     <EnvironmentOrientation Yaw="60.3955536" Pitch="-61.1861954" Roll="90.90578" />

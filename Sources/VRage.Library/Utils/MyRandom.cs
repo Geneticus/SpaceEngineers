@@ -22,6 +22,10 @@ namespace VRage.Library.Utils
             public fixed int Seed[0x38];
         }
 
+        const int PREDEFINED_SIZE = 1024;
+        int[] m_predefined = null;
+
+
 #if !UNSHARPER
 
 		public struct StateToken : IDisposable
@@ -70,11 +74,18 @@ namespace VRage.Library.Utils
         private const int MZ = 0;
         private int[] SeedArray;
 
-        private static byte[] m_tmpLongArray = new byte[8];
+        private byte[] m_tmpLongArray = new byte[8];
+
+        //GR: Used only for testing
+        internal static bool DisableRandomSeed = false;
 
         // Methods
         public MyRandom()
+#if XB1
             : this(MyEnvironment.TickCount)
+#else
+            : this(MyEnvironment.TickCount + System.Threading.Thread.CurrentThread.ManagedThreadId)
+#endif
         {
         }
 
@@ -82,6 +93,18 @@ namespace VRage.Library.Utils
         {
             this.SeedArray = new int[0x38];
             SetSeed(Seed);
+
+            if (m_predefined == null)
+            {
+                m_predefined = new int[PREDEFINED_SIZE];
+                using (PushSeed(12345))
+                {
+                    for (int i = 0; i < PREDEFINED_SIZE; i++)
+                    {
+                        m_predefined[i] = InternalSample();
+                    }
+                }
+            }
         }
 
 #if !UNSHARPER
@@ -139,6 +162,10 @@ namespace VRage.Library.Utils
         /// </summary>
         public void SetSeed(int Seed)
         {
+            if (DisableRandomSeed)
+            {
+                Seed = 1;
+            }
             int num4 = (Seed == -2147483648) ? 0x7fffffff : Math.Abs(Seed);
             int num2 = 0x9a4ec86 - num4;
             this.SeedArray[0x37] = num2;
@@ -182,6 +209,18 @@ namespace VRage.Library.Utils
             return (num2 / 4294967293);
         }
 
+        private double GetSampleForLargeRange(int hash)
+        {
+            int num = this.InternalSample(hash);
+            if ((this.InternalSample(hash) % 2) == 0)
+            {
+                num = -num;
+            }
+            double num2 = num;
+            num2 += 2147483646.0;
+            return (num2 / 4294967293);
+        }
+
         private int InternalSample()
         {
             int inext = this.inext;
@@ -208,6 +247,13 @@ namespace VRage.Library.Utils
             this.inextp = inextp;
             return num;
         }
+
+        private int InternalSample(int hash)
+        {
+            // (x % m + m) % m;
+            return m_predefined[(hash % PREDEFINED_SIZE + PREDEFINED_SIZE) % PREDEFINED_SIZE];
+        }
+
 
         public int Next()
         {
@@ -237,6 +283,20 @@ namespace VRage.Library.Utils
             return (((int)((long)(this.GetSampleForLargeRange() * num))) + minValue);
         }
 
+        public int Next(int hash, int minValue, int maxValue)
+        {
+            if (minValue > maxValue)
+            {
+                throw new ArgumentOutOfRangeException("minValue");
+            }
+            long num = maxValue - minValue;
+            if (num <= 0x7fffffffL)
+            {
+                return (((int)(this.Sample(hash) * num)) + minValue);
+            }
+            return (((int)((long)(this.GetSampleForLargeRange(hash) * num))) + minValue);
+        }
+
         public long NextLong()
         {
             NextBytes(m_tmpLongArray);
@@ -262,14 +322,31 @@ namespace VRage.Library.Utils
         }
 
         /// Returns random number between 0 and 1.
+        public float NextFloat(int hash)
+        {
+            return (float)NextDouble(hash);
+        }
+
+        /// Returns random number between 0 and 1.
         public double NextDouble()
         {
             return this.Sample();
+        }
+        
+        /// Returns random number between 0 and 1.
+        public double NextDouble(int hash)
+        {
+            return this.Sample(hash);
         }
 
         protected double Sample()
         {
             return (this.InternalSample() * 4.6566128752457969E-10);
+        }
+
+        protected double Sample(int hash)
+        {
+            return (this.InternalSample(hash) * 4.6566128752457969E-10);
         }
     }
 }

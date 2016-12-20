@@ -4,6 +4,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Gui;
 using Sandbox.Game.Screens;
+using Sandbox.Game.World;
 using Sandbox.Graphics.GUI;
 using SpaceEngineers.Game.Entities.Blocks;
 using VRage.Game;
@@ -36,7 +37,7 @@ namespace SpaceEngineers.Game.Entities.UseObjects
 
         public override MatrixD ActivationMatrix
         {
-            get { return (MatrixD)LocalMatrix * Block.WorldMatrix; }
+            get { return ((MatrixD)LocalMatrix) * Block.WorldMatrix; }
         }
 
         public override MatrixD WorldMatrix
@@ -71,7 +72,7 @@ namespace SpaceEngineers.Game.Entities.UseObjects
         {
             var user = entity as MyCharacter;
             var relation = Block.GetUserRelationToOwner(user.ControllerInfo.ControllingIdentityId);
-            if (!relation.IsFriendly())
+            if (!relation.IsFriendly() && !MySession.Static.AdminSettings.HasFlag(AdminSettingsEnum.UseTerminals))
             {
                 if (user.ControllerInfo.IsLocallyHumanControlled())
                 {

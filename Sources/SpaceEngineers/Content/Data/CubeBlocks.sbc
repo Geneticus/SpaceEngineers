@@ -1,84 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <CubeBlocks>
-    <!-- Region Tree-->
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>LeafTreeTest</SubtypeId>
-      </Id>
-      <DisplayName>LeafTreeTest</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\LeafTree.mwm</Model> 
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-    
-	  <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>PineTreeTest</SubtypeId>
-      </Id>
-      <DisplayName>PineTreeTest</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\PineTree.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-	
-	  <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>PineSnowTreeTest</SubtypeId>
-      </Id>
-      <DisplayName>PineSnowTreeTest</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\PineTreeSnow.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
     
     <Definition>
       <Id>
@@ -135,506 +57,33 @@
         <Z>1</Z>
       </InventorySize>
     </Definition>
-	
-  	<Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>DesertTreeTest</SubtypeId>
-      </Id>
-      <DisplayName>DesertTreeTest</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\DesertTree.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-	
-  	<Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>PineTree</SubtypeId>
-      </Id>
-      <DisplayName>PineTree</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\PineTree.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
- 
-	  <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>DeadTreeTest</SubtypeId>
-      </Id>
-      <DisplayName>DeadTreeTest</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\DesertTreeDead.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-    
-	  <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>AlienLeafTree01</SubtypeId>
-      </Id>
-      <DisplayName>AlienLeafTree01</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\AlienLeafTree01.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-      
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>AlienLeafTree02</SubtypeId>
-      </Id>
-      <DisplayName>AlienLeafTree02</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\AlienLeafTree02.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-      
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>AlienPalmTree01</SubtypeId>
-      </Id>
-      <DisplayName>AlienPalmTree01</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\AlienPalmTree01.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-        
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>AlienPalmTree02</SubtypeId>
-      </Id>
-      <DisplayName>AlienPalmTree02</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Trees\AlienPalmTree02.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-        
-    <Definition>
-    <Id>
-      <TypeId>CubeBlock</TypeId>
-      <SubtypeId>AlienSnowTree01</SubtypeId>
-    </Id>
-    <DisplayName>AlienSnowTree01</DisplayName>
-    <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-    <Public>false</Public>
-    <CubeSize>Large</CubeSize>
-    <BlockTopology>TriangleMesh</BlockTopology>
-    <Size x="1" y="1" z="1" />
-    <ModelOffset x="0" y="0" z="0" />
-    <Model>Models\Environment\Trees\AlienSnowTree01.mwm</Model>
-    <Components>
-      <Component Subtype="SteelPlate" Count="130" />
-    </Components>
-    <CriticalComponent Subtype="Computer" Index="0" />
-    <EdgeType>Light</EdgeType>
-    <BuildTimeSeconds>80</BuildTimeSeconds>
-    <InventorySize>
-      <X>1</X>
-      <Y>1</Y>
-      <Z>1</Z>
-    </InventorySize>
-    </Definition>
-        
-    <Definition>
-    <Id>
-      <TypeId>CubeBlock</TypeId>
-      <SubtypeId>AlienSnowTree02</SubtypeId>
-    </Id>
-    <DisplayName>AlienSnowTree02</DisplayName>
-    <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-    <Public>false</Public>
-    <CubeSize>Large</CubeSize>
-    <BlockTopology>TriangleMesh</BlockTopology>
-    <Size x="1" y="1" z="1" />
-    <ModelOffset x="0" y="0" z="0" />
-    <Model>Models\Environment\Trees\AlienSnowTree02.mwm</Model>
-    <Components>
-      <Component Subtype="SteelPlate" Count="130" />
-    </Components>
-    <CriticalComponent Subtype="Computer" Index="0" />
-    <EdgeType>Light</EdgeType>
-    <BuildTimeSeconds>80</BuildTimeSeconds>
-    <InventorySize>
-      <X>1</X>
-      <Y>1</Y>
-      <Z>1</Z>
-    </InventorySize>
-    </Definition>
-    
-    <!-- End Tree-->
- <!-- Region Bushes-->
-
-  <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>DeadBushSmall</SubtypeId>
-      </Id>
-      <DisplayName>DeadBushSmall</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Bushes\DeadBushSmall.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-
-    </Definition>
 
     <Definition>
       <Id>
         <TypeId>CubeBlock</TypeId>
-        <SubtypeId>LeafBushSmall_var1</SubtypeId>
+        <SubtypeId>DeadAstronaut</SubtypeId>
       </Id>
-      <DisplayName>LeafBushSmall_var1</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
+      <DisplayName>DisplayName_Dead_Astronaut</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\DeadAstronaut.dds</Icon>
       <Public>false</Public>
-      <CubeSize>Large</CubeSize>
+      <CubeSize>Small</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
+      <Center x="0" y="0" z="0" />
       <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Bushes\LeafBushSmall_var1.mwm</Model>
+      <Model>Models\Debris\dead_astronaut.mwm</Model>
       <Components>
-        <Component Subtype="SteelPlate" Count="130" />
+        <Component Subtype="SteelPlate" Count="13" />
+        <Component Subtype="Superconductor" Count="13" />
       </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
+      <CriticalComponent Subtype="Superconductor" Index="0" />
       <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
       <InventorySize>
         <X>1</X>
         <Y>1</Y>
         <Z>1</Z>
       </InventorySize>
     </Definition>
-
-<Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>PineBushSmall</SubtypeId>
-      </Id>
-      <DisplayName>PineBushSmall</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Bushes\PineBushSmall.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-<Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>SnowPineBushSmall</SubtypeId>
-      </Id>
-      <DisplayName>SnowPineBushSmall</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Bushes\SnowPineBushSmall.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-    
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>DesertBushSmall</SubtypeId>
-      </Id>
-      <DisplayName>DesertBushSmall</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Bushes\DesertBushSmall.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-    
-    <!-- End Bushes-->
-    <!-- Region Rocks-->
-
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>SmallOverhang</SubtypeId>
-      </Id>
-      <DisplayName>SmallOverhang</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Rocks\SmallOverhang.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-    
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>StoneFoliage01</SubtypeId>
-      </Id>
-      <DisplayName>StoneFoliage01</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Rocks\StoneFoliage01.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-    
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>StoneFoliage02</SubtypeId>
-      </Id>
-      <DisplayName>StoneFoliage02</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Rocks\StoneFoliage02.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>StoneFoliageSmall01</SubtypeId>
-      </Id>
-      <DisplayName>StoneFoliageSmall01</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Rocks\StoneFoliageSmall01.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-    <Definition>
-      <Id>
-        <TypeId>CubeBlock</TypeId>
-        <SubtypeId>StoneFoliageSmall02</SubtypeId>
-      </Id>
-      <DisplayName>StoneFoliageSmall02</DisplayName>
-      <Icon>Textures\GUI\Icons\Fake.dds</Icon>
-      <Public>false</Public>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Environment\Rocks\StoneFoliageSmall02.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="130" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-    </Definition>
-    
-    <!-- End Rocks-->
     
     <!-- Region BatteryBlock-->
     <Definition xsi:type="MyObjectBuilder_BatteryBlockDefinition">
@@ -2254,6 +1703,7 @@
       <DisplayName>DisplayName_Block_LightArmorSlope</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\light_armor_slope.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -2381,6 +1831,7 @@
       <DisplayName>DisplayName_Block_LightArmorCorner</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\light_armor_corner.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -2475,6 +1926,7 @@
       <DisplayName>DisplayName_Block_LightArmorInvCorner</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\light_armor_inv_corner.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -2806,6 +2258,7 @@
       <DisplayName>DisplayName_Block_HeavyArmorSlope</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\heavy_armor_slope.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -2935,6 +2388,7 @@
       <DisplayName>DisplayName_Block_HeavyArmorCorner</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\heavy_armor_corner.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -3031,6 +2485,7 @@
       <DisplayName>DisplayName_Block_HeavyArmorInvCorner</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\heavy_armor_inv_corner.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -3189,6 +2644,7 @@
       <DisplayName>DisplayName_Block_LightRoundedArmorSlope</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\RoundedArmorSlope.dds</Icon>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -3360,7 +2816,6 @@
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
       <GuiVisible>false</GuiVisible>
-      <Public>true</Public>
       <BuildTimeSeconds>8</BuildTimeSeconds>
       <DisassembleRatio>2.5</DisassembleRatio>
     </Definition>
@@ -3373,6 +2828,7 @@
       <Icon>Textures\GUI\Icons\Cubes\RoundedArmorCorner.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -3533,7 +2989,6 @@
       <MirroringY>ZHalfY</MirroringY>
       <MirroringZ>YHalfY</MirroringZ>
       <EdgeType>Light</EdgeType>
-      <Public>true</Public>
       <BuildTimeSeconds>8</BuildTimeSeconds>
       <DisassembleRatio>2.5</DisassembleRatio>
     </Definition>
@@ -3546,6 +3001,7 @@
       <Icon>Textures\GUI\Icons\Cubes\AngledArmorSlope.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -3677,6 +3133,7 @@
       <Icon>Textures\GUI\Icons\Cubes\AngledArmorCorner.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -3780,6 +3237,7 @@
       <DisplayName>DisplayName_Block_HeavyRoundedArmorSlope</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\RoundedHeavyArmorSlope.dds</Icon>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -3953,7 +3411,6 @@
       <DeformationRatio>0.4</DeformationRatio>
       <EdgeType>Light</EdgeType>
       <GuiVisible>false</GuiVisible>
-      <Public>true</Public>
       <BuildTimeSeconds>24</BuildTimeSeconds>
       <DisassembleRatio>2.5</DisassembleRatio>
     </Definition>
@@ -3966,6 +3423,7 @@
       <Icon>Textures\GUI\Icons\Cubes\RoundedHeavyArmorCorner.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -4128,7 +3586,6 @@
       <MirroringZ>YHalfY</MirroringZ>
       <DeformationRatio>0.4</DeformationRatio>
       <EdgeType>Light</EdgeType>
-      <Public>true</Public>
       <BuildTimeSeconds>24</BuildTimeSeconds>
       <DisassembleRatio>2.5</DisassembleRatio>
     </Definition>
@@ -4141,6 +3598,7 @@
       <Icon>Textures\GUI\Icons\Cubes\AngledHeavyArmorSlope.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -4274,6 +3732,7 @@
       <Icon>Textures\GUI\Icons\Cubes\AngledHeavyArmorCorner.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -4379,6 +3838,7 @@
       <DisplayName>DisplayName_Block_LightRoundedArmorSlope</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\RoundedArmorSlope.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -4548,7 +4008,6 @@
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
-      <Public>true</Public>
       <BuildTimeSeconds>3</BuildTimeSeconds>
       <DisassembleRatio>2.5</DisassembleRatio>
     </Definition>
@@ -4561,6 +4020,7 @@
       <Icon>Textures\GUI\Icons\Cubes\RoundedArmorCorner.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -4720,7 +4180,6 @@
       <MirroringY>ZHalfY</MirroringY>
       <MirroringZ>YHalfY</MirroringZ>
       <EdgeType>Light</EdgeType>
-      <Public>true</Public>
       <BuildTimeSeconds>3</BuildTimeSeconds>
       <DisassembleRatio>2.5</DisassembleRatio>
     </Definition>
@@ -4733,6 +4192,7 @@
       <Icon>Textures\GUI\Icons\Cubes\AngledArmorSlope.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -4863,6 +4323,7 @@
       <Icon>Textures\GUI\Icons\Cubes\AngledArmorCorner.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -4965,6 +4426,7 @@
       <DisplayName>DisplayName_Block_HeavyRoundedArmorSlope</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\RoundedHeavyArmorSlope.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -5135,7 +4597,6 @@
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
-      <Public>true</Public>
       <DeformationRatio>0.16</DeformationRatio>
       <BuildTimeSeconds>8</BuildTimeSeconds>
       <DisassembleRatio>3</DisassembleRatio>
@@ -5149,6 +4610,7 @@
       <Icon>Textures\GUI\Icons\Cubes\RoundedHeavyArmorCorner.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -5309,7 +4771,6 @@
       <MirroringY>ZHalfY</MirroringY>
       <MirroringZ>YHalfY</MirroringZ>
       <EdgeType>Light</EdgeType>
-      <Public>true</Public>
       <DeformationRatio>0.16</DeformationRatio>
       <BuildTimeSeconds>8</BuildTimeSeconds>
       <DisassembleRatio>3</DisassembleRatio>
@@ -5323,6 +4784,7 @@
       <Icon>Textures\GUI\Icons\Cubes\AngledHeavyArmorSlope.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -5455,6 +4917,7 @@
       <Icon>Textures\GUI\Icons\Cubes\AngledHeavyArmorCorner.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -7188,6 +6651,7 @@
       <DisplayName>DisplayName_Block_LightArmorSlope2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\Slope2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -7364,6 +6828,7 @@
       <Icon>Textures\GUI\Icons\Cubes\Slope2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -7496,6 +6961,7 @@
       <DisplayName>DisplayName_Block_LightArmorCorner2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\Corner2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -7639,6 +7105,7 @@
       <Icon>Textures\GUI\Icons\Cubes\Corner2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -7743,6 +7210,7 @@
       <DisplayName>DisplayName_Block_LightArmorInvCorner2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\InvCorner2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -7925,6 +7393,7 @@
       <Icon>Textures\GUI\Icons\Cubes\InvCorner2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -8103,6 +7572,7 @@
       <DisplayName>DisplayName_Block_HeavyArmorSlope2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\HeavySlope2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -8280,6 +7750,7 @@
       <Icon>Textures\GUI\Icons\Cubes\HeavySlope2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -8413,6 +7884,7 @@
       <DisplayName>DisplayName_Block_HeavyArmorCorner2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\HeavyCorner2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -8557,6 +8029,7 @@
       <Icon>Textures\GUI\Icons\Cubes\HeavyCorner2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -8662,6 +8135,7 @@
       <DisplayName>DisplayName_Block_HeavyArmorInvCorner2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\HeavyInvCorner2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -8845,6 +8319,7 @@
       <Icon>Textures\GUI\Icons\Cubes\HeavyInvCorner2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -9024,6 +8499,7 @@
       <DisplayName>DisplayName_Block_LightArmorSlope2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\Slope2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -9199,6 +8675,7 @@
       <Icon>Textures\GUI\Icons\Cubes\Slope2x1x1BaseSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -9330,6 +8807,7 @@
       <DisplayName>DisplayName_Block_LightArmorCorner2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\Corner2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -9472,6 +8950,7 @@
       <Icon>Textures\GUI\Icons\Cubes\Corner2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0.2" y="0" z="0" />
@@ -9575,6 +9054,7 @@
       <DisplayName>DisplayName_Block_LightArmorInvCorner2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\InvCorner2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -9756,6 +9236,7 @@
       <Icon>Textures\GUI\Icons\Cubes\InvCorner2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -9933,6 +9414,7 @@
       <DisplayName>DisplayName_Block_HeavyArmorSlope2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\HeavySlope2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -10110,6 +9592,7 @@
       <Icon>Textures\GUI\Icons\Cubes\HeavySlope2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -10243,6 +9726,7 @@
       <DisplayName>DisplayName_Block_HeavyArmorCorner2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\HeavyCorner2x1x1BaseSmooth.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -10387,6 +9871,7 @@
       <Icon>Textures\GUI\Icons\Cubes\HeavyCorner2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0.2" y="0" z="0" />
@@ -10492,6 +9977,7 @@
       <DisplayName>DisplayName_Block_HeavyArmorInvCorner2BaseSmooth</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\HeavyInvCorner2x1x1TipSmooth.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -10674,6 +10160,7 @@
       <Icon>Textures\GUI\Icons\Cubes\HeavyInvCorner2x1x1TipSmooth.dds</Icon>
       <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
+      <Public>false</Public>
       <BlockTopology>Cube</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -11051,10 +10538,12 @@
       <MountPoints>
         <MountPoint Side="Front" StartX="0" StartY="0" EndX="1" EndY="0.5" />
         <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="1" />
-        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0" StartY="0" EndX="0.5" EndY="0.5" />
-        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0.5" StartY="0" EndX="1" EndY="0.25" />
-        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0" StartY="0" EndX="0.5" EndY="0.25" />
-        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0.5" StartY="0" EndX="1" EndY="0.5" />
+        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0" StartY="0" EndX="0.2" EndY="0.5" />
+        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0.2" StartY="0" EndX="0.8" EndY="0.4" />
+        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0.8" StartY="0" EndX="1" EndY="0.1" />
+        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0" StartY="0" EndX="0.2" EndY="0.1" />
+        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0.2" StartY="0" EndX="0.8" EndY="0.4" />
+        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0.8" StartY="0" EndX="1" EndY="0.5" />
       </MountPoints>
       <Variants>
         <Variant Color="Red" Suffix="_red" />
@@ -11928,10 +11417,12 @@
       <MountPoints>
         <MountPoint Side="Front" StartX="0" StartY="0" EndX="1" EndY="0.5" />
         <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="1" />
-        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0" StartY="0" EndX="0.5" EndY="0.5" />
-        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0.5" StartY="0" EndX="1" EndY="0.25" />
-        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0" StartY="0" EndX="0.5" EndY="0.25" />
-        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0.5" StartY="0" EndX="1" EndY="0.5" />
+        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0" StartY="0" EndX="0.2" EndY="0.5" />
+        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0.2" StartY="0" EndX="0.8" EndY="0.4" />
+        <MountPoint Side="Left" ExclusionMask="1" PropertiesMask="2" StartX="0.8" StartY="0" EndX="1" EndY="0.1" />
+        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0" StartY="0" EndX="0.2" EndY="0.1" />
+        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0.2" StartY="0" EndX="0.8" EndY="0.4" />
+        <MountPoint Side="Right" ExclusionMask="1" PropertiesMask="2" StartX="0.8" StartY="0" EndX="1" EndY="0.5" />
       </MountPoints>
       <Variants>
         <Variant Color="Red" Suffix="_red" />
@@ -14511,6 +14002,8 @@
       <ElevationSpeed>0.002 </ElevationSpeed>
       <IdleRotation>true</IdleRotation>
       <MaxRangeMeters>800</MaxRangeMeters>
+      <MinFov>0.1</MinFov>
+      <MaxFov>1.04719755</MaxFov>
     </Definition>
     
     <Definition xsi:type="MyObjectBuilder_LargeTurretBaseDefinition">
@@ -14580,6 +14073,8 @@
       <ElevationSpeed>0.001 </ElevationSpeed>
       <IdleRotation>true</IdleRotation>
       <MaxRangeMeters>600</MaxRangeMeters>
+      <MinFov>0.1</MinFov>
+      <MaxFov>1.04719755</MaxFov>
     </Definition>
     
     <Definition xsi:type="MyObjectBuilder_LargeTurretBaseDefinition">
@@ -14646,6 +14141,8 @@
       <MaxRangeMeters>800</MaxRangeMeters>
       <RotationSpeed>0.002</RotationSpeed>
       <ElevationSpeed>0.002 </ElevationSpeed>
+      <MinFov>0.1</MinFov>
+      <MaxFov>1.04719755</MaxFov>
     </Definition>
 
     <Definition xsi:type="MyObjectBuilder_LargeTurretBaseDefinition">
@@ -14715,6 +14212,8 @@
       <MaxRangeMeters>600</MaxRangeMeters>
       <RotationSpeed>0.002</RotationSpeed>
       <ElevationSpeed>0.002 </ElevationSpeed>
+      <MinFov>0.1</MinFov>
+      <MaxFov>1.04719755</MaxFov>
     </Definition>
     
     <Definition xsi:type="MyObjectBuilder_LargeTurretBaseDefinition">
@@ -14781,6 +14280,8 @@
       <MaxRangeMeters>800</MaxRangeMeters>
       <RotationSpeed>0.002</RotationSpeed>
       <ElevationSpeed>0.002 </ElevationSpeed>
+      <MinFov>0.1</MinFov>
+      <MaxFov>1.04719755</MaxFov>
     </Definition>
     <Definition>
       <Id>
@@ -14812,6 +14313,8 @@
         <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="0.15" />
         <MountPoint Side="Bottom" StartX="0" StartY="0.15" EndX="0.25" EndY="0.73" />
         <MountPoint Side="Bottom" StartX="0.75" StartY="0.15" EndX="1" EndY="0.73" />
+	<MountPoint Side="Front" StartX="0" StartY="0" EndX="0.15" EndY="1" />
+	<MountPoint Side="Front" StartX="0.85" StartY="0" EndX="1" EndY="1" />
       </MountPoints>
       <BuildProgressModels>
         <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\PassageConstruction_1.mwm" />
@@ -14912,6 +14415,7 @@
       <ResourceSinkGroup>Utility</ResourceSinkGroup>
       <BuildTimeSeconds>50</BuildTimeSeconds>
       <MirroringY>Z</MirroringY>
+	  <MirroringZ>Y</MirroringZ>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
 	    <Effects>
@@ -15081,6 +14585,202 @@
       <LightGlare>GlareLsInteriorLight</LightGlare>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+    </Definition>
+	<Definition xsi:type="MyObjectBuilder_LightingBlockDefinition">
+      <Id>
+        <TypeId>InteriorLight</TypeId>
+        <SubtypeId>SmallBlockSmallLight</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_InteriorLight</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\interior_light.dds</Icon>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="-1" />
+      <Model>Models\Cubes\Large\InteriorLight.mwm</Model>
+      <Components>
+        <Component Subtype="SteelPlate" Count="1" />
+        <Component Subtype="Construction" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Construction" Index="0" />
+      <MountPoints>
+        <MountPoint Side="Back" ExclusionMask="3" PropertiesMask="3" StartX="0.4" StartY="0.44" EndX="0.6" EndY="0.55" />
+      </MountPoints>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\InteriorLightConstruction_1.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>InteriorLight</BlockPairName>
+      <MirroringZ>Y</MirroringZ>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>3</BuildTimeSeconds>
+      <LightRadius Min="1" Max="10" Default="3.6" />
+      <LightFalloff Min="1" Max="3" Default="1.3" />
+      <LightIntensity Min="0.5" Max="5" Default="1.5" />
+      <ResourceSinkGroup>Utility</ResourceSinkGroup>
+      <RequiredPowerInput>0.00006</RequiredPowerInput>
+      <LightGlare>GlareLsInteriorLight</LightGlare>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+    </Definition>
+	<Definition xsi:type="MyObjectBuilder_LightingBlockDefinition">
+      <Id>
+        <TypeId>InteriorLight</TypeId>
+        <SubtypeId>LargeBlockLight_1corner</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLight</DisplayName>
+	  <BlockPairName>CornerLight</BlockPairName>
+      <Icon>Textures\GUI\Icons\Cubes\Light_1corner.dds</Icon>
+      <CubeSize>Large</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\large\Light_1corner.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="3" />
+      </Components>
+      <CriticalComponent Subtype="Construction" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\large\Light_1corner_Construction_1.mwm" />
+      </BuildProgressModels>
+	  <BlockVariants>
+        <BlockVariant>
+          <TypeId>InteriorLight</TypeId>
+          <SubtypeId>LargeBlockLight_2corner</SubtypeId>
+        </BlockVariant>
+      </BlockVariants>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+	  <LightGlare>NoGlareLight</LightGlare>
+      <LightRadius Min="0.1" Max="10" Default="2.0" />
+      <LightFalloff Min="0.5" Max="2" Default="1.5" />
+      <LightIntensity Min="0.0" Max="5" Default="2.0" />
+      <RequiredPowerInput>0.00008</RequiredPowerInput>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <ResourceSourceGroup>Battery</ResourceSourceGroup>
+    </Definition>
+	<Definition xsi:type="MyObjectBuilder_LightingBlockDefinition">
+      <Id>
+        <TypeId>InteriorLight</TypeId>
+        <SubtypeId>LargeBlockLight_2corner</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLightDouble</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\Light_2corner.dds</Icon>
+      <CubeSize>Large</CubeSize>
+	  <GuiVisible>false</GuiVisible>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\large\Light_2corner.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="6" />
+      </Components>
+      <CriticalComponent Subtype="Construction" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Back" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\large\Light_2corner_Construction_1.mwm" />
+      </BuildProgressModels>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+	  <LightGlare>NoGlareLight</LightGlare>
+      <LightRadius Min="0.1" Max="10" Default="2.0" />
+      <LightFalloff Min="0.5" Max="2" Default="1.5" />
+      <LightIntensity Min="0.0" Max="5" Default="2.0" />
+      <RequiredPowerInput>0.00008</RequiredPowerInput>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <ResourceSourceGroup>Battery</ResourceSourceGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_LightingBlockDefinition">
+      <Id>
+        <TypeId>InteriorLight</TypeId>
+        <SubtypeId>SmallBlockLight_1corner</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLight</DisplayName>
+	  <BlockPairName>CornerLight</BlockPairName>
+      <Icon>Textures\GUI\Icons\Cubes\Light_1corner.dds</Icon>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\small\Light_1corner.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="2" />
+      </Components>
+      <CriticalComponent Subtype="Construction" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\small\Light_1corner_Construction_1.mwm" />
+      </BuildProgressModels>
+	  <BlockVariants>
+        <BlockVariant>
+          <TypeId>InteriorLight</TypeId>
+          <SubtypeId>SmallBlockLight_2corner</SubtypeId>
+        </BlockVariant>
+      </BlockVariants>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+	  <LightGlare>NoGlareLight</LightGlare>
+      <LightRadius Min="0.1" Max="4" Default="2.0" />
+      <LightFalloff Min="0.5" Max="2" Default="1.5" />
+      <LightIntensity Min="0.0" Max="5" Default="2.0" />
+      <RequiredPowerInput>0.00008</RequiredPowerInput>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <ResourceSourceGroup>Battery</ResourceSourceGroup>
+    </Definition>
+	<Definition xsi:type="MyObjectBuilder_LightingBlockDefinition">
+      <Id>
+        <TypeId>InteriorLight</TypeId>
+        <SubtypeId>SmallBlockLight_2corner</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLightDouble</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\Light_2corner.dds</Icon>
+      <CubeSize>Small</CubeSize>
+	  <GuiVisible>false</GuiVisible>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\small\Light_2corner.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="4" />
+      </Components>
+      <CriticalComponent Subtype="Construction" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Back" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\small\Light_2corner_Construction_1.mwm" />
+      </BuildProgressModels>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+	  <LightGlare>NoGlareLight</LightGlare>
+      <LightRadius Min="0.1" Max="4" Default="2.0" />
+      <LightFalloff Min="0.5" Max="2" Default="1.5" />
+      <LightIntensity Min="0.0" Max="5" Default="2.0" />
+      <RequiredPowerInput>0.00008</RequiredPowerInput>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <ResourceSourceGroup>Battery</ResourceSourceGroup>
     </Definition>
     <Definition>
       <Id>
@@ -15519,6 +15219,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\WarheadConstruction_3.mwm" />
       </BuildProgressModels>
       <BlockPairName>Warhead</BlockPairName>
+      <ActionSound>WepSmallWarheadExpl</ActionSound>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>30</BuildTimeSeconds>
       <ExplosionRadius>22.4415</ExplosionRadius>
@@ -15550,6 +15251,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\WarheadConstruction_2.mwm" />
       </BuildProgressModels>
       <BlockPairName>Warhead</BlockPairName>
+      <ActionSound>WepLrgWarheadExpl</ActionSound>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>10</BuildTimeSeconds>
       <ExplosionRadius> 4.4883 </ExplosionRadius>
@@ -15892,6 +15594,8 @@
       <DamagedSound>ParticleHeavyMech</DamagedSound>
       <PrimarySound>BlockRafinery</PrimarySound>
       <ActionSound>BlockRafineryProcess</ActionSound>
+      <DestroyEffect>Explosion_Warhead_02</DestroyEffect>
+      <DestroySound>WepSmallWarheadExpl</DestroySound>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_RefineryDefinition">
       <Id>
@@ -15942,65 +15646,8 @@
       <DamagedSound>ParticleHeavyMech</DamagedSound>
       <PrimarySound>BlockRafinery</PrimarySound>
       <ActionSound>BlockRafineryProcess</ActionSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_RefineryDefinition">
-      <Id>
-        <TypeId>Refinery</TypeId>
-        <SubtypeId>Big Arc Furnace</SubtypeId>
-      </Id>
-      <DisplayName>DisplayName_Block_Big_Arc_Furnace</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\refinery.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <Public>false</Public>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="2" y="4" z="2" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\Refinery.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1400" />
-        <Component Subtype="Construction" Count="60" />
-        <Component Subtype="LargeTube" Count="20" />
-        <Component Subtype="Motor" Count="40" />
-        <Component Subtype="BulletproofGlass" Count="10" />
-        <Component Subtype="Computer" Count="45" />
-        <Component Subtype="SteelPlate" Count="100" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <MountPoints>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="2" EndY="4" />
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="2" EndY="2" Default="true" />
-        <MountPoint Side="Top" StartX="0" StartY="0" EndX="2" EndY="2" />
-        <MountPoint Side="Left" StartX="1" StartY="0" EndX="2" EndY="4" />
-        <MountPoint Side="Right" StartX="0" StartY="0" EndX="1" EndY="4" />
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\RefineryConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\RefineryConstruction_2.mwm" />
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\RefineryConstruction_3.mwm" />
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\RefineryConstruction_4.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\RefineryConstruction_5.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>Big Arc Furnace</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <ResourceSinkGroup>Factory</ResourceSinkGroup>
-      <InventoryMaxVolume>4</InventoryMaxVolume>
-      <InventorySize>
-        <X>2</X>
-        <Y>2</Y>
-        <Z>2</Z>
-      </InventorySize>
-      <StandbyPowerConsumption>0.01</StandbyPowerConsumption>
-      <OperationalPowerConsumption>2.0</OperationalPowerConsumption>
-      <BlueprintClasses>
-        <Class>CommonMetals</Class>
-      </BlueprintClasses>
-      <RefineSpeed>16.8</RefineSpeed>
-      <MaterialEfficiency>0.9</MaterialEfficiency>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <PrimarySound>BlockRafinery</PrimarySound>
-      <ActionSound>BlockRafineryProcess</ActionSound>
+      <DestroyEffect>Explosion_Missile</DestroyEffect>
+      <DestroySound>WepSmallMissileExpl</DestroySound>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_OxygenGeneratorDefinition">
       <Id>
@@ -16031,8 +15678,7 @@
         <MountPoint Side="Left" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
         <MountPoint Side="Right" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
       </MountPoints>
-      <MirroringZ>Y</MirroringZ>
-      <MirroringY>Z</MirroringY>
+      <MirroringY>X</MirroringY>
       <BuildProgressModels>
         <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\OxygenGeneratorConstruction_1.mwm" />
         <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\OxygenGeneratorConstruction_2.mwm" />
@@ -16077,6 +15723,8 @@
       <DamagedSound>ParticleWeapExpl</DamagedSound>
       <GenerateSound>BlockOxyGenProcess</GenerateSound>
       <IdleSound>BlockOxyGenIdle</IdleSound>
+      <DestroyEffect>Explosion_Missile</DestroyEffect>
+      <DestroySound>WepSmallMissileExpl</DestroySound>
       
       <!--<Effects>
         <Effect Name="Damage" ParameterMin="0.5">
@@ -16096,191 +15744,6 @@
           </ParticleEffects>
         </Effect>
       </Effects> -->
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_RefineryDefinition">
-      <Id>
-        <TypeId>Refinery</TypeId>
-        <SubtypeId>BigPreciousFurnace</SubtypeId>
-      </Id>
-      <DisplayName>DisplayName_Block_Big_Precious_Furnace</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\refinery.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <Public>false</Public>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="2" y="4" z="2" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\Refinery.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1100" />
-        <Component Subtype="Construction" Count="80" />
-        <Component Subtype="SmallTube" Count="200" />
-        <Component Subtype="LargeTube" Count="5" />
-        <Component Subtype="Motor" Count="50" />
-        <Component Subtype="Computer" Count="70" />
-        <Component Subtype="BulletproofGlass" Count="20" />
-        <Component Subtype="SteelPlate" Count="100" />
-        <Component Subtype="Detector" Count="25" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <MountPoints>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="2" EndY="4" />
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="2" EndY="2" Default="true" />
-        <MountPoint Side="Top" StartX="0" StartY="0" EndX="2" EndY="2" />
-        <MountPoint Side="Left" StartX="1" StartY="0" EndX="2" EndY="4" />
-        <MountPoint Side="Right" StartX="0" StartY="0" EndX="1" EndY="4" />
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\RefineryConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\RefineryConstruction_2.mwm" />
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\RefineryConstruction_3.mwm" />
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\RefineryConstruction_4.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\RefineryConstruction_5.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>BigPreciousFurnace</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>100</BuildTimeSeconds>
-      <ResourceSinkGroup>Factory</ResourceSinkGroup>
-      <InventoryMaxVolume>4</InventoryMaxVolume>
-      <InventorySize>
-        <X>2</X>
-        <Y>2</Y>
-        <Z>2</Z>
-      </InventorySize>
-      <StandbyPowerConsumption>0.001</StandbyPowerConsumption>
-      <OperationalPowerConsumption>1.9</OperationalPowerConsumption>
-      <BlueprintClasses>
-        <Class>PreciousMetals</Class>
-      </BlueprintClasses>
-      <RefineSpeed>16.1</RefineSpeed>
-      <MaterialEfficiency>0.9</MaterialEfficiency>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <PrimarySound>BlockRafinery</PrimarySound>
-      <ActionSound>BlockRafineryProcess</ActionSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_RefineryDefinition">
-      <Id>
-        <TypeId>Refinery</TypeId>
-        <SubtypeId>BigSolidsRefinery</SubtypeId>
-      </Id>
-      <DisplayName>DisplayName_Block_Big_Solids_Refinery</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\refinery.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <Public>false</Public>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="2" y="4" z="2" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\Refinery.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1300" />
-        <Component Subtype="Construction" Count="30" />
-        <Component Subtype="LargeTube" Count="30" />
-        <Component Subtype="SmallTube" Count="50" />
-        <Component Subtype="Motor" Count="30" />
-        <Component Subtype="BulletproofGlass" Count="10" />
-        <Component Subtype="MetalGrid" Count="30" />
-        <Component Subtype="Computer" Count="40" />
-        <Component Subtype="SteelPlate" Count="100" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <MountPoints>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="2" EndY="4" />
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="2" EndY="2" Default="true" />
-        <MountPoint Side="Top" StartX="0" StartY="0" EndX="2" EndY="2" />
-        <MountPoint Side="Left" StartX="1" StartY="0" EndX="2" EndY="4" />
-        <MountPoint Side="Right" StartX="0" StartY="0" EndX="1" EndY="4" />
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\RefineryConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\RefineryConstruction_2.mwm" />
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\RefineryConstruction_3.mwm" />
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\RefineryConstruction_4.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\RefineryConstruction_5.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>BigSolidsRefinery</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <InventoryMaxVolume>4</InventoryMaxVolume>
-      <InventorySize>
-        <X>2</X>
-        <Y>2</Y>
-        <Z>2</Z>
-      </InventorySize>
-      <ResourceSinkGroup>Factory</ResourceSinkGroup>
-      <StandbyPowerConsumption>0.001</StandbyPowerConsumption>
-      <OperationalPowerConsumption>1.7</OperationalPowerConsumption>
-      <BlueprintClasses>
-        <Class>Solids</Class>
-      </BlueprintClasses>
-      <RefineSpeed>16.2</RefineSpeed>
-      <MaterialEfficiency>0.8</MaterialEfficiency>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <PrimarySound>BlockRafinery</PrimarySound>
-      <ActionSound>BlockRafineryProcess</ActionSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_RefineryDefinition">
-      <Id>
-        <TypeId>Refinery</TypeId>
-        <SubtypeId>BigGasCentrifugalRefinery</SubtypeId>
-      </Id>
-      <DisplayName>DisplayName_Block_Big_Gas_Centrifugal_Refinery</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\refinery.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <Public>false</Public>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="2" y="4" z="2" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\Refinery.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1100" />
-        <Component Subtype="Construction" Count="100" />
-        <Component Subtype="LargeTube" Count="20" />
-        <Component Subtype="SmallTube" Count="120" />
-        <Component Subtype="Motor" Count="50" />
-        <Component Subtype="Display" Count="5" />
-        <Component Subtype="BulletproofGlass" Count="20" />
-        <Component Subtype="MetalGrid" Count="30" />
-        <Component Subtype="Computer" Count="100" />
-        <Component Subtype="SteelPlate" Count="100" />
-        <Component Subtype="GravityGenerator" Count="3" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <MountPoints>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="2" EndY="4" />
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="2" EndY="2" Default="true" />
-        <MountPoint Side="Top" StartX="0" StartY="0" EndX="2" EndY="2" />
-        <MountPoint Side="Left" StartX="1" StartY="0" EndX="2" EndY="4" />
-        <MountPoint Side="Right" StartX="0" StartY="0" EndX="1" EndY="4" />
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\RefineryConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\RefineryConstruction_2.mwm" />
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\RefineryConstruction_3.mwm" />
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\RefineryConstruction_4.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\RefineryConstruction_5.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>BigGasCentrifugalRefinery</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <ResourceSinkGroup>Factory</ResourceSinkGroup>
-      <InventoryMaxVolume>4</InventoryMaxVolume>
-      <InventorySize>
-        <X>2</X>
-        <Y>2</Y>
-        <Z>2</Z>
-      </InventorySize>
-      <StandbyPowerConsumption>0.001</StandbyPowerConsumption>
-      <OperationalPowerConsumption>2.0</OperationalPowerConsumption>
-      <BlueprintClasses>
-        <Class>EnergeticIngots</Class>
-      </BlueprintClasses>
-      <RefineSpeed>16</RefineSpeed>
-      <MaterialEfficiency>0.95</MaterialEfficiency>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <PrimarySound>BlockRafinery</PrimarySound>
-      <ActionSound>BlockRafineryProcess</ActionSound>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_AssemblerDefinition">
       <Id>
@@ -16340,212 +15803,8 @@
       <DamagedSound>ParticleHeavyMech</DamagedSound>
       <PrimarySound>BlockAssembler</PrimarySound>
       <ActionSound>BlockAssemblerProcess</ActionSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_AssemblerDefinition">
-      <Id>
-        <TypeId>Assembler</TypeId>
-        <SubtypeId>AmmoAssembler</SubtypeId>
-      </Id>
-      <DisplayName>DisplayName_Block_Ammo_Assembler</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\assembler.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <Public>false</Public>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="2" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\Assembler.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="150" />
-        <Component Subtype="Construction" Count="100" />
-        <Component Subtype="MetalGrid" Count="5" />
-        <Component Subtype="InteriorPlate" Count="20" />
-        <Component Subtype="SmallTube" Count="50" />
-        <Component Subtype="LargeTube" Count="5" />
-        <Component Subtype="Motor" Count="20" />
-        <Component Subtype="Display" Count="4" />
-        <Component Subtype="Computer" Count="150" />
-        <Component Subtype="SteelPlate" Count="50" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\AssemblerConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\AssemblerConstruction_2.mwm" />
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\AssemblerConstruction_3.mwm" />
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\AssemblerConstruction_4.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\AssemblerConstruction_5.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>AmmoAssembler</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventoryMaxVolume>1</InventoryMaxVolume>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-      <AssemblySpeed>3</AssemblySpeed>
-      <ResourceSinkGroup>Factory</ResourceSinkGroup>
-      <StandbyPowerConsumption>0.001</StandbyPowerConsumption>
-      <OperationalPowerConsumption>0.8</OperationalPowerConsumption>
-      <BlueprintClasses>
-        <Class>Ammo</Class>
-      </BlueprintClasses>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_AssemblerDefinition">
-      <Id>
-        <TypeId>Assembler</TypeId>
-        <SubtypeId>BaseComponentsAssembler</SubtypeId>
-      </Id>
-      <DisplayName>DisplayName_Block_Base_Components_Assembler</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\assembler.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <Public>false</Public>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="3" z="2" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\Assembler.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="320" />
-        <Component Subtype="Construction" Count="100" />
-        <Component Subtype="InteriorPlate" Count="10" />
-        <Component Subtype="SmallTube" Count="50" />
-        <Component Subtype="LargeTube" Count="2" />
-        <Component Subtype="Motor" Count="15" />
-        <Component Subtype="Display" Count="4" />
-        <Component Subtype="Computer" Count="150" />
-        <Component Subtype="SteelPlate" Count="20" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\AssemblerConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\AssemblerConstruction_2.mwm" />
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\AssemblerConstruction_3.mwm" />
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\AssemblerConstruction_4.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\AssemblerConstruction_5.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>BaseComponentsAssembler</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <InventoryMaxVolume>1</InventoryMaxVolume>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-      <ResourceSinkGroup>Factory</ResourceSinkGroup>
-      <AssemblySpeed>6</AssemblySpeed>
-      <StandbyPowerConsumption>0.001</StandbyPowerConsumption>
-      <OperationalPowerConsumption>1.2</OperationalPowerConsumption>
-      <BlueprintClasses>
-        <Class>BaseComponents</Class>
-      </BlueprintClasses>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_AssemblerDefinition">
-      <Id>
-        <TypeId>Assembler</TypeId>
-        <SubtypeId>ElectronicsAssembler</SubtypeId>
-      </Id>
-      <DisplayName>DisplayName_Block_Electronics_Assembler</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\assembler.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <Public>false</Public>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="2" z="2" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\Assembler.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="80" />
-        <Component Subtype="Construction" Count="150" />
-        <Component Subtype="MetalGrid" Count="5" />
-        <Component Subtype="SmallTube" Count="120" />
-        <Component Subtype="LargeTube" Count="5" />
-        <Component Subtype="Motor" Count="30" />
-        <Component Subtype="Display" Count="8" />
-        <Component Subtype="BulletproofGlass" Count="20" />
-        <Component Subtype="Computer" Count="250" />
-        <Component Subtype="SteelPlate" Count="20" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\AssemblerConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\AssemblerConstruction_2.mwm" />
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\AssemblerConstruction_3.mwm" />
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\AssemblerConstruction_4.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\AssemblerConstruction_5.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>ElectronicsAssembler</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <ResourceSinkGroup>Factory</ResourceSinkGroup>
-      <InventoryMaxVolume>1</InventoryMaxVolume>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-      <AssemblySpeed>3</AssemblySpeed>
-      <StandbyPowerConsumption>0.001</StandbyPowerConsumption>
-      <OperationalPowerConsumption>0.72</OperationalPowerConsumption>
-      <BlueprintClasses>
-        <Class>Electronics</Class>
-      </BlueprintClasses>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_AssemblerDefinition">
-      <Id>
-        <TypeId>Assembler</TypeId>
-        <SubtypeId>ConstructionComponentsAssembler</SubtypeId>
-      </Id>
-      <DisplayName>DisplayName_Block_Construction_Components_Assembler</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\assembler.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <Public>false</Public>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="2" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\Assembler.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="140" />
-        <Component Subtype="Construction" Count="120" />
-        <Component Subtype="InteriorPlate" Count="20" />
-        <Component Subtype="SmallTube" Count="80" />
-        <Component Subtype="LargeTube" Count="2" />
-        <Component Subtype="Motor" Count="25" />
-        <Component Subtype="Display" Count="4" />
-        <Component Subtype="Computer" Count="180" />
-        <Component Subtype="SteelPlate" Count="40" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\AssemblerConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\AssemblerConstruction_2.mwm" />
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\AssemblerConstruction_3.mwm" />
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\AssemblerConstruction_4.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\AssemblerConstruction_5.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>ConstructionComponentsAssembler</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <ResourceSinkGroup>Factory</ResourceSinkGroup>
-      <InventoryMaxVolume>1</InventoryMaxVolume>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-      <AssemblySpeed>4</AssemblySpeed>
-      <StandbyPowerConsumption>0.001</StandbyPowerConsumption>
-      <OperationalPowerConsumption>0.8</OperationalPowerConsumption>
-      <BlueprintClasses>
-        <Class>ConstructionComponents</Class>
-      </BlueprintClasses>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
+      <DestroyEffect>Explosion_Missile</DestroyEffect>
+      <DestroySound>WepSmallMissileExpl</DestroySound>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
       <Id>
@@ -16685,6 +15944,10 @@
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>50</BuildTimeSeconds>
       <ResourceSinkGroup>Utility</ResourceSinkGroup>
+      <MinFieldSize x="1" y="1" z="1"/>
+      <MaxFieldSize x="150" y="150" z="150"/>
+      <MinGravityAcceleration>-9.81</MinGravityAcceleration>
+      <MaxGravityAcceleration>9.81</MaxGravityAcceleration>
       <RequiredPowerInput>0.56713</RequiredPowerInput>
       <DamageEffectId>211</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
@@ -16728,6 +15991,8 @@
       <BuildTimeSeconds>50</BuildTimeSeconds>
       <MinRadius>10</MinRadius>
       <MaxRadius>400</MaxRadius>
+      <MinGravityAcceleration>-9.81</MinGravityAcceleration>
+      <MaxGravityAcceleration>9.81</MaxGravityAcceleration>
       <ResourceSinkGroup>Utility</ResourceSinkGroup>
       <BasePowerInput>0.4</BasePowerInput>
       <ConsumptionPower>1</ConsumptionPower>
@@ -16786,6 +16051,8 @@
       
       <MaxJumpDistance>2000000</MaxJumpDistance>
       <MaxJumpMass>1250000</MaxJumpMass>
+      <DestroyEffect>Explosion_Warhead_30</DestroyEffect>
+      <DestroySound>WepLrgWarheadExpl</DestroySound>
   </Definition>
     <!-- Region Cockpits -->
     <Definition xsi:type="MyObjectBuilder_CockpitDefinition">
@@ -16990,7 +16257,7 @@
       <ModelOffset x="0" y="0" z="0" />
       <Model>Models\Cubes\small\CockpitFighter.mwm</Model>
       <PrimarySound>BlockCockpitSm</PrimarySound>
-      <InteriorModel>Models\Cubes\small\CockpitFighter_interior.mwm</InteriorModel>
+      <InteriorModel>Models\Cubes\small\CockpitFighterInterior.mwm</InteriorModel>
       <CharacterAnimation>FighterCockpitPosture</CharacterAnimation>
       <Components>
         <Component Subtype="SteelPlate" Count="2" />
@@ -17636,8 +16903,10 @@
       <BuildTimeSeconds>20</BuildTimeSeconds>
       
       <ResourceSinkGroup>Defense</ResourceSinkGroup>
-      <SensorRadius>1.1</SensorRadius>
+      <SensorRadius>1.3</SensorRadius>
       <SensorOffset>0.8</SensorOffset>
+      <CutOutRadius>1.3</CutOutRadius>
+      <CutOutOffset>0.6</CutOutOffset>
       
       <DeformationRatio>0.2</DeformationRatio>
       <DamageEffectId>212</DamageEffectId>
@@ -17702,6 +16971,8 @@
       <ResourceSinkGroup>Defense</ResourceSinkGroup>
       <SensorRadius>1.9</SensorRadius>
       <SensorOffset>2.8</SensorOffset>
+      <CutOutRadius>1.9</CutOutRadius>
+      <CutOutOffset>2.8</CutOutOffset>
       
       <DeformationRatio>0.2</DeformationRatio>
       <DamageEffectId>212</DamageEffectId>
@@ -17954,6 +17225,7 @@
       <DisplayName>DisplayName_Block_TextPanel</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\TextPanel.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -18005,6 +17277,7 @@
       <DisplayName>DisplayName_LCD_PanelWide</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\LCDPanelWide.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="6" y="3" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -18113,6 +17386,328 @@
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
     </Definition>
+	<Definition xsi:type="MyObjectBuilder_TextPanelDefinition">
+      <Id>
+        <TypeId>TextPanel</TypeId>
+        <SubtypeId>LargeBlockCorner_LCD_1</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLCD</DisplayName>
+	  <BlockPairName>CornerLCD</BlockPairName>
+      <Icon>Textures\GUI\Icons\Cubes\Corner_LCD_1.dds</Icon>
+      <CubeSize>Large</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\large\Corner_LCD_1.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="5" />
+		<Component Subtype="Computer" Count="3" />
+        <Component Subtype="Display" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\large\Corner_LCD_1_Construction_1.mwm" />
+      </BuildProgressModels>
+	  <BlockVariants>
+        <BlockVariant>
+          <TypeId>TextPanel</TypeId>
+          <SubtypeId>LargeBlockCorner_LCD_2</SubtypeId>
+        </BlockVariant>
+        <BlockVariant>
+          <TypeId>TextPanel</TypeId>
+          <SubtypeId>LargeBlockCorner_LCD_Flat_1</SubtypeId>
+        </BlockVariant>
+		<BlockVariant>
+          <TypeId>TextPanel</TypeId>
+          <SubtypeId>LargeBlockCorner_LCD_Flat_2</SubtypeId>
+        </BlockVariant>
+      </BlockVariants>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <RequiredPowerInput>0.00006</RequiredPowerInput>
+      <TextureResolution>1024</TextureResolution>
+	  <TextureAspectRadio>1</TextureAspectRadio>
+	  <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_TextPanelDefinition">
+      <Id>
+        <TypeId>TextPanel</TypeId>
+        <SubtypeId>LargeBlockCorner_LCD_2</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLCD2</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\Corner_LCD_2.dds</Icon>
+      <CubeSize>Large</CubeSize>
+	  <GuiVisible>false</GuiVisible>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\large\Corner_LCD_2.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="5" />
+		<Component Subtype="Computer" Count="3" />
+        <Component Subtype="Display" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\large\Corner_LCD_2_Construction_1.mwm" />
+      </BuildProgressModels>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <RequiredPowerInput>0.00006</RequiredPowerInput>
+      <TextureResolution>1024</TextureResolution>
+	  <TextureAspectRadio>1</TextureAspectRadio>
+	  <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_TextPanelDefinition">
+      <Id>
+        <TypeId>TextPanel</TypeId>
+        <SubtypeId>LargeBlockCorner_LCD_Flat_1</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLCDFlatTop</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\Corner_LCD_Flat_1.dds</Icon>
+      <CubeSize>Large</CubeSize>
+	  <GuiVisible>false</GuiVisible>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\large\Corner_LCD_Flat_1.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="5" />
+		<Component Subtype="Computer" Count="3" />
+        <Component Subtype="Display" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Front" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\large\Corner_LCD_Flat_1_Construction_1.mwm" />
+      </BuildProgressModels>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <RequiredPowerInput>0.00006</RequiredPowerInput>
+      <TextureResolution>1024</TextureResolution>
+	  <TextureAspectRadio>1</TextureAspectRadio>
+	  <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_TextPanelDefinition">
+      <Id>
+        <TypeId>TextPanel</TypeId>
+        <SubtypeId>LargeBlockCorner_LCD_Flat_2</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLCDFlatBottom</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\Corner_LCD_Flat_2.dds</Icon>
+      <CubeSize>Large</CubeSize>
+	  <GuiVisible>false</GuiVisible>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\large\Corner_LCD_Flat_2.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="5" />
+		<Component Subtype="Computer" Count="3" />
+        <Component Subtype="Display" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\large\Corner_LCD_Flat_2_Construction_1.mwm" />
+      </BuildProgressModels>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <RequiredPowerInput>0.00006</RequiredPowerInput>
+      <TextureResolution>1024</TextureResolution>
+	  <TextureAspectRadio>1</TextureAspectRadio>
+	  <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_TextPanelDefinition">
+      <Id>
+        <TypeId>TextPanel</TypeId>
+        <SubtypeId>SmallBlockCorner_LCD_1</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLCD</DisplayName>
+	  <BlockPairName>CornerLCD</BlockPairName>
+      <Icon>Textures\GUI\Icons\Cubes\Corner_LCD_1.dds</Icon>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\small\Corner_LCD_1.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="3" />
+		<Component Subtype="Computer" Count="2" />
+        <Component Subtype="Display" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\small\Corner_LCD_1_Construction_1.mwm" />
+      </BuildProgressModels>
+	  <BlockVariants>
+        <BlockVariant>
+          <TypeId>TextPanel</TypeId>
+          <SubtypeId>SmallBlockCorner_LCD_2</SubtypeId>
+        </BlockVariant>
+        <BlockVariant>
+          <TypeId>TextPanel</TypeId>
+          <SubtypeId>SmallBlockCorner_LCD_Flat_1</SubtypeId>
+        </BlockVariant>
+		<BlockVariant>
+          <TypeId>TextPanel</TypeId>
+          <SubtypeId>SmallBlockCorner_LCD_Flat_2</SubtypeId>
+        </BlockVariant>
+      </BlockVariants>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <RequiredPowerInput>0.00006</RequiredPowerInput>
+      <TextureResolution>1024</TextureResolution>
+	  <TextureAspectRadio>1</TextureAspectRadio>
+	  <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_TextPanelDefinition">
+      <Id>
+        <TypeId>TextPanel</TypeId>
+        <SubtypeId>SmallBlockCorner_LCD_2</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLCD2</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\Corner_LCD_2.dds</Icon>
+      <CubeSize>Small</CubeSize>
+	  <GuiVisible>false</GuiVisible>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\small\Corner_LCD_2.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="3" />
+		<Component Subtype="Computer" Count="2" />
+        <Component Subtype="Display" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\small\Corner_LCD_2_Construction_1.mwm" />
+      </BuildProgressModels>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <RequiredPowerInput>0.00006</RequiredPowerInput>
+      <TextureResolution>1024</TextureResolution>
+	  <TextureAspectRadio>1</TextureAspectRadio>
+	  <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_TextPanelDefinition">
+      <Id>
+        <TypeId>TextPanel</TypeId>
+        <SubtypeId>SmallBlockCorner_LCD_Flat_1</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLCDFlatTop</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\Corner_LCD_Flat_1.dds</Icon>
+      <CubeSize>Small</CubeSize>
+	  <GuiVisible>false</GuiVisible>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\small\Corner_LCD_Flat_1.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="3" />
+		<Component Subtype="Computer" Count="2" />
+        <Component Subtype="Display" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Front" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\small\Corner_LCD_Flat_Construction_1.mwm" />
+      </BuildProgressModels>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <RequiredPowerInput>0.00006</RequiredPowerInput>
+      <TextureResolution>512</TextureResolution>
+	  <TextureAspectRadio>1</TextureAspectRadio>
+	  <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_TextPanelDefinition">
+      <Id>
+        <TypeId>TextPanel</TypeId>
+        <SubtypeId>SmallBlockCorner_LCD_Flat_2</SubtypeId>
+      </Id>
+      <DisplayName>DisplayName_Block_CornerLCDFlatBottom</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\Corner_LCD_Flat_2.dds</Icon>
+      <CubeSize>Small</CubeSize>
+	  <GuiVisible>false</GuiVisible>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\small\Corner_LCD_Flat_2.mwm</Model>
+      <Components>
+        <Component Subtype="Construction" Count="3" />
+		<Component Subtype="Computer" Count="2" />
+        <Component Subtype="Display" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+		<MountPoint Side="Front" StartX="0.00" StartY="0.00" EndX="1.00" EndY="0.24" />
+		<MountPoint Side="Bottom" StartX="0.00" StartY="0.76" EndX="1.00" EndY="1.00" />
+      </MountPoints>
+	  <EdgeType>Light</EdgeType>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\small\Corner_LCD_Flat_Construction_1.mwm" />
+      </BuildProgressModels>
+      <BuildTimeSeconds>4</BuildTimeSeconds>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+	  <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
+	  <RequiredPowerInput>0.00006</RequiredPowerInput>
+      <TextureResolution>512</TextureResolution>
+	  <TextureAspectRadio>1</TextureAspectRadio>
+	  <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
     <Definition xsi:type="MyObjectBuilder_GasTankDefinition">
       <Id>
         <TypeId>OxygenTank</TypeId>
@@ -18176,6 +17771,8 @@
       </BlueprintClasses>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
+      <DestroyEffect>Explosion_Missile</DestroyEffect>
+      <DestroySound>WepSmallMissileExpl</DestroySound>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_OxygenGeneratorDefinition">
       <Id>
@@ -18212,8 +17809,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\OxygenGeneratorConstruction_2.mwm" />
       </BuildProgressModels>
       <Center x="1" y="1" z="0" />
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
+      <MirroringY>X</MirroringY>
       <BuildTimeSeconds>13</BuildTimeSeconds>
       <EdgeType>Light</EdgeType>
       <ResourceSourceGroup>Reactors</ResourceSourceGroup>
@@ -18254,6 +17850,8 @@
       <BlockPairName>OxygenGenerator</BlockPairName>
       <GenerateSound>BlockOxyGenProcess</GenerateSound>
       <IdleSound>BlockOxyGenIdle</IdleSound>
+      <DestroyEffect>Explosion_Missile</DestroyEffect>
+      <DestroySound>WepSmallMissileExpl</DestroySound>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_TextPanelDefinition">     
       <Id>
@@ -18275,6 +17873,7 @@
       </Components>
       <CriticalComponent Subtype="Computer" Index="0" />
       <MountPoints>
+        <MountPoint Side="Front" StartX="0.1" StartY="0.7" EndX="0.9" EndY="0.9" />
         <MountPoint Side="Front" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.3" />
         <MountPoint Side="Left" StartX="0" StartY="0.2" EndX="0.1" EndY="0.8" />
         <MountPoint Side="Right" StartX="0.9" StartY="0.2" EndX="1" EndY="0.8" />
@@ -18688,6 +18287,8 @@
       <BuildTimeSeconds>45</BuildTimeSeconds>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
+      <DestroyEffect>Explosion_Missile</DestroyEffect>
+      <DestroySound>WepSmallMissileExpl</DestroySound>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_GasTankDefinition">
       <Id>
@@ -18753,6 +18354,8 @@
       </BlueprintClasses>
       <BuildTimeSeconds>45</BuildTimeSeconds>
       <DamageEffectId>213</DamageEffectId>
+      <DestroyEffect>Explosion_Warhead_30</DestroyEffect>
+      <DestroySound>WepLrgWarheadExpl</DestroySound>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
     </Definition>
     
@@ -18833,6 +18436,8 @@
       <BuildTimeSeconds>45</BuildTimeSeconds>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
+      <DestroyEffect>Explosion_Warhead_02</DestroyEffect>
+      <DestroySound>WepSmallWarheadExpl</DestroySound>
       <Public>false</Public>
     </Definition>
     
@@ -19288,7 +18893,7 @@
       <FlameGlareMaterial>GlareSsThrustSmall</FlameGlareMaterial>
       <FlameVisibilityDistance>200</FlameVisibilityDistance>
       <FlameGlareSize>0.391</FlameGlareSize>
-      <FlameGlareQuerySize>1</FlameGlareQuerySize>
+      <FlameGlareQuerySize>0.5</FlameGlareQuerySize>
       <PrimarySound>SmShipSmJet</PrimarySound>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
@@ -19379,7 +18984,7 @@
       <FlameGlareMaterial>GlareSsThrustLarge</FlameGlareMaterial>
       <FlameVisibilityDistance>300</FlameVisibilityDistance>
       <FlameGlareSize>0.908</FlameGlareSize>
-      <FlameGlareQuerySize>1</FlameGlareQuerySize>
+      <FlameGlareQuerySize>0.5</FlameGlareQuerySize>
       <PrimarySound>SmShipLrgJet</PrimarySound>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
@@ -19474,7 +19079,7 @@
       <FlameGlareMaterial>GlareLsThrustSmall</FlameGlareMaterial>
       <FlameVisibilityDistance>500</FlameVisibilityDistance>
       <FlameGlareSize>0.585</FlameGlareSize>
-      <FlameGlareQuerySize>2</FlameGlareQuerySize>
+      <FlameGlareQuerySize>1</FlameGlareQuerySize>
       <PrimarySound>LrgShipSmJet</PrimarySound>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
@@ -19567,7 +19172,7 @@
       <FlameGlareMaterial>GlareLsThrustLarge</FlameGlareMaterial>
       <FlameVisibilityDistance>700</FlameVisibilityDistance>
       <FlameGlareSize>0.779</FlameGlareSize>
-      <FlameGlareQuerySize>3</FlameGlareQuerySize>
+      <FlameGlareQuerySize>1.5</FlameGlareQuerySize>
       <PrimarySound>LrgShipLrgJet</PrimarySound>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
@@ -19661,7 +19266,7 @@
       <FlameGlareMaterial>GlareLsThrustLarge</FlameGlareMaterial>
       <FlameVisibilityDistance>700</FlameVisibilityDistance>
       <FlameGlareSize>0.779</FlameGlareSize>
-      <FlameGlareQuerySize>3</FlameGlareQuerySize>
+      <FlameGlareQuerySize>1.5</FlameGlareQuerySize>
       <PrimarySound>LrgShipLrgJetHydrogen</PrimarySound>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
@@ -19757,7 +19362,7 @@
       <FlameGlareMaterial>GlareLsThrustSmall</FlameGlareMaterial>
       <FlameVisibilityDistance>500</FlameVisibilityDistance>
       <FlameGlareSize>0.585</FlameGlareSize>
-      <FlameGlareQuerySize>2</FlameGlareQuerySize>
+      <FlameGlareQuerySize>1</FlameGlareQuerySize>
       <PrimarySound>LrgShipSmJetHydrogen</PrimarySound>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
@@ -19851,7 +19456,7 @@
       <FlameGlareMaterial>GlareLsThrustLarge</FlameGlareMaterial>
       <FlameVisibilityDistance>700</FlameVisibilityDistance>
       <FlameGlareSize>0.779</FlameGlareSize>
-      <FlameGlareQuerySize>3</FlameGlareQuerySize>
+      <FlameGlareQuerySize>1.5</FlameGlareQuerySize>
       <PrimarySound>SmShipLrgJetHydrogen</PrimarySound>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
@@ -19947,7 +19552,7 @@
       <FlameGlareMaterial>GlareLsThrustSmall</FlameGlareMaterial>
       <FlameVisibilityDistance>500</FlameVisibilityDistance>
       <FlameGlareSize>0.585</FlameGlareSize>
-      <FlameGlareQuerySize>2</FlameGlareQuerySize>
+      <FlameGlareQuerySize>1</FlameGlareQuerySize>
       <PrimarySound>SmShipSmJetHydrogen</PrimarySound>
       <DamageEffectId>213</DamageEffectId>
       <DamagedSound>ParticleWeapExpl</DamagedSound>
@@ -19980,7 +19585,6 @@
       </Components>
       <CriticalComponent Subtype="Motor" Index="0" />
       <MountPoints>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="0" EndY="0" />
         <MountPoint Side="Top" StartX="1" StartY="1" EndX="2" EndY="3" Default="true" />
         <MountPoint Side="Bottom" StartX="1" StartY="2" EndX="2" EndY="4" />
         <MountPoint Side="Left" StartX="2" StartY="1" EndX="4" EndY="2" />
@@ -20004,12 +19608,12 @@
           <MinAllowed>0</MinAllowed>
         </DynamicMode>
       </VoxelPlacement>
-      <BlockVariants>
+      <!--<BlockVariants>
         <BlockVariant>
           <TypeId>Thrust</TypeId>
-          <SubtypeId>SmallBlockLargeAtmosphericThrust</SubtypeId>
+          <SubtypeId>LargeBlockSmallAtmosphericThrust</SubtypeId>
         </BlockVariant>
-      </BlockVariants>
+      </BlockVariants>-->
       <BlockPairName>LargeAtmoThrust</BlockPairName>
       <Center x="1" y="1" z="2" />
       <MirroringZ>Y</MirroringZ>
@@ -20047,7 +19651,7 @@
       <FlameGlareMaterial>GlareLsThrustSmall</FlameGlareMaterial>
       <FlameVisibilityDistance>500</FlameVisibilityDistance>
       <FlameGlareSize>0.585</FlameGlareSize>
-      <FlameGlareQuerySize>2</FlameGlareQuerySize>
+      <FlameGlareQuerySize>1</FlameGlareQuerySize>
       <PropellerUsesPropellerSystem>true</PropellerUsesPropellerSystem>
       <PropellerSubpartEntityName>Propeller</PropellerSubpartEntityName>
       <PropellerRoundsPerSecondOnFullSpeed>4.2</PropellerRoundsPerSecondOnFullSpeed>
@@ -20085,7 +19689,6 @@
       </Components>               
       <CriticalComponent Subtype="Motor" Index="0" />
       <MountPoints>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="0" EndY="0" />
         <MountPoint Side="Top" StartX="0" StartY="1" EndX="1" EndY="2" Default="true"/>
         <MountPoint Side="Bottom" StartX="0" StartY="1" EndX="1" EndY="2" />
         <MountPoint Side="Left" StartX="1" StartY="0" EndX="2" EndY="1" />
@@ -20118,6 +19721,7 @@
       <BlockPairName>SmallAtmoThrust</BlockPairName>
       <Center x="0" y="0" z="1" />
       <MirroringZ>Y</MirroringZ>
+	  <MirroringY>Z</MirroringY>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>25</BuildTimeSeconds>
 
@@ -20152,7 +19756,7 @@
       <FlameGlareMaterial>GlareLsThrustSmall</FlameGlareMaterial>
       <FlameVisibilityDistance>500</FlameVisibilityDistance>
       <FlameGlareSize>0.585</FlameGlareSize>
-      <FlameGlareQuerySize>2</FlameGlareQuerySize>
+      <FlameGlareQuerySize>1</FlameGlareQuerySize>
       <PropellerUsesPropellerSystem>true</PropellerUsesPropellerSystem>
       <PropellerSubpartEntityName>Propeller</PropellerSubpartEntityName>
       <PropellerRoundsPerSecondOnFullSpeed>4.2</PropellerRoundsPerSecondOnFullSpeed>
@@ -20192,7 +19796,6 @@
       </Components>
       <CriticalComponent Subtype="Motor" Index="0" />
       <MountPoints>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="0" EndY="0" />
         <MountPoint Side="Top" StartX="1" StartY="1" EndX="2" EndY="4" Default="true"/>
         <MountPoint Side="Bottom" StartX="1" StartY="1" EndX="2" EndY="4" />
         <MountPoint Side="Right" StartX="1" StartY="1" EndX="4" EndY="2" />
@@ -20216,6 +19819,12 @@
           <MinAllowed>0</MinAllowed>
         </DynamicMode>
       </VoxelPlacement>
+      <!--<BlockVariants>
+        <BlockVariant>
+          <TypeId>Thrust</TypeId>
+          <SubtypeId>SmallBlockSmallAtmosphericThrust</SubtypeId>
+        </BlockVariant>
+      </BlockVariants>-->
       <BlockPairName>LargeAtmoThrust</BlockPairName>
       <Center x="1" y="1" z="2" />
       <MirroringZ>Y</MirroringZ>
@@ -20254,7 +19863,7 @@
       <FlameGlareMaterial>GlareSsThrustLarge</FlameGlareMaterial>
       <FlameVisibilityDistance>300</FlameVisibilityDistance>
       <FlameGlareSize>0.908</FlameGlareSize>
-      <FlameGlareQuerySize>1</FlameGlareQuerySize>
+      <FlameGlareQuerySize>0.5</FlameGlareQuerySize>
       <PropellerUsesPropellerSystem>true</PropellerUsesPropellerSystem>
       <PropellerSubpartEntityName>Propeller</PropellerSubpartEntityName>
       <PropellerRoundsPerSecondOnFullSpeed>1.9</PropellerRoundsPerSecondOnFullSpeed>
@@ -20359,7 +19968,7 @@
       <FlameGlareMaterial>GlareSsThrustSmall</FlameGlareMaterial>
       <FlameVisibilityDistance>200</FlameVisibilityDistance>
       <FlameGlareSize>0.391</FlameGlareSize>
-      <FlameGlareQuerySize>1</FlameGlareQuerySize>
+      <FlameGlareQuerySize>0.25</FlameGlareQuerySize>
       <PropellerUsesPropellerSystem>true</PropellerUsesPropellerSystem>
       <PropellerSubpartEntityName>Propeller</PropellerSubpartEntityName>
       <PropellerRoundsPerSecondOnFullSpeed>1.9</PropellerRoundsPerSecondOnFullSpeed>
@@ -20457,9 +20066,13 @@
       <EdgeType>Light</EdgeType>
       <ResourceSinkGroup>Utility</ResourceSinkGroup>
       <RequiredPowerInput>0.00003</RequiredPowerInput>
+      <RequiredChargingInput>0.001</RequiredChargingInput>
       <OverlayTexture>Textures\GUI\Screens\camera_overlay.dds</OverlayTexture>
       <MinFov>0.1</MinFov>
       <MaxFov>1.04719755</MaxFov>
+      <RaycastConeLimit>45</RaycastConeLimit>
+      <RaycastDistanceLimit>-1</RaycastDistanceLimit>
+      <RaycastTimeMultiplier>2.0</RaycastTimeMultiplier>
       <Public>true</Public>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
@@ -20671,6 +20284,8 @@
       <PrimarySound>ShipSmNuclearLrg</PrimarySound>
       <DamageEffectId>210</DamageEffectId>
       <DamagedSound>ParticleReactor</DamagedSound>
+      <DestroyEffect>Explosion_Warhead_02</DestroyEffect>
+      <DestroySound>WepSmallWarheadExpl</DestroySound>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_ReactorDefinition">
       <Id>
@@ -20729,6 +20344,8 @@
       <PrimarySound>ShipLrgNuclearSm</PrimarySound>
       <DamageEffectId>210</DamageEffectId>
       <DamagedSound>ParticleReactor</DamagedSound>
+      <DestroyEffect>Explosion_Warhead_02</DestroyEffect>
+      <DestroySound>WepSmallWarheadExpl</DestroySound>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_ReactorDefinition">
       <Id>
@@ -20788,6 +20405,8 @@
       <PrimarySound>ShipLrgNuclearLrg</PrimarySound>
       <DamageEffectId>210</DamageEffectId>
       <DamagedSound>ParticleReactor</DamagedSound>
+      <DestroyEffect>Explosion_Warhead_30</DestroyEffect>
+      <DestroySound>WepLrgWarheadExpl</DestroySound>
     </Definition>
     <!-- End Region Reactor-->
     <!-- Region Piston-->
@@ -20928,6 +20547,7 @@
       <DisplayName>DisplayName_Block_PistonBase</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\Piston.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="2" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -20974,6 +20594,7 @@
       <DisplayName>DisplayName_Block_PistonBase</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\Piston.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="3" z="1" />
       <Center x="0" y="0" z="0"></Center>
@@ -21156,7 +20777,7 @@
         </BlockVariant>
       </BlockVariants>
       <BlockPairName>Suspension3x3</BlockPairName>
-      <MirroringY>ZThenOffsetX</MirroringY>
+      <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>20</BuildTimeSeconds>
@@ -21312,6 +20933,7 @@
       <DisplayName>DisplayName_Block_Suspension3x3</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\WheelSuspension3x3.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="2" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -21384,6 +21006,7 @@
       <DisplayName>DisplayName_Block_Suspension5x5</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\WheelSuspension5x5.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="2" y="3" z="2" />
       <ModelOffset x="0" y="0" z="0" />
@@ -21421,8 +21044,8 @@
         </DynamicMode>
       </VoxelPlacement>
       <BlockPairName>Suspension5x5</BlockPairName>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
+      <MirroringY>ZThenOffsetX</MirroringY>
+      <MirroringZ>YThenOffsetX</MirroringZ>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>15</BuildTimeSeconds>
       <PrimarySound>BlockWheel5x5</PrimarySound>
@@ -21444,6 +21067,7 @@
       <DisplayName>DisplayName_Block_Suspension1x1</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\WheelSuspension1x1.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="2" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -21539,6 +21163,7 @@
       <DisplayName>DisplayName_Block_Rotor</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\motor.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="2" z="1" />
       <ModelOffset x="0" y="-0.25" z="0" />
@@ -21587,6 +21212,7 @@
       <DisplayName>DisplayName_Block_RotorPart</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\RotorPart.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -21759,6 +21385,7 @@
       <Icon>Textures\GUI\Icons\Cubes\AdvencedMotor.dds</Icon>
       <Public>false</Public>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="2" z="3" />
       <ModelOffset x="0" y="-0.25" z="0" />
@@ -22188,6 +21815,7 @@
         <MountPoint Side="Back" StartX="0" StartY="0.375" EndX="1" EndY="0.625" />
         <MountPoint Side="Front" StartX="2" StartY="0.375" EndX="3" EndY="0.625" />
       </MountPoints>
+	  <MirroringX>Y</MirroringX>
       <BuildProgressModels>
         <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\SolarHydroponicsConstruction_1.mwm" />
         <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\SolarHydroponicsConstruction_2.mwm" />
@@ -22540,6 +22168,10 @@
           <TypeId>CubeBlock</TypeId>
           <SubtypeId>Window1x1Side</SubtypeId>
         </BlockVariant>
+		<BlockVariant>
+          <TypeId>CubeBlock</TypeId>
+          <SubtypeId>Window1x1Inv</SubtypeId>
+        </BlockVariant>
       </BlockVariants>
       <IsAirTight>true</IsAirTight>
       <MirroringX>HalfY</MirroringX>
@@ -22592,6 +22224,7 @@
       </Id>
       <DisplayName>DisplayName_Block_Window1x1Inv</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\Window1x1Inv.dds</Icon>
+	  <GuiVisible>false</GuiVisible>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
@@ -22952,6 +22585,7 @@
       <DisplayName>DisplayName_Block_ConveyorSmall</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\ConveyorSmall.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -22976,16 +22610,6 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\ConveyorConstruction_2.mwm" />
       </BuildProgressModels>
       <BlockPairName>ConveyorSmall</BlockPairName>
-      <BlockVariants>
-        <BlockVariant>
-          <TypeId>ConveyorConnector</TypeId>
-          <SubtypeId>ConveyorTubeSmall</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>ConveyorConnector</TypeId>
-          <SubtypeId>ConveyorTubeSmallCurved</SubtypeId>
-        </BlockVariant>
-      </BlockVariants>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -23264,11 +22888,11 @@
       <ModelOffset x="0" y="0" z="0" />
       <Model>Models\Cubes\Large\ConveyorTube.mwm</Model>
       <Components>
-        <Component Subtype="SteelPlate" Count="10" />
-        <Component Subtype="Construction" Count="40" />
+        <Component Subtype="InteriorPlate" Count="10" />
+        <Component Subtype="Construction" Count="20" />
         <Component Subtype="SmallTube" Count="12" />
         <Component Subtype="Motor" Count="6" />
-        <Component Subtype="SteelPlate" Count="4" />
+        <Component Subtype="InteriorPlate" Count="4" />
       </Components>
       <CriticalComponent Subtype="Motor" Index="0" />
       <BuildProgressModels>
@@ -23318,14 +22942,24 @@
         <Component Subtype="Construction" Count="1" />
         <Component Subtype="Motor" Count="1" />
       </Components>
-      <MountPoints>
+      <!--<MountPoints>
         <MountPoint Side="Back" StartX="0" StartY="0" EndX="1" EndY="1" Default="true"/>
         <MountPoint Side="Front" StartX="0" StartY="0" EndX="1" EndY="1" />
-      </MountPoints>
+      </MountPoints>-->
       <CriticalComponent Subtype="Construction" Index="0" />
       <BuildProgressModels>
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\ConveyorTubeConstruction_1.mwm" />
       </BuildProgressModels>
+      <BlockVariants>
+        <BlockVariant>
+          <TypeId>Conveyor</TypeId>
+          <SubtypeId>SmallBlockConveyor</SubtypeId>
+        </BlockVariant>
+        <BlockVariant>
+          <TypeId>ConveyorConnector</TypeId>
+          <SubtypeId>ConveyorTubeSmallCurved</SubtypeId>
+        </BlockVariant>
+      </BlockVariants>
       <BlockPairName>ConveyorTubeSmall</BlockPairName>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>3</BuildTimeSeconds>
@@ -23337,15 +22971,15 @@
       </Id>
       <DisplayName>DisplayName_Block_ConveyorTubeMedium</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\ConveyorTube.dds</Icon>
-      <GuiVisible>true</GuiVisible>
+      <GuiVisible>false</GuiVisible>
       <CubeSize>Small</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="3" z="3" />
       <ModelOffset x="0" y="0" z="0" />
       <Model>Models\Cubes\Small\ConveyorTubeMedium.mwm</Model>
       <Components>
-        <Component Subtype="SteelPlate" Count="8" />
-        <Component Subtype="Construction" Count="30" />
+        <Component Subtype="InteriorPlate" Count="8" />
+        <Component Subtype="Construction" Count="20" />
         <Component Subtype="SmallTube" Count="10" />
         <Component Subtype="Motor" Count="6" />
       </Components>
@@ -23355,6 +22989,16 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\ConveyorTubeMediumConstruction_2.mwm" />
       </BuildProgressModels>
       <BlockPairName>ConveyorTube</BlockPairName>
+      <BlockVariants>
+        <BlockVariant>
+          <TypeId>Conveyor</TypeId>
+          <SubtypeId>SmallShipConveyorHub</SubtypeId>
+        </BlockVariant>
+        <BlockVariant>
+          <TypeId>ConveyorConnector</TypeId>
+          <SubtypeId>ConveyorTubeCurvedMedium</SubtypeId>
+        </BlockVariant>
+      </BlockVariants>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>7</BuildTimeSeconds>
       <MountPoints>
@@ -23368,6 +23012,8 @@
         <MountPoint Side="Right" StartX="2.6" StartY="0.3" EndX="2.7" EndY="2.7" />
       </MountPoints>
       <AutorotateMode>OppositeDirections</AutorotateMode>
+	  <MirroringY>Z</MirroringY>
+	  <MirroringZ>Y</MirroringZ>
     </Definition>
     <Definition>
       <Id>
@@ -23382,7 +23028,7 @@
       <ModelOffset x="0" y="0" z="0" />
       <Model>Models\Cubes\Small\ConveyorFrameMedium.mwm</Model>
       <Components>
-        <Component Subtype="SteelPlate" Count="4" />
+        <Component Subtype="InteriorPlate" Count="4" />
         <Component Subtype="Construction" Count="12" />
         <Component Subtype="SmallTube" Count="5" />
         <Component Subtype="Motor" Count="2" />
@@ -23405,6 +23051,8 @@
         <MountPoint Side="Right" StartX="2.6" StartY="0.3" EndX="2.7" EndY="2.7" />
       </MountPoints>
       <AutorotateMode>OppositeDirections</AutorotateMode>
+	  <MirroringY>Z</MirroringY>
+	  <MirroringZ>Y</MirroringZ>
     </Definition>
     <Definition>
       <Id>
@@ -23420,11 +23068,11 @@
       <ModelOffset x="0" y="0" z="0" />
       <Model>Models\Cubes\Large\ConveyorTubeCurved.mwm</Model>
       <Components>
-        <Component Subtype="SteelPlate" Count="10" />
-        <Component Subtype="Construction" Count="40" />
+        <Component Subtype="InteriorPlate" Count="10" />
+        <Component Subtype="Construction" Count="20" />
         <Component Subtype="SmallTube" Count="12" />
         <Component Subtype="Motor" Count="6" />
-        <Component Subtype="SteelPlate" Count="4" />
+        <Component Subtype="InteriorPlate" Count="4" />
       </Components>
       <CriticalComponent Subtype="Motor" Index="0" />
       <BuildProgressModels>
@@ -23470,10 +23118,10 @@
       <BuildProgressModels>
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\ConveyorTubeCurvedConstruction_1.mwm" />
       </BuildProgressModels>
-      <MountPoints>
+      <!--<MountPoints>
         <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="1" />
         <MountPoint Side="Back" StartX="0" StartY="0" EndX="1" EndY="1" />
-      </MountPoints>
+      </MountPoints>-->
       <BlockPairName>ConveyorTubeCurvedSmall</BlockPairName>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>3</BuildTimeSeconds>
@@ -23494,11 +23142,11 @@
       <ModelOffset x="0" y="0" z="0" />
       <Model>Models\Cubes\Small\ConveyorTurnMedium.mwm</Model>
       <Components>
-        <Component Subtype="SteelPlate" Count="2" />
-        <Component Subtype="Construction" Count="30" />
+        <Component Subtype="InteriorPlate" Count="2" />
+        <Component Subtype="Construction" Count="20" />
         <Component Subtype="SmallTube" Count="10" />
         <Component Subtype="Motor" Count="6" />
-        <Component Subtype="SteelPlate" Count="5" />
+        <Component Subtype="InteriorPlate" Count="5" />
       </Components>
       <CriticalComponent Subtype="Motor" Index="0" />
       <BuildProgressModels>
@@ -23530,6 +23178,7 @@
       <DisplayName>DisplayName_Block_Conveyor</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\Conveyor.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="3" z="3" />
       <ModelOffset x="0" y="0" z="0" />
@@ -23569,19 +23218,8 @@
         <MountPoint Side="Front" StartX="0.35" StartY="2.65" EndX="2.65" EndY="2.75" />
       </MountPoints>
       <BlockPairName>Conveyor</BlockPairName>
-      <BlockVariants>
-        <BlockVariant>
-          <TypeId>ConveyorConnector</TypeId>
-          <SubtypeId>ConveyorTubeMedium</SubtypeId>
-        </BlockVariant>
-      <BlockVariant>
-          <TypeId>ConveyorConnector</TypeId>
-          <SubtypeId>ConveyorTubeCurvedMedium</SubtypeId>
-        </BlockVariant>
-      </BlockVariants>
       <MirroringZ>X</MirroringZ>
       <EdgeType>Light</EdgeType>
-      <Public>true</Public>
       <BuildTimeSeconds>25</BuildTimeSeconds>
       <DamageEffectId>212</DamageEffectId>
       <DamagedSound>ParticleHeavyMech</DamagedSound>
@@ -23823,6 +23461,14 @@
         <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\SpaceBallBlockConstruction_1.mwm" />
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\SpaceBallBlockConstruction_2.mwm" />
       </BuildProgressModels>
+      <MountPoints>
+        <MountPoint Side="Left" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Right" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Back" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Front" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Top" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Bottom" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+      </MountPoints>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>10</BuildTimeSeconds>
       <MaxVirtualMass>20000</MaxVirtualMass>
@@ -23854,6 +23500,14 @@
       <BuildProgressModels>
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\SpaceBallBlockConstruction_1.mwm" />
       </BuildProgressModels>
+      <MountPoints>
+        <MountPoint Side="Left" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Right" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Back" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Front" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Top" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Bottom" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+      </MountPoints>
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>3</BuildTimeSeconds>
       <MaxVirtualMass>5000</MaxVirtualMass>
@@ -24306,6 +23960,7 @@
       <EdgeType>Light</EdgeType>
       <BuildTimeSeconds>10</BuildTimeSeconds>
       <Public>true</Public>
+      <GuiVisible>false</GuiVisible>
       <InventorySize>
         <X>2.5</X>
         <Y>2.5</Y>
@@ -24552,6 +24207,7 @@
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
       <Public>true</Public>
+      <GuiVisible>false</GuiVisible>
       <BuildTimeSeconds>20</BuildTimeSeconds>
       <InventorySize>
         <X>2.5</X>
@@ -25166,6 +24822,7 @@
       <DisplayName>DisplayName_Block_ArmorCorner</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\ArmorCorner.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -25205,6 +24862,7 @@
       <DisplayName>DisplayName_Block_ArmorInvCorner</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\BlastDoorCornerInverted.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -25244,6 +24902,7 @@
       <DisplayName>DisplayName_Block_ArmorSide</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\ArmorSide.dds</Icon>
       <CubeSize>Small</CubeSize>
+      <GuiVisible>false</GuiVisible>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
       <ModelOffset x="0" y="0" z="0" />
@@ -26079,6 +25738,13 @@
         <Y>9</Y>
       </Position>
     </BlockPosition>
+	<BlockPosition>
+      <Name>CornerLight</Name>
+      <Position>
+        <X>9</X>
+        <Y>9</Y>
+      </Position>
+    </BlockPosition>
     <!-- End Region Row 9 -->
     <!-- Region Row 10 -->
     <BlockPosition>
@@ -26134,6 +25800,13 @@
       <Name>LCDPanel</Name>
       <Position>
         <X>7</X>
+        <Y>10</Y>
+      </Position>
+    </BlockPosition>
+	<BlockPosition>
+      <Name>CornerLCD</Name>
+      <Position>
+        <X>8</X>
         <Y>10</Y>
       </Position>
     </BlockPosition>
@@ -26322,30 +25995,23 @@
       </Position>
     </BlockPosition>
     <BlockPosition>
-      <Name>Window1x1Inv</Name>
+      <Name>Window1x2Face</Name>
       <Position>
         <X>6</X>
         <Y>14</Y>
       </Position>
     </BlockPosition>
     <BlockPosition>
-      <Name>Window1x2Face</Name>
-      <Position>
-        <X>7</X>
-        <Y>14</Y>
-      </Position>
-    </BlockPosition>
-    <BlockPosition>
       <Name>Window2x3Flat</Name>
       <Position>
-        <X>8</X>
+        <X>7</X>
         <Y>14</Y>
       </Position>
     </BlockPosition>    
     <BlockPosition>
       <Name>Window3x3Flat</Name>
       <Position>
-        <X>9</X>
+        <X>8</X>
         <Y>14</Y>
       </Position>
     </BlockPosition>

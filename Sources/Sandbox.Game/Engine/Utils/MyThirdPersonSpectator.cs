@@ -25,7 +25,7 @@ namespace Sandbox.Engine.Utils
         public static MyThirdPersonSpectator Static;
 
         // Minimum distance camera-ship (also used for quick zoom)
-        public const float MIN_VIEWER_DISTANCE = 1.0f;
+        public const float MIN_VIEWER_DISTANCE = 1.45f;
         // Maximum distance camera-ship (also used for quick zoom)
         public const float MAX_VIEWER_DISTANCE = 200.0f;
         // "Size" of the camera.
@@ -167,7 +167,7 @@ namespace Sandbox.Engine.Utils
         }
 
         // Updates spectator position (spring connected to desired position)
-        public override void UpdateAfterSimulation()
+        public void Update()
         {
             IMyControllableEntity genericControlledEntity = MySession.Static.ControlledEntity;
             if (genericControlledEntity == null)
@@ -506,6 +506,9 @@ namespace Sandbox.Engine.Utils
             MyCameraRaycastResult raycastResult = RaycastOccludingObjects(controlledEntity, ref raycastOrigin, ref m_position,
                 ref castStartSafe, out safePositionCandidate);
 
+            if (controlledEntity is MyCharacter && safeObb.Contains(ref safePositionCandidate))
+                raycastResult = MyCameraRaycastResult.FoundOccluderNoSpace;
+
             // visual debugging :)
             if (m_debugDraw)
             {
@@ -573,6 +576,7 @@ namespace Sandbox.Engine.Utils
                             m_positionSafeZoomingOutTimeout = 0;// controlledEntity.Parent != null ? m_positionSafeZoomingOutDefaultTimeoutMs : 0;
                             m_positionSafe = safePositionCandidate;
                             m_disableSpringThisFrame = true;
+                            m_positionCurrentIsSafe = distFromCandidateToTarget >= m_safeMinimumDistance;
                         }
                     }
                     break;
@@ -663,16 +667,16 @@ namespace Sandbox.Engine.Utils
 
         public void UpdateZoom()
         {
-            bool canZoom = (!MyPerGameSettings.ZoomRequiresLookAroundPressed || MyInput.Static.IsGameControlPressed(MyControlsSpace.LOOKAROUND)) && !MySession.Static.Battle;
+            bool canZoom = (!MyPerGameSettings.ZoomRequiresLookAroundPressed || MyInput.Static.IsGameControlPressed(MyControlsSpace.LOOKAROUND));
             double newDistance = 0;
-
             var velocity = Vector3.Zero;
             if (MySession.Static.ControlledEntity != null && MySession.Static.ControlledEntity.Entity.Physics != null)
                 velocity = MySession.Static.ControlledEntity.Entity.Physics.LinearVelocity;
 
             Vector3D positionSafe = m_positionSafe + (Vector3D) velocity * MyEngineConstants.UPDATE_STEP_SIZE_IN_SECONDS;
 
-            if (canZoom && !MyInput.Static.IsAnyCtrlKeyPressed() && !MyInput.Static.IsAnyShiftKeyPressed())
+            //if (canZoom && !MyInput.Static.IsAnyCtrlKeyPressed() && !MyInput.Static.IsAnyShiftKeyPressed())
+            if (canZoom)
             {
                 if (MyInput.Static.PreviousMouseScrollWheelValue() < MyInput.Static.MouseScrollWheelValue())
                 {

@@ -25,7 +25,6 @@ namespace VRage.Game.ModAPI
         bool MemoryLimits { get; }
         bool MinimalHud { get; }
         float MusicVolume { get; }
-        bool NeedShowTutorialQuestion { get; }
         int RefreshRate { get; }
         bool RenderInterpolation { get; }
         MyRenderQualityEnum? RenderQuality { get; }
@@ -34,6 +33,7 @@ namespace VRage.Game.ModAPI
         int? ScreenHeight { get; }
         int? ScreenWidth { get; }
         MyShadowsQuality? ShadowQuality { get; }
+        bool? AmbientOcclusionEnabled { get; }
         bool ShowCrosshair { get; }
         bool ShowPlayerNamesOnHud { get; }
         MyTextureQuality? TextureQuality { get; }

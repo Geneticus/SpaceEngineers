@@ -48,10 +48,13 @@ using VRage.Game.ModAPI;
 using VRage.Game.ModAPI.Interfaces;
 using Sandbox.Game.Gui;
 using Sandbox.Game.SessionComponents.Clipboard;
+using VRage.Audio;
 using VRage.Game.ObjectBuilders.Definitions.SessionComponents;
+using ParallelTasks;
 using VRage.Game.Entity.EntityComponents;
 using VRage.Profiler;
 using VRage.Sync;
+using VRage.Library.Collections;
 
 #endregion
 
@@ -185,7 +188,7 @@ namespace Sandbox.Game.Entities
         /// This caches if grid can have physics, once set to false, it stays false and grid is eventually closed.
         /// </summary>
         private bool m_canHavePhysics = true;
-        private HashSet<MySlimBlock> m_cubeBlocks = new HashSet<MySlimBlock>();
+        private readonly HashSet<MySlimBlock> m_cubeBlocks = new HashSet<MySlimBlock>();
         private List<MyCubeBlock> m_fatBlocks = new List<MyCubeBlock>(100);
         private MyLocalityGrouping m_explosions = new MyLocalityGrouping(MyLocalityGrouping.GroupingMode.Overlaps);
 
@@ -224,6 +227,8 @@ namespace Sandbox.Game.Entities
 
         public List<IMyBlockAdditionalModelGenerator> AdditionalModelGenerators { get { return Render.AdditionalModelGenerators; } }
         public bool HasShipSoundEvents = false;
+        public int NumberOfReactors = 0;
+        public float GridGeneralDamageModifier = 1f;
 
         internal MyGridSkeleton Skeleton;
         public readonly BlockTypeCounter BlockCounter = new BlockTypeCounter();
@@ -282,6 +287,8 @@ namespace Sandbox.Game.Entities
         /// Grid play time with player. Used by respawn ship. 
         /// </summary>
         public int m_playedTime;
+
+        public bool ControlledFromTurret = false;
 
         private readonly Sync<bool> m_destructibleBlocks;
 
@@ -372,6 +379,7 @@ namespace Sandbox.Game.Entities
         public event Action<MySlimBlock> OnBlockRemoved;
         public event Action<MySlimBlock> OnBlockIntegrityChanged;
         public event Action<MySlimBlock> OnBlockClosed;
+        public event Action<MyCubeGrid> OnAuthorshipChanged;
 
         internal void NotifyBlockAdded(MySlimBlock block)
         {
@@ -385,6 +393,11 @@ namespace Sandbox.Game.Entities
         {
             if (OnBlockRemoved != null)
                 OnBlockRemoved(block);
+
+            if (MyVisualScriptLogicProvider.BlockDestroyed != null)
+                MyVisualScriptLogicProvider.BlockDestroyed(block.FatBlock != null ? block.FatBlock.Name : string.Empty, Name, block.BlockDefinition.Id.TypeId.ToString(), block.BlockDefinition.Id.SubtypeName);
+
+            MyCubeGrids.NotifyBlockDestroyed(this, block);
 
             GridSystems.OnBlockRemoved(block);
         }
@@ -456,7 +469,14 @@ namespace Sandbox.Game.Entities
         internal bool EnableSmallToLargeConnections { get { return m_enableSmallToLargeConnections; } }
 
         // Flag if SI should check connectivity of the grid
-        internal bool TestDynamic = false;
+        // PM: It got more advanced when started to be used to test dynamic generally
+        internal enum MyTestDynamicReason
+        {
+            NoReason,
+            GridCopied,
+            GridSplit
+        }
+        internal MyTestDynamicReason TestDynamic = MyTestDynamicReason.NoReason;
 
         internal new MyRenderComponentCubeGrid Render
         {
@@ -470,6 +490,7 @@ namespace Sandbox.Game.Entities
         private bool m_hasAdditionalModelGenerators;
 
         public MyTerminalBlock MainCockpit = null;
+        public MyTerminalBlock MainRemoteControl = null;
 
         // Cached map from multiblock id to info, not saved.
         private Dictionary<int, MyCubeGridMultiBlockInfo> m_multiBlockInfos;
@@ -492,6 +513,35 @@ namespace Sandbox.Game.Entities
         public void SetMainCockpit(MyTerminalBlock cockpit)
         {
             MainCockpit = cockpit;
+        }
+
+        public bool HasMainRemoteControl()
+        {
+            return MainRemoteControl != null;
+        }
+
+        public bool IsMainRemoteControl(MyTerminalBlock remoteControl)
+        {
+            return MainRemoteControl == remoteControl;
+        }
+        public void SetMainRemoteControl(MyTerminalBlock remoteControl)
+        {
+            MainRemoteControl = remoteControl;
+        }
+
+        /// <summary>
+        /// Return how much fat blocks defined by T is pressent in grid.
+        /// </summary>
+        /// <typeparam name="T">Type of Fatblock</typeparam>
+        /// <returns></returns>
+        public int GetFatBlockCount<T>() where T : MyCubeBlock
+        {
+            int count = 0;
+            foreach (var block in GetFatBlocks())
+                if (block is T)
+                    count++;
+
+            return count;
         }
 
         public MyCubeGrid() :
@@ -758,7 +808,7 @@ namespace Sandbox.Game.Entities
                 cockpit.GiveControlToPilot();
             }
             m_tmpOccupiedCockpits.Clear();
-            UpdateDirty();
+            //UpdateDirty();
 
             if (MyFakes.ENABLE_MULTIBLOCK_PART_IDS)
             {
@@ -767,6 +817,7 @@ namespace Sandbox.Game.Entities
 
             IsRespawnGrid = builder.IsRespawnGrid;
             m_playedTime = builder.playedTime;
+            GridGeneralDamageModifier = builder.GridGeneralDamageModifier;
             LocalCoordSystem = builder.LocalCoordSys;
         }
 
@@ -778,6 +829,12 @@ namespace Sandbox.Game.Entities
         private static MyCubeGrid CreateForSplit(MyCubeGrid originalGrid, long newEntityId)
         {
             var builder = MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_CubeGrid)) as MyObjectBuilder_CubeGrid;
+            if (builder == null)
+            {
+                Debug.Fail("CreateForSplit builder shouldn't be null! Original Grid info: " + originalGrid.ToString());
+                MyLog.Default.WriteLine("CreateForSplit builder shouldn't be null! Original Grid info: " + originalGrid.ToString());
+                return null;
+            }
             builder.EntityId = newEntityId;
             builder.GridSizeEnum = originalGrid.GridSizeEnum;
             builder.IsStatic = originalGrid.IsStatic;
@@ -878,10 +935,10 @@ namespace Sandbox.Game.Entities
 
             if (originalGrid.IsStatic)
             {
-                newGrid.TestDynamic = true;
+                newGrid.TestDynamic = MyCubeGrid.MyTestDynamicReason.GridSplit;
                 //GR: Always testing dynamic for original grid (can be any of the 2 grids)
                 //if (!MySession.Static.EnableConvertToStation)
-                originalGrid.TestDynamic = true;
+                originalGrid.TestDynamic = MyCubeGrid.MyTestDynamicReason.GridSplit;
             }
 
             newGrid.Physics.AngularVelocity = originalGrid.Physics.AngularVelocity;
@@ -982,10 +1039,11 @@ namespace Sandbox.Game.Entities
                     newGrid.RebuildGrid();
                     if (originalGrid.IsStatic)
                     {
-                        newGrid.TestDynamic = true;
-                        //GR: Always testing dynamic for original grid (can be any of the 2 grids)
-                        //if (!MySession.Static.EnableConvertToStation)
-                        originalGrid.TestDynamic = true;
+                        if (!MySession.Static.Settings.StationVoxelSupport)
+                        {
+                            newGrid.TestDynamic = MyCubeGrid.MyTestDynamicReason.GridSplit;
+                            originalGrid.TestDynamic = MyCubeGrid.MyTestDynamicReason.GridSplit;
+                        }
                     }
 
                     newGrid.Physics.AngularVelocity = originalGrid.Physics.AngularVelocity;
@@ -1286,6 +1344,9 @@ namespace Sandbox.Game.Entities
             ob.YMirroxOdd = YSymmetryOdd;
             ob.ZMirroxOdd = ZSymmetryOdd;
 
+            if(copy)
+                ob.Name = null;
+
             ob.BlockGroups.Clear();
             foreach (var group in BlockGroups)
             {
@@ -1297,6 +1358,7 @@ namespace Sandbox.Game.Entities
 
             ob.IsRespawnGrid = IsRespawnGrid;
             ob.playedTime = m_playedTime;
+            ob.GridGeneralDamageModifier = GridGeneralDamageModifier;
             ob.LocalCoordSys = LocalCoordSystem;
 
             GridSystems.GetObjectBuilder(ob);
@@ -1363,6 +1425,7 @@ namespace Sandbox.Game.Entities
 
         public override void UpdateBeforeSimulation()
         {
+            MySimpleProfiler.Begin("Grid");
             if (MyFakes.ENABLE_GRID_SYSTEM_UPDATE)
             {
                 ProfilerShort.Begin("Grid systems");
@@ -1390,7 +1453,13 @@ namespace Sandbox.Game.Entities
             {
                 UpdatePhysicsShape();
             }
+
+            //MyRenderProxy.DebugDrawAxis(PositionComp.WorldMatrix, 500, false);
+            //MyRenderProxy.DebugDrawText3D(PositionComp.WorldMatrix.Translation, (PositionComp.WorldMatrix.Translation - MySector.MainCamera.Position).Length().ToString(), Color.White, 0.7f, false);
+
+
             ProfilerShort.End();
+            MySimpleProfiler.End("Grid");
         }
 
         protected static float GetLineWidthForGizmo(IMyGizmoDrawableObject block, BoundingBox box)
@@ -1506,22 +1575,26 @@ namespace Sandbox.Game.Entities
 
         public override void UpdateBeforeSimulation10()
         {
+            MySimpleProfiler.Begin("Grid");
             base.UpdateBeforeSimulation10();
 
             if (MyFakes.ENABLE_GRID_SYSTEM_UPDATE)
             {
                 GridSystems.UpdateBeforeSimulation10();
             }
+            MySimpleProfiler.End("Grid");
         }
 
         public override void UpdateBeforeSimulation100()
         {
+            MySimpleProfiler.Begin("Grid");
             base.UpdateBeforeSimulation100();
 
             if (MyFakes.ENABLE_GRID_SYSTEM_UPDATE)
             {
                 GridSystems.UpdateBeforeSimulation100();
             }
+            MySimpleProfiler.End("Grid");
         }
 
         bool m_inventoryMassDirty;
@@ -1566,14 +1639,10 @@ namespace Sandbox.Game.Entities
 
         public override void UpdateAfterSimulation100()
         {
+            MySimpleProfiler.Begin("Grid");
             base.UpdateAfterSimulation100();
             //trash removal outside world doesnt work in update before simulation becaouse m_worldPositionChanged is set during simulation and unset
             //in update after so it was allways false in update before
-            ProfilerShort.Begin("Thrash removal");
-            if (Sync.IsServer && IsTrash() && !MyDebugDrawSettings.DEBUG_DRAW_TRASH_REMOVAL)
-            {
-                SyncObject.SendCloseRequest();
-            }
             UpdateGravity();
 
             if (MyFakes.ENABLE_BOUNDINGBOX_SHRINKING && m_boundsDirty)
@@ -1593,15 +1662,17 @@ namespace Sandbox.Game.Entities
 
             if (MyFakes.ENABLE_GRID_SYSTEM_UPDATE)
             {
-                ProfilerShort.BeginNextBlock("GridSystems");
+                ProfilerShort.Begin("GridSystems");
                 GridSystems.UpdateAfterSimulation100();
+                ProfilerShort.End();
             }
 
-            ProfilerShort.End();
+            MySimpleProfiler.End("Grid");
         }
 
         public override void UpdateAfterSimulation()
         {
+            MySimpleProfiler.Begin("Grid");
             base.UpdateAfterSimulation();
 
             ProfilerShort.Begin("Update Shape");
@@ -1636,6 +1707,7 @@ namespace Sandbox.Game.Entities
                 if (Sync.IsServer)
                     Close();
                 ProfilerShort.End();
+                MySimpleProfiler.End("Grid");
                 return;
             }
 
@@ -1677,13 +1749,13 @@ namespace Sandbox.Game.Entities
 
             StepStructuralIntegrity();
 
-            if (TestDynamic)
+            if (TestDynamic != MyTestDynamicReason.NoReason)
             {
-                if (!MyCubeGrid.ShouldBeStatic(this) && IsStatic)
+                if (!MyCubeGrid.ShouldBeStatic(this, TestDynamic) && IsStatic)
                 {
                     ConvertToDynamic();
                 }
-                TestDynamic = false;
+                TestDynamic = MyCubeGrid.MyTestDynamicReason.NoReason;
             }
 
             DoLazyUpdates();
@@ -1692,7 +1764,7 @@ namespace Sandbox.Game.Entities
             {
                 if (!Physics.IsWelded)
                 {
-                    Physics.RigidBody.Gravity = m_gravity * Sync.RelativeSimulationRatio; ;
+                    Physics.RigidBody.Gravity = m_gravity;
                 }
 
                 if (m_inventoryMassDirty)
@@ -1716,6 +1788,7 @@ namespace Sandbox.Game.Entities
 
             m_worldPositionChanged = false;
             ProfilerShort.End();
+            MySimpleProfiler.End("Grid");
         }
 
         private void CreateFractureBlockComponent(MyFractureComponentBase.Info info)
@@ -1909,6 +1982,7 @@ namespace Sandbox.Game.Entities
             SendRemovedBlocksWithIds();
 
             m_cubes.Clear();
+            m_targetingList.Clear();
             if (MyFakes.ENABLE_NEW_SOUNDS && MySession.Static.Settings.RealisticSound && MyFakes.ENABLE_NEW_SOUNDS_QUICK_UPDATE)
                 MyEntity3DSoundEmitter.UpdateEntityEmitters(true, false, false);
 
@@ -2150,14 +2224,14 @@ namespace Sandbox.Game.Entities
         public Vector3I WorldToGridInteger(Vector3D coords)
         {
             Vector3D localCoords = Vector3D.Transform(coords, PositionComp.WorldMatrixNormalizedInv);
-            localCoords /= GridSize;
+            localCoords *= GridSizeR;
             return Vector3I.Round(localCoords);
         }
 
         public Vector3D WorldToGridScaledLocal(Vector3D coords)
         {
             Vector3D localCoords = Vector3D.Transform(coords, PositionComp.WorldMatrixNormalizedInv);
-            localCoords /= GridSize;
+            localCoords *= GridSizeR;
             return localCoords;
         }
 
@@ -2182,7 +2256,7 @@ namespace Sandbox.Game.Entities
 
         public Vector3I LocalToGridInteger(Vector3 localCoords)
         {
-            localCoords /= GridSize;
+            localCoords *= GridSizeR;
             return Vector3I.Round(localCoords);
         }
 
@@ -2316,6 +2390,28 @@ namespace Sandbox.Game.Entities
             bool canPlaceBlock = TestPlacementAreaCube(this, ref gridSettings, min, max, orientation, definition, ignoredEntity: this, ignoreFracturedPieces: ignoreFracturedPieces);
             ProfilerShort.End();
             return canPlaceBlock;
+        }
+
+        /// <summary>
+        /// Determines whether newly placed blocks still fit within block limits set by server
+        /// </summary>
+        private bool IsWithinWorldLimits(long ownerID, int blocksToBuild, string name)
+        {
+            if (!MySession.Static.EnableBlockLimits) return true;
+
+            var identity = MySession.Static.Players.TryGetIdentity(ownerID);
+            bool withinLimits = true;
+            withinLimits &= MySession.Static.MaxGridSize == 0 || BlocksCount + blocksToBuild <= MySession.Static.MaxGridSize;
+            if (MySession.Static.MaxBlocksPerPlayer != 0 && identity != null) {
+                withinLimits &= identity.BlocksBuilt + blocksToBuild <= MySession.Static.MaxBlocksPerPlayer + identity.BlockLimitModifier;
+            }
+            short typeLimit = MySession.Static.GetBlockTypeLimit(name);
+            int typeBuilt;
+            if (identity != null && typeLimit > 0)
+            {
+                withinLimits &= (identity.BlockTypeBuilt.TryGetValue(name, out typeBuilt) ? typeBuilt : 0) + blocksToBuild <= typeLimit;
+            }
+            return withinLimits;
         }
 
         public void SetCubeDirty(Vector3I pos)
@@ -2629,8 +2725,8 @@ namespace Sandbox.Game.Entities
             float boneErrorSquared = MyGridSkeleton.GetMaxBoneError(GridSize);
             boneErrorSquared *= boneErrorSquared;
 
-            Vector3I boneMax = (cubeBlock.Min + Vector3I.One) * Skeleton.BoneDensity;
-            Vector3I bonePos = cubeBlock.Min * Skeleton.BoneDensity;
+            Vector3I boneMax = (cubeBlock.Min + Vector3I.One) * MyGridSkeleton.BoneDensity;
+            Vector3I bonePos = cubeBlock.Min * MyGridSkeleton.BoneDensity;
             for (var it = new Vector3I_RangeIterator(ref bonePos, ref boneMax); it.IsValid(); it.GetNext(out bonePos))
             {
                 Vector3 boneOffset = Skeleton.GetDefinitionOffsetWithNeighbours(cubeBlock.Min, bonePos, this);
@@ -2684,6 +2780,9 @@ namespace Sandbox.Game.Entities
                 NotifyBlockAdded(cubeBlock);
             }
             ProfilerShort.End();
+            cubeBlock.AddAuthorship();
+            if (cubeBlock.FatBlock is MyReactor)
+                NumberOfReactors++;
             return cubeBlock;
         }
 
@@ -2812,6 +2911,113 @@ namespace Sandbox.Game.Entities
             }
         }
 
+        /// <summary>
+        /// Remove all blocks from the grid built by specific player
+        /// </summary>
+        [Event, Reliable, Server, Broadcast]
+        public void RemoveBlocksBuiltByID(long identityID)
+        {
+            foreach (var block in FindBlocksBuiltByID(identityID))
+            {
+                RemoveBlock(block);
+            }
+        }
+
+        /// <summary>
+        /// Transfer all blocks built by a specific player to another player
+        /// </summary>
+        [Event, Reliable, Server, Broadcast]
+        public void TransferBlocksBuiltByID(long oldOwner, long newOwner)
+        {
+            foreach (var block in FindBlocksBuiltByID(oldOwner))
+            {
+                block.TransferAuthorship(newOwner);
+            }
+            if (OnAuthorshipChanged != null)
+                OnAuthorshipChanged(this);
+        }
+
+        /// <summary>
+        /// Send a message to a player who is supposed to receive blocks built by a player
+        /// </summary>
+        [Event, Reliable, Server]
+        public void SendTransferRequestMessage(long oldOwner, long newOwner, ulong newOwnerSteamId)
+        {
+            if (MyEventContext.Current.IsLocallyInvoked)
+            {
+                ReceiveTransferRequestMessage(oldOwner, newOwner);
+            }
+            else
+            {
+                MyMultiplayer.RaiseEvent(this, x => x.ReceiveTransferRequestMessage, oldOwner, newOwner, targetEndpoint: new EndpointId(newOwnerSteamId));
+            }
+        }
+
+        [Event, Client]
+        private void ReceiveTransferRequestMessage(long oldOwner, long newOwner)
+        {
+            var identity = MySession.Static.Players.TryGetIdentity(oldOwner);
+            var messageBox = Sandbox.Graphics.GUI.MyGuiSandbox.CreateMessageBox(
+                        styleEnum: Graphics.GUI.MyMessageBoxStyleEnum.Info,
+                        buttonType: Sandbox.Graphics.GUI.MyMessageBoxButtonsType.YES_NO,
+                        messageText: new StringBuilder().AppendFormat(MyTexts.GetString(MyCommonTexts.MessageBoxTextConfirmAcceptTransferGrid), new object[] { identity.DisplayName, identity.BlocksBuiltByGrid[this].ToString(), DisplayName }),
+                        messageCaption: MyTexts.Get(MyCommonTexts.MessageBoxCaptionPleaseConfirm),
+                        canHideOthers: false,
+                        callback: (result) =>
+                        {
+                            if (result == Sandbox.Graphics.GUI.MyGuiScreenMessageBox.ResultEnum.YES)
+                            {
+                                MyMultiplayer.RaiseEvent(this, x => x.TransferBlocksBuiltByID, oldOwner, newOwner);
+                            }
+                        });
+            Sandbox.Graphics.GUI.MyGuiSandbox.AddScreen(messageBox);
+        }
+
+        /// <summary>
+        /// Find all blocks built by a specific player. May be public if really needed.
+        /// </summary>
+        private HashSet<MySlimBlock> FindBlocksBuiltByID(long identityID)
+        {
+            var builtBlocks = new HashSet<MySlimBlock>();
+            foreach (var block in m_cubeBlocks)
+            {
+                if (block.BuiltBy == identityID)
+                    builtBlocks.Add(block);
+            }
+            return builtBlocks;
+        }
+
+        /// <summary>
+        /// Find out whether a player blocks are supposed to be trasfered to has enough free blocks to accept them
+        /// </summary>
+        public bool IsTransferBlocksBuiltByIDPossible(long oldOwner, long newOwner)
+        {
+            var oldIdentity = MySession.Static.Players.TryGetIdentity(oldOwner);
+            var newIdentity = MySession.Static.Players.TryGetIdentity(newOwner);
+
+            if (oldIdentity == null || newIdentity == null)
+                return false;
+
+            int blocksNum;
+            if (!oldIdentity.BlocksBuiltByGrid.TryGetValue(this, out blocksNum))
+                return false;
+
+            if (blocksNum > MySession.Static.MaxBlocksPerPlayer + newIdentity.BlockLimitModifier)
+                return false;
+
+            Dictionary<string, short> builtBlocksByType = new Dictionary<string, short>(MySession.Static.BlockTypeLimits);
+            foreach (var block in FindBlocksBuiltByID(oldOwner))
+            {
+                if (builtBlocksByType.ContainsKey(block.BlockDefinition.BlockPairName))
+                {
+                    builtBlocksByType[block.BlockDefinition.BlockPairName]--;
+                    if (builtBlocksByType[block.BlockDefinition.BlockPairName] < 0)
+                        return false;
+                }
+            }
+            return true;
+        }
+
         public MySlimBlock BuildGeneratedBlock(MyBlockLocation location, Vector3 colorMaskHsv)
         {
             MyDefinitionId blockDefinitionId = location.BlockDefinition;
@@ -2827,7 +3033,7 @@ namespace Sandbox.Game.Entities
             MyEntity builder = null;
             MyEntities.TryGetEntityById(builderEntityId, out builder);
 
-            bool isAdmin = (MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerAdminRights(MyEventContext.Current.Sender.Value));
+            bool isAdmin = (MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value));
             if (builder == null && isAdmin == false && MySession.Static.CreativeMode == false)
             {
                 return;
@@ -2887,7 +3093,13 @@ namespace Sandbox.Game.Entities
         /// </summary>
         public void BuildBlocks(ref MyBlockBuildArea area, long builderEntityId, long ownerId)
         {
-            bool isAdmin = MySession.Static.IsAdminModeEnabled(Sync.MyId);
+            if (!IsWithinWorldLimits(ownerId, area.BuildAreaSize.X * area.BuildAreaSize.Y * area.BuildAreaSize.Z, MyDefinitionManager.Static.GetCubeBlockDefinition(area.DefinitionId).BlockPairName))
+            {
+                MyGuiAudio.PlaySound(MyGuiSounds.HudUnable);
+                MyHud.Notifications.Add(MyNotificationSingletons.ShipOverLimits);
+                return;
+            }
+            bool isAdmin = MySession.Static.CreativeToolsEnabled(Sync.MyId);
             MyMultiplayer.RaiseEvent(this, x => x.BuildBlocksAreaRequest, area, builderEntityId, isAdmin, ownerId);
         }
 
@@ -2896,13 +3108,24 @@ namespace Sandbox.Game.Entities
         /// </summary>
         public void BuildBlocks(Vector3 colorMaskHsv, HashSet<MyBlockLocation> locations, long builderEntityId, long ownerId)
         {
-            bool isAdmin = MySession.Static.IsAdminModeEnabled(Sync.MyId);
+            string name = MyDefinitionManager.Static.GetCubeBlockDefinition(locations.First().BlockDefinition).BlockPairName;
+            if (!IsWithinWorldLimits(ownerId, locations.Count, name))
+            {
+                MyGuiAudio.PlaySound(MyGuiSounds.HudUnable);
+                MyHud.Notifications.Add(MyNotificationSingletons.ShipOverLimits);
+                return;
+            }
+            bool isAdmin = MySession.Static.CreativeToolsEnabled(Sync.MyId);
             MyMultiplayer.RaiseEvent(this, x => x.BuildBlocksRequest, colorMaskHsv.PackHSVToUint(), locations, builderEntityId, isAdmin, ownerId);
         }
 
         [Event, Reliable, Server]
         void BuildBlocksRequest(uint colorMaskHsv, HashSet<MyBlockLocation> locations, long builderEntityId, bool instantBuild, long ownerId)
         {
+            if (!MySession.Static.CreativeMode && !MyEventContext.Current.IsLocallyInvoked && !MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value))
+            {
+                instantBuild = false;
+            }
             m_tmpBuildList.Clear();
             Debug.Assert(m_tmpBuildList != locations, "The build block message was received via loopback using the temporary build list. This causes erasing ot the message.");
 
@@ -2910,7 +3133,7 @@ namespace Sandbox.Game.Entities
             MyEntities.TryGetEntityById(builderEntityId, out builder);
 
             MyCubeBuilder.BuildComponent.GetBlocksPlacementMaterials(locations, this);
-            bool isAdmin = MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerAdminRights(MyEventContext.Current.Sender.Value);
+            bool isAdmin = MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value);
 
             if (builder == null && isAdmin == false && MySession.Static.CreativeMode == false && MyFinalBuildConstants.IS_OFFICIAL)
             {
@@ -2918,6 +3141,12 @@ namespace Sandbox.Game.Entities
             }
 
             if (!MyCubeBuilder.BuildComponent.HasBuildingMaterials(builder) && isAdmin == false)
+            {
+                return;
+            }
+
+            string name = MyDefinitionManager.Static.GetCubeBlockDefinition(locations.First().BlockDefinition).BlockPairName;
+            if (!IsWithinWorldLimits(ownerId, locations.Count, name))
             {
                 return;
             }
@@ -2952,11 +3181,36 @@ namespace Sandbox.Game.Entities
         [Event, Reliable, Server]
         private void BuildBlocksAreaRequest(MyCubeGrid.MyBlockBuildArea area, long builderEntityId, bool instantBuild, long ownerId)
         {
+            if (!MySession.Static.CreativeMode && !MyEventContext.Current.IsLocallyInvoked && !MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value))
+            {
+                instantBuild = false;
+            }
             try
             {
-                bool isAdmin = MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerAdminRights(MyEventContext.Current.Sender.Value);
+                bool isAdmin = MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value);
 
                 if (ownerId == 0 && isAdmin == false && MySession.Static.CreativeMode == false && MyFinalBuildConstants.IS_OFFICIAL)
+                {
+                    return;
+                }
+
+                if (!IsWithinWorldLimits(ownerId, area.BuildAreaSize.X * area.BuildAreaSize.Y * area.BuildAreaSize.Z, MyDefinitionManager.Static.GetCubeBlockDefinition(area.DefinitionId).BlockPairName))
+                {
+                    return;
+                }
+
+                var definition = MyDefinitionManager.Static.GetCubeBlockDefinition(area.DefinitionId) as MyCubeBlockDefinition;
+                if (definition == null)
+                {
+                    Debug.Fail("Block definition not found");
+                    return;
+                }
+
+                int amount = area.BuildAreaSize.X * area.BuildAreaSize.Y * area.BuildAreaSize.Z;
+                MyCubeBuilder.BuildComponent.GetBlockAmountPlacementMaterials(definition, amount);
+                MyEntity builder = null;
+                MyEntities.TryGetEntityById(builderEntityId, out builder);
+                if (!MyCubeBuilder.BuildComponent.HasBuildingMaterials(builder, true) && isAdmin == false)
                 {
                     return;
                 }
@@ -3195,7 +3449,7 @@ namespace Sandbox.Game.Entities
 
         private static void ChangeBlockOwner(bool instantBuilt, MySlimBlock block, long ownerId)
         {
-            if (block.FatBlock != null && instantBuilt && MySession.Static.SurvivalMode)
+            if (block.FatBlock != null)
             {
                 block.FatBlock.ChangeOwner(ownerId, MyOwnershipShareModeEnum.Faction);
             }
@@ -3231,6 +3485,11 @@ namespace Sandbox.Game.Entities
         [Event, Reliable, Server]
         void RazeBlocksAreaRequest(Vector3I pos, Vector3UByte size)
         {
+            if (!MySession.Static.CreativeMode && !MyEventContext.Current.IsLocallyInvoked && !MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value))
+            {
+                MyEventContext.ValidationFailed();
+                return;
+            }
             try
             {
                 Vector3UByte offset;
@@ -3589,10 +3848,40 @@ namespace Sandbox.Game.Entities
             ProfilerShort.End();
         }
 
+        /// <summary>
+        /// Color block in area. Verry slow.
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="newHSV"></param>
+        /// <param name="playSound"></param>
         public void ColorBlocks(Vector3I min, Vector3I max, Vector3 newHSV, bool playSound)
         {
             ProfilerShort.Begin("MyCubeGrid.ColorBlocks");
             MyMultiplayer.RaiseEvent(this, x => x.ColorBlockRequest, min, max, newHSV, playSound);
+            ProfilerShort.End();
+        }
+
+        public void ColorGrid(Vector3 newHSV, bool playSound)
+        {
+            ProfilerShort.Begin("MyCubeGrid.ColorBlocks");
+            MyMultiplayer.RaiseEvent(this, x => x.ColorGridFriendlyRequest, newHSV, playSound);
+            ProfilerShort.End();
+        }
+
+        [Event, Reliable, Server, Broadcast]
+        private void ColorGridFriendlyRequest(Vector3 newHSV,bool playSound)
+        {
+            ProfilerShort.Begin("MyCubeGrid.ColorBlockRequest");
+            bool sound = false;
+            foreach (var block in CubeBlocks)
+            {
+                sound |= ChangeColor(block, newHSV);
+            }
+            if (playSound && sound)
+            {
+                MyGuiAudio.PlaySound(MyGuiSounds.HudColorBlock);
+            }
             ProfilerShort.End();
         }
 
@@ -3613,7 +3902,7 @@ namespace Sandbox.Game.Entities
                         }
                     }
 
-            if (sound && Vector3D.Distance(MySector.MainCamera.Position, Vector3D.Transform(min * GridSize, WorldMatrix)) < 200)
+            if (playSound && sound && Vector3D.Distance(MySector.MainCamera.Position, Vector3D.Transform(min * GridSize, WorldMatrix)) < 200)
             {
                 MyGuiAudio.PlaySound(MyGuiSounds.HudColorBlock);
             }
@@ -3742,7 +4031,7 @@ namespace Sandbox.Game.Entities
                 ExplosionFlags = flags,
                 ExplosionType = type,
                 LifespanMiliseconds = MyExplosionsConstants.EXPLOSION_LIFESPAN,
-                ParticleScale = Math.Max(GridSizeEnum == MyCubeSize.Large ? 1 : 0.4f, Math.Min(radius / 2, 6)),
+                ParticleScale = Math.Max(GridSizeEnum == MyCubeSize.Large ? 1 : 0.4f, Math.Min(radius / 4, 6)),
                 VoxelCutoutScale = 1.0f,
                 PlaySound = false,
                 CheckIntersections = false,
@@ -3764,12 +4053,20 @@ namespace Sandbox.Game.Entities
         {
             Debug.Assert(Skeleton != null, "Skeleton null in MultiplyBlockSkeleton!");
             Debug.Assert(Physics != null, "Physics null in MultiplyBlockSkeleton!");
+            if (Skeleton == null)
+            {
+                MyLog.Default.WriteLine("Skeleton null in MultiplyBlockSkeleton!" + this);
+            }
+            if (Physics == null)
+            {
+                MyLog.Default.WriteLine("Physics null in MultiplyBlockSkeleton!" + this);
+            }
 
-            if (block == null)
+            if (block == null || Skeleton == null || Physics == null)
                 return;
 
-            var min = block.Min * Skeleton.BoneDensity;
-            var max = block.Max * Skeleton.BoneDensity + Skeleton.BoneDensity;
+            var min = block.Min * MyGridSkeleton.BoneDensity;
+            var max = block.Max * MyGridSkeleton.BoneDensity + MyGridSkeleton.BoneDensity;
 
             bool bonesChanged = false;
 
@@ -4308,12 +4605,12 @@ namespace Sandbox.Game.Entities
 
                 m_tmpBoneSet.Clear();
                 ProfilerShort.Begin("GetExistingBones");
-                GetExistingBones(cubePos * Skeleton.BoneDensity + table.MinOffset, cubePos * Skeleton.BoneDensity + table.MaxOffset, m_tmpBoneSet);
+                GetExistingBones(cubePos * MyGridSkeleton.BoneDensity + table.MinOffset, cubePos * MyGridSkeleton.BoneDensity + table.MaxOffset, m_tmpBoneSet);
 
                 ProfilerShort.BeginNextBlock("table.OffsetTable");
                 foreach (var offset in table.OffsetTable)
                 {
-                    if (m_tmpBoneSet.ContainsKey(cubePos * Skeleton.BoneDensity + offset.Key))
+                    if (m_tmpBoneSet.ContainsKey(cubePos * MyGridSkeleton.BoneDensity + offset.Key))
                     {
                         boneOffset = offset.Key;
                         clamp = new Vector3(GridSizeHalf - random.NextFloat(0, gridSizeTenth));
@@ -4601,10 +4898,18 @@ namespace Sandbox.Game.Entities
             block.RemoveNeighbours();
             ProfilerShort.End();
 
+            ProfilerShort.Begin("Remove Ownership");
+            block.RemoveAuthorship();
+            if (OnAuthorshipChanged != null)
+                OnAuthorshipChanged(this);
+            ProfilerShort.End();
+
             ProfilerShort.Begin("Remove");
             m_cubeBlocks.Remove(block);
             if (block.FatBlock != null)
             {
+                if (block.FatBlock is MyReactor)
+                    NumberOfReactors--;
                 m_fatBlocks.Remove(block.FatBlock);
                 block.FatBlock.IsBeingRemoved = false;
             }
@@ -5177,8 +5482,8 @@ namespace Sandbox.Game.Entities
 
         public void GetExistingBones(Vector3I boneMin, Vector3I boneMax, Dictionary<Vector3I, MySlimBlock> resultSet, MyDamageInformation? damageInfo = null)
         {
-            Vector3I cubeMin = Vector3I.Floor((boneMin - Vector3I.One) / (float)Skeleton.BoneDensity);
-            Vector3I cubeMax = Vector3I.Ceiling((boneMax - Vector3I.One) / (float)Skeleton.BoneDensity);
+            Vector3I cubeMin = Vector3I.Floor((boneMin - Vector3I.One) / (float)MyGridSkeleton.BoneDensity);
+            Vector3I cubeMax = Vector3I.Ceiling((boneMax - Vector3I.One) / (float)MyGridSkeleton.BoneDensity);
             MyDamageInformation info = damageInfo.HasValue ? damageInfo.Value : default(MyDamageInformation);
             resultSet.Clear();
             Vector3I cube, boneBase;
@@ -5197,8 +5502,10 @@ namespace Sandbox.Game.Entities
                                     continue;
                             }
 
-                            boneBase = cube * Skeleton.BoneDensity;
-                            foreach (var offset in Skeleton.BoneOffsets)
+                            //TODO:perf: in plane of armor this leads to lot of overrides on block edges
+                            //3*3 = 9 bones are shared with neighbor - overriden in next iteration
+                            boneBase = cube * MyGridSkeleton.BoneDensity;
+                            foreach (var offset in Skeleton.BoneOffsets) 
                                 resultSet[boneBase + offset] = cubeInst.CubeBlock;
                         }
                     }
@@ -5207,7 +5514,7 @@ namespace Sandbox.Game.Entities
         private void MoveBone(ref Vector3I cubePos, ref Vector3I boneOffset, ref Vector3 moveDirection, ref float displacementLength, ref Vector3 clamp)
         {
             m_totalBoneDisplacement += displacementLength;
-            var pos = cubePos * Skeleton.BoneDensity + boneOffset;
+            var pos = cubePos * MyGridSkeleton.BoneDensity + boneOffset;
             var boneValue = Skeleton[pos] + moveDirection;
             Skeleton[pos] = Vector3.Clamp(boneValue, -clamp, clamp);
         }
@@ -5312,9 +5619,14 @@ namespace Sandbox.Game.Entities
             if (!IsOrientationsAligned(gridToMerge.WorldMatrix, this.WorldMatrix))
                 return false;
 
-            var blockPosInSecondGrid = block.Position - gridOffset;
+            var transform = gridToMerge.CalculateMergeTransform(this, -gridOffset);
+            Vector3I blockPosInSecondGrid;
+            Vector3I.Transform(ref block.Position, ref transform, out blockPosInSecondGrid);
+
+            MyBlockOrientation newOrientation = MatrixI.Transform(ref block.Orientation, ref transform);
             Quaternion blockOrientation;
-            block.Orientation.GetQuaternion(out blockOrientation);
+            newOrientation.GetQuaternion(out blockOrientation);
+
             var mountPoints = block.BlockDefinition.GetBuildProgressModelMountPoints(block.BuildLevelRatio);
             return CheckConnectivity(gridToMerge, block.BlockDefinition, mountPoints, ref blockOrientation, ref blockPosInSecondGrid);
         }
@@ -5352,9 +5664,7 @@ namespace Sandbox.Game.Entities
 
                             foreach (var blockInCompund in compoundInMergeGrid.GetBlocks())
                             {
-                                Base6Directions.Direction forward = transform.GetDirection(blockInCompund.Orientation.Forward);
-                                Base6Directions.Direction up = transform.GetDirection(blockInCompund.Orientation.Up);
-                                MyBlockOrientation newOrientation = new MyBlockOrientation(forward, up);
+                                MyBlockOrientation newOrientation = MatrixI.Transform(ref blockInCompund.Orientation, ref transform);
 
                                 if (!localCompoundBlock.CanAddBlock(blockInCompund.BlockDefinition, newOrientation))
                                 {
@@ -5368,9 +5678,7 @@ namespace Sandbox.Game.Entities
                         }
                         else
                         {
-                            Base6Directions.Direction forward = transform.GetDirection(blockInMergeGrid.Orientation.Forward);
-                            Base6Directions.Direction up = transform.GetDirection(blockInMergeGrid.Orientation.Up);
-                            MyBlockOrientation newOrientation = new MyBlockOrientation(forward, up);
+                            MyBlockOrientation newOrientation = MatrixI.Transform(ref blockInMergeGrid.Orientation, ref transform);
 
                             if (localCompoundBlock.CanAddBlock(blockInMergeGrid.BlockDefinition, newOrientation))
                                 continue;
@@ -5646,6 +5954,7 @@ namespace Sandbox.Game.Entities
                 ProfilerShort.Begin("Remove Neighbours");
                 block.RemoveNeighbours();
                 ProfilerShort.End();
+                block.RemoveAuthorship();
             }
             ProfilerShort.End();
 
@@ -5841,50 +6150,60 @@ namespace Sandbox.Game.Entities
             ProfilerShort.Begin("OnBlockAdded");
             NotifyBlockAdded(block);
             ProfilerShort.End();
+
+            ProfilerShort.Begin("AddAuthorship");
+            block.AddAuthorship();
+            if (OnAuthorshipChanged != null)
+                OnAuthorshipChanged(this);
+            ProfilerShort.End();
         }
 
-        private bool IsDamaged(Vector3I blockPos, Vector3I boneOffset, float epsilon = 0.04f)
+        private bool IsDamaged(Vector3I bonePos, float epsilon = 0.04f)
         {
-            return !MyUtils.IsZero(Skeleton.GetBone(blockPos, boneOffset), epsilon * GridSize);
+            Vector3 bone;
+            if(Skeleton.TryGetBone(ref bonePos, out bone))
+                return !MyUtils.IsZero(ref bone, epsilon * GridSize);
+            return false;
         }
 
         private void AddBlockEdges(MySlimBlock block)
         {
-            Vector3 position = block.Position * GridSize;
-            Matrix blockOrientation;
-            block.Orientation.GetMatrix(out blockOrientation);
-
-            Matrix blockTransformMatrix = blockOrientation;
-            blockTransformMatrix.Translation = position;
-
             var definition = block.BlockDefinition;
-            if (definition.BlockTopology == MyBlockTopology.Cube)
+            if (definition.BlockTopology == MyBlockTopology.Cube && definition.CubeDefinition != null)
             {
                 if (!definition.CubeDefinition.ShowEdges)
                     return;
+
+                Vector3 position = block.Position * GridSize;
+                Matrix blockTransformMatrix;
+                block.Orientation.GetMatrix(out blockTransformMatrix);
+
+                blockTransformMatrix.Translation = position;
+
                 var info = MyCubeGridDefinitions.GetTopologyInfo(definition.CubeDefinition.CubeTopology);
 
+                var baseBonePos = block.Position * MyGridSkeleton.BoneDensity + Vector3I.One;
                 foreach (var edge in info.Edges)
                 {
-                    Vector3 point0 = Vector3.Transform(edge.Point0, blockOrientation);
-                    Vector3 point1 = Vector3.Transform(edge.Point1, blockOrientation);
+                    Vector3 point0 = Vector3.TransformNormal(edge.Point0, block.Orientation);
+                    Vector3 point1 = Vector3.TransformNormal(edge.Point1, block.Orientation);
                     Vector3 middle = (point0 + point1) * 0.5f;
 
-                    if (IsDamaged(block.Position, Vector3I.Round(point0) + Vector3I.One) ||
-                        IsDamaged(block.Position, Vector3I.Round(middle) + Vector3I.One) ||
-                        IsDamaged(block.Position, Vector3I.Round(point1) + Vector3I.One))
+                    if (IsDamaged(baseBonePos + Vector3I.Round(point0)) ||
+                        IsDamaged(baseBonePos + Vector3I.Round(middle)) ||
+                        IsDamaged(baseBonePos + Vector3I.Round(point1)))
                         continue;
 
-                    point0 = Vector3.Transform(edge.Point0 * GridSizeHalf, blockTransformMatrix);
-                    point1 = Vector3.Transform(edge.Point1 * GridSizeHalf, blockTransformMatrix);
+                    point0 = Vector3.Transform(edge.Point0 * GridSizeHalf, ref blockTransformMatrix);
+                    point1 = Vector3.Transform(edge.Point1 * GridSizeHalf, ref blockTransformMatrix);
 
-                    Vector3 normal0 = Vector3.Transform(info.Tiles[edge.Side0].Normal, blockTransformMatrix.GetOrientation());
-                    Vector3 normal1 = Vector3.Transform(info.Tiles[edge.Side1].Normal, blockTransformMatrix.GetOrientation());
+                    Vector3 normal0 = Vector3.TransformNormal(info.Tiles[edge.Side0].Normal, block.Orientation);
+                    Vector3 normal1 = Vector3.TransformNormal(info.Tiles[edge.Side1].Normal, block.Orientation);
 
                     // Saturation and Value is offset, from -1 to 1, it must be normalized
                     var hsvNormalized = block.ColorMaskHSV;
-                    hsvNormalized.Y = (hsvNormalized.Y + 1) / 2;
-                    hsvNormalized.Z = (hsvNormalized.Z + 1) / 2;
+                    hsvNormalized.Y = (hsvNormalized.Y + 1) * 0.5f;
+                    hsvNormalized.Z = (hsvNormalized.Z + 1) * 0.5f;
 
                     Render.RenderData.AddEdgeInfo(ref point0, ref point1, ref normal0, ref normal1, new Color(hsvNormalized), block);
                 }
@@ -5893,14 +6212,14 @@ namespace Sandbox.Game.Entities
 
         private void RemoveBlockEdges(MySlimBlock block)
         {
-            Vector3 position = block.Position * GridSize;
-            Matrix blockTransformMatrix;
-            block.Orientation.GetMatrix(out blockTransformMatrix);
-            blockTransformMatrix.Translation = position;
-
             var definition = block.BlockDefinition;
-            if (definition.BlockTopology == MyBlockTopology.Cube)
+            if (definition.BlockTopology == MyBlockTopology.Cube && definition.CubeDefinition != null)
             {
+                Vector3 position = block.Position * GridSize;
+                Matrix blockTransformMatrix;
+                block.Orientation.GetMatrix(out blockTransformMatrix);
+                blockTransformMatrix.Translation = position;
+
                 var info = MyCubeGridDefinitions.GetTopologyInfo(definition.CubeDefinition.CubeTopology);
                 Vector3 point0, point1;
                 foreach (var edge in info.Edges)
@@ -6314,47 +6633,36 @@ namespace Sandbox.Game.Entities
             var localSphere = new BoundingSphereD(box.Center, sphere.Radius);
             BoundingBoxD blockBox = new BoundingBoxD();
 
-            Vector3I_RangeIterator it = new Vector3I_RangeIterator(ref startIt, ref endIt);
-            var pos = it.Current;
-            for (; it.IsValid(); it.GetNext(out pos))
+            if ((endIt - startIt).Volume() < m_cubes.Count)
             {
-                if (m_cubes.ContainsKey(pos))
+                Vector3I_RangeIterator it = new Vector3I_RangeIterator(ref startIt, ref endIt);
+                var pos = it.Current;
+                MyCube cube;
+                for (; it.IsValid(); it.GetNext(out pos))
                 {
-                    var block = m_cubes[pos].CubeBlock;
-                    blockBox.Min = block.Min * GridSize - GridSizeHalf;
-                    blockBox.Max = block.Max * GridSize + GridSizeHalf;
+                    if (m_cubes.TryGetValue(pos,out cube))
+                    {
+                        var block = cube.CubeBlock;
+                        blockBox.Min = block.Min*GridSize - GridSizeHalf;
+                        blockBox.Max = block.Max*GridSize + GridSizeHalf;
+                        if (blockBox.Intersects(localSphere))
+                        {
+                            blocks.Add(block);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (var value in m_cubes.Values)
+                {
+                    var block = value.CubeBlock;
+                    blockBox.Min = block.Min*GridSize - GridSizeHalf;
+                    blockBox.Max = block.Max*GridSize + GridSizeHalf;
                     if (blockBox.Intersects(localSphere))
                     {
                         blocks.Add(block);
                     }
-                }
-            }
-        }
-
-        public void GetBlocksInsideBigSphere(ref BoundingSphereD sphere, HashSet<MySlimBlock> blocks)
-        {
-            blocks.Clear();
-
-            BoundingBoxD box = new BoundingBoxD(sphere.Center - new Vector3D(sphere.Radius), sphere.Center + new Vector3D(sphere.Radius));
-
-            box = box.TransformFast(this.PositionComp.WorldMatrixNormalizedInv);
-            Vector3D min = box.Min;
-            Vector3D max = box.Max;
-            Vector3I start = new Vector3I((int)Math.Round(min.X / GridSize), (int)Math.Round(min.Y / GridSize), (int)Math.Round(min.Z / GridSize));
-            Vector3I end = new Vector3I((int)Math.Round(max.X / GridSize), (int)Math.Round(max.Y / GridSize), (int)Math.Round(max.Z / GridSize));
-
-            Vector3I startIt = Vector3I.Min(start, end);
-            Vector3I endIt = Vector3I.Max(start, end);
-
-            var localSphere = new BoundingSphereD(box.Center, sphere.Radius);
-
-            foreach (var value in m_cubes.Values)
-            {
-                var block = value.CubeBlock;
-                BoundingBoxD blockBox = new BoundingBoxD(block.Min * GridSize - GridSizeHalf, block.Max * GridSize + GridSizeHalf);
-                if (blockBox.Intersects(localSphere))
-                {
-                    blocks.Add(block);
                 }
             }
         }
@@ -6800,19 +7108,12 @@ namespace Sandbox.Game.Entities
 
             m_processedBlocks.Clear();
 
-            BoundingBoxD box = new BoundingBoxD(sphere3.Center - new Vector3D(sphere3.Radius), sphere3.Center + new Vector3D(sphere3.Radius));
-
-            box = box.TransformFast(ref invWorldGrid);
-            Vector3D min = box.Min;
-            Vector3D max = box.Max;
             Vector3D center;
             Vector3D.Transform(ref sphere3.Center, ref invWorldGrid, out center);
 
-            Vector3I start = new Vector3I((int)Math.Round(min.X * GridSizeR), (int)Math.Round(min.Y * GridSizeR), (int)Math.Round(min.Z * GridSizeR));
-            Vector3I end = new Vector3I((int)Math.Round(max.X * GridSizeR), (int)Math.Round(max.Y * GridSizeR), (int)Math.Round(max.Z * GridSizeR));
 
-            Vector3I startIt = Vector3I.Min(start, end);
-            Vector3I endIt = Vector3I.Max(start, end);
+            Vector3I startIt = Vector3I.Round((center - sphere3.Radius) * GridSizeR);
+            Vector3I endIt = Vector3I.Round((center + sphere3.Radius) * GridSizeR);
 
             var halfSize = new Vector3(detectionBlockHalfSize);
             var localSphere1 = new BoundingSphereD(center, sphere1.Radius);
@@ -6822,15 +7123,17 @@ namespace Sandbox.Game.Entities
             int cellsToCheck = (endIt.X - startIt.X) * (endIt.Y - startIt.Y) * (endIt.Z - startIt.Z);
             if (cellsToCheck < m_cubes.Count)
             {
-                for (int i = startIt.X; i <= endIt.X; i++)
+                Vector3I cubePos = new Vector3I();
+                MyCube cube;
+                for (cubePos.X = startIt.X; cubePos.X <= endIt.X; cubePos.X++)
                 {
-                    for (int j = startIt.Y; j <= endIt.Y; j++)
+                    for (cubePos.Y = startIt.Y; cubePos.Y <= endIt.Y; cubePos.Y++)
                     {
-                        for (int k = startIt.Z; k <= endIt.Z; k++)
+                        for (cubePos.Z = startIt.Z; cubePos.Z <= endIt.Z; cubePos.Z++)
                         {
-                            if (m_cubes.ContainsKey(new Vector3I(i, j, k)))
+                            if (m_cubes.TryGetValue(cubePos, out cube))
                             {
-                                var block = m_cubes[new Vector3I(i, j, k)].CubeBlock;
+                                var block = cube.CubeBlock;
 
                                 if (block.FatBlock != null && m_processedBlocks.Contains(block.FatBlock))
                                 {
@@ -6857,17 +7160,18 @@ namespace Sandbox.Game.Entities
                                     blockBox = new BoundingBox(block.Position * GridSize - halfSize, block.Position * GridSize + halfSize);
                                 }
 
-                                if (blockBox.Intersects(localSphere1))
+                                //If biggest sphere fails no need to check the rest
+                                if (blockBox.Intersects(localSphere3))
                                 {
-                                    blocks1.Add(block);
-                                }
-                                else if (blockBox.Intersects(localSphere2))
-                                {
-                                    blocks2.Add(block);
-                                }
-                                else if (blockBox.Intersects(localSphere3))
-                                {
-                                    blocks3.Add(block);
+                                    if (blockBox.Intersects(localSphere2))
+                                    {
+                                        if(blockBox.Intersects(localSphere1))
+                                            blocks1.Add(block);
+                                        else
+                                            blocks2.Add(block);
+                                    }
+                                    else
+                                        blocks3.Add(block);
                                 }
                             }
                         }
@@ -6904,17 +7208,18 @@ namespace Sandbox.Game.Entities
                         blockBox = new BoundingBox(block.Position * GridSize - halfSize, block.Position * GridSize + halfSize);
                     }
 
-                    if (blockBox.Intersects(localSphere1))
+                    //If biggest sphere fails no need to check the rest
+                    if (blockBox.Intersects(localSphere3))
                     {
-                        blocks1.Add(block);
-                    }
-                    else if (blockBox.Intersects(localSphere2))
-                    {
-                        blocks2.Add(block);
-                    }
-                    else if (blockBox.Intersects(localSphere3))
-                    {
-                        blocks3.Add(block);
+                        if (blockBox.Intersects(localSphere2))
+                        {
+                            if (blockBox.Intersects(localSphere1))
+                                blocks1.Add(block);
+                            else
+                                blocks2.Add(block);
+                        }
+                        else
+                            blocks3.Add(block);
                     }
                 }
             }
@@ -7262,10 +7567,10 @@ namespace Sandbox.Game.Entities
                 m_grid = Container.Entity as MyCubeGrid;
             }
 
-            protected override void OnWorldPositionChanged(object source)
+            protected override void OnWorldPositionChanged(object source, bool updateChildren)
             {
                 m_grid.m_worldPositionChanged = true;
-                base.OnWorldPositionChanged(source);
+                base.OnWorldPositionChanged(source, updateChildren);
             }
 
         }
@@ -7502,10 +7807,16 @@ namespace Sandbox.Game.Entities
         [Event, Reliable, Server]
         private void PasteBlocksToGridServer_Implementation(List<MyObjectBuilder_CubeGrid> gridsToMerge, long inventoryEntityId, bool multiBlock, bool instantBuild)
         {
-            bool isAdmin = (MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerAdminRights(MyEventContext.Current.Sender.Value));
+            if (!MyEventContext.Current.IsLocallyInvoked && !MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value))
+            {
+                MyEventContext.ValidationFailed();
+                return;
+            }
+            bool isAdmin = (MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value));
 
             MyEntities.RemapObjectBuilderCollection(gridsToMerge);
-            PasteBlocks(gridsToMerge);
+            MatrixI mergeTransform = PasteBlocksServer(gridsToMerge);
+
             if ((isAdmin && instantBuild) == false)
             {
                 MyEntity entity;
@@ -7530,13 +7841,13 @@ namespace Sandbox.Game.Entities
                 }
             }
 
-            MyMultiplayer.RaiseEvent(this, x => x.PasteBlocksToGridClient_Implementation, gridsToMerge);
+            MyMultiplayer.RaiseEvent(this, x => x.PasteBlocksToGridClient_Implementation, gridsToMerge[0], mergeTransform);
         }
 
         [Event, Reliable, Broadcast]
-        private void PasteBlocksToGridClient_Implementation(List<MyObjectBuilder_CubeGrid> gridsToMerge)
+        private void PasteBlocksToGridClient_Implementation(MyObjectBuilder_CubeGrid gridToMerge, MatrixI mergeTransform)
         {
-            PasteBlocks(gridsToMerge);
+            PasteBlocksClient(gridToMerge, mergeTransform);
         }
 
         public void UpdateOxygenAmount(float[] oxygenAmount)
@@ -7559,30 +7870,32 @@ namespace Sandbox.Game.Entities
             }
         }
 
-        private void PasteBlocks(List<MyObjectBuilder_CubeGrid> gridsToMerge)
+        private void PasteBlocksClient(MyObjectBuilder_CubeGrid gridToMerge, MatrixI mergeTransform)
         {
+            var pastedGrid = MyEntities.CreateFromObjectBuilder(gridToMerge) as MyCubeGrid;
+            pastedGrid.SentFromServer = true;
+            MyEntities.Add(pastedGrid);
+            MySession.Static.TotalBlocksCreated += (uint)pastedGrid.BlocksCount;
+            MergeGridInternal(pastedGrid, ref mergeTransform);
+        }
+
+        private MatrixI PasteBlocksServer(List<MyObjectBuilder_CubeGrid> gridsToMerge)
+        {
+            Debug.Assert(Sync.IsServer);
             MyCubeGrid firstEntity = null;
-            int i = 0;
             foreach (var gridbuilder in gridsToMerge)
             {
                 var pastedGrid = MyEntities.CreateFromObjectBuilder(gridbuilder) as MyCubeGrid;
-                if (i == 0)
-                {
+                if (firstEntity == null)
                     firstEntity = pastedGrid;
-                }
-                i++;
                 MyEntities.Add(pastedGrid);
                 MySession.Static.TotalBlocksCreated += (uint)pastedGrid.BlocksCount;
             }
 
-            MatrixI mergingTransform = CalculateMergeTransform(firstEntity, WorldToGridInteger(firstEntity.PositionComp.GetPosition()));
+            MatrixI mergingTransform = CalculateMergeTransform(firstEntity,
+                WorldToGridInteger(firstEntity.PositionComp.GetPosition()));
             MergeGridInternal(firstEntity, ref mergingTransform, false);
-
-            if (Sync.IsServer)
-            {
-                MyMultiplayer.RefreshChild(firstEntity);
-                MyMultiplayer.RefreshChild(this);
-            }
+            return mergingTransform;
         }
 
         public static bool CanPasteGrid()
@@ -7958,7 +8271,7 @@ namespace Sandbox.Game.Entities
         public MySlimBlock GetTargetedBlock(Vector3D position)
         {
             Vector3I blockPos;
-            FixTargetCube(out blockPos, Vector3D.Transform(position, PositionComp.WorldMatrixNormalizedInv) / GridSize);
+            FixTargetCube(out blockPos, Vector3D.Transform(position, PositionComp.WorldMatrixNormalizedInv) * GridSizeR);
             return GetCubeBlock(blockPos);
         }
 
@@ -7967,7 +8280,7 @@ namespace Sandbox.Game.Entities
         public static void TryCreateGrid_Implementation(MyCubeSize cubeSize, bool isStatic, MyPositionAndOrientation position, long inventoryEntityId, bool instantBuild)
         {
             string prefabName;
-            bool isAdmin = (MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerAdminRights(MyEventContext.Current.Sender.Value));
+            bool isAdmin = (MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value));
 
             MyDefinitionManager.Static.GetBaseBlockPrefabName(cubeSize, isStatic, MySession.Static.CreativeMode || (instantBuild && isAdmin), out prefabName);
 
@@ -8029,103 +8342,258 @@ namespace Sandbox.Game.Entities
             AfterPaste(results, Vector3.Zero, false);
         }
 
-        [Event, Reliable, Server]
-        public static void TryPasteGrid_Implementation(List<MyObjectBuilder_CubeGrid> entities, bool detectDisconnects, long inventoryEntityId, Vector3 objectVelocity, bool multiBlock,
-            bool instantBuild)
+        /// <summary>
+        /// Use only for cut request
+        /// </summary>
+        public void SendGridCloseRequest()
         {
-            bool isAdmin = (MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerAdminRights(MyEventContext.Current.Sender.Value));
+            MyMultiplayer.RaiseStaticEvent(s => OnGridClosedRequest, EntityId);
+        }
 
-            bool validBattlePaste = false;
-            if (MySession.Static.Battle)
+        [Event, Reliable, Server]
+        static void OnGridClosedRequest(long entityId)
+        {
+            if (!MyEventContext.Current.IsLocallyInvoked && !MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value))
             {
-                long identityId = Sync.Players.TryGetIdentityId(MyEventContext.Current.Sender.Value);
-                var faction = MySession.Static.Factions.TryGetPlayerFaction(identityId);
-                if (faction != null && faction.IsLeader(identityId))
-                    validBattlePaste = true;
-            }
-
-            if (MySession.Static.SurvivalMode && !validBattlePaste && !isAdmin)
-            {
+                MyEventContext.ValidationFailed();
                 return;
             }
+            MyEntity entity;
+            MyEntities.TryGetEntityById(entityId, out entity);
+            if (entity == null)
+                return;
 
-            MyEntities.RemapObjectBuilderCollection(entities);
-
-            if ((instantBuild && isAdmin) == false)
+            foreach (var block in (entity as MyCubeGrid).GetBlocks())
             {
-                MyEntity inventoryOwner;
-                if (MyEntities.TryGetEntityById(inventoryEntityId, out inventoryOwner) && inventoryOwner != null)
+                block.RemoveAuthorship();
+                var cockpit = block.FatBlock as MyCockpit;
+                if (cockpit != null && cockpit.Pilot != null)
+                    cockpit.Use();
+            }
+
+            // Test right to closing entity (e.g. is creative mode?)
+            if (!entity.MarkedForClose)
+                entity.Close(); // close only on server, server uses replication to propagate it to clients
+        }
+
+        private class PasteGridData : ParallelTasks.WorkData
+        {
+            List<MyObjectBuilder_CubeGrid> m_entities;
+            bool m_detectDisconnects;
+            long m_inventoryEntityId; 
+            Vector3 m_objectVelocity;
+            bool m_multiBlock;
+            bool m_instantBuild;
+            List<MyCubeGrid> m_results;
+            bool m_canPlaceGrid;
+            List<IMyEntity> m_resultIDs;
+            bool m_removeScripts;
+            //GK: Added minimum event info, because at parallel task completion (OnPasteCompleted) we no longer have MyEventContext.Current
+            public readonly EndpointId SenderEndpointId;
+            public readonly bool IsLocallyInvoked;
+
+            public PasteGridData(List<MyObjectBuilder_CubeGrid> entities, bool detectDisconnects, long inventoryEntityId, Vector3 objectVelocity, bool multiBlock,
+            bool instantBuild, bool shouldRemoveScripts, EndpointId senderEndpointId, bool isLocallyInvoked)
+            {
+                m_entities = new List<MyObjectBuilder_CubeGrid>(entities);
+                m_detectDisconnects = detectDisconnects;
+                m_inventoryEntityId = inventoryEntityId;
+                m_objectVelocity = objectVelocity;
+                m_multiBlock = multiBlock;
+                m_instantBuild = instantBuild;
+                SenderEndpointId = senderEndpointId;
+                IsLocallyInvoked = isLocallyInvoked;
+                m_removeScripts = shouldRemoveScripts;
+            }
+
+            public void TryPasteGrid()
+            {
+                bool isAdmin = (MyEventContext.Current.IsLocallyInvoked || MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value));
+
+                bool validBattlePaste = false;
+
+                if (MySession.Static.SurvivalMode && !validBattlePaste && !isAdmin)
                 {
-                    // TODO: If there's not enough materials, it should return false!
-                    if (multiBlock)
+                    return;
+                }
+
+                //Fix for when the player wants to paste a ship with the same object builder multiple times. Should be done in a less performance heavy way if possible
+                for (int i = 0; i < m_entities.Count; i++)
+                {
+                    m_entities[i] = (MyObjectBuilder_CubeGrid)m_entities[i].Clone();
+                }
+
+                MyEntities.RemapObjectBuilderCollection(m_entities);
+
+                if (m_removeScripts)
+                {
+                    foreach (var grid in m_entities)
                     {
-                        MyMultiBlockClipboard.TakeMaterialsFromBuilder(entities, inventoryOwner);
-                    }
-                    else
-                    {
-                        MyInventoryBase buildInventory = MyCubeBuilder.BuildComponent.GetBuilderInventory(inventoryOwner);
-                        if (buildInventory != null)
+                        foreach (var block in grid.CubeBlocks)
                         {
-                            MyGridClipboard.CalculateItemRequirements(entities, m_buildComponents);
-                            foreach (var item in m_buildComponents.TotalMaterials)
+                            var programmable = block as MyObjectBuilder_MyProgrammableBlock;
+                            if (programmable == null)
+                                continue;
+
+                            programmable.Program = null;
+                        }
+                    }
+                }
+
+                if ((m_instantBuild && isAdmin) == false)
+                {
+                    MyEntity inventoryOwner;
+                    if (MyEntities.TryGetEntityById(m_inventoryEntityId, out inventoryOwner) && inventoryOwner != null)
+                    {
+                        // TODO: If there's not enough materials, it should return false!
+                        if (m_multiBlock)
+                        {
+                            MyMultiBlockClipboard.TakeMaterialsFromBuilder(m_entities, inventoryOwner);
+                        }
+                        else
+                        {
+                            MyInventoryBase buildInventory = MyCubeBuilder.BuildComponent.GetBuilderInventory(inventoryOwner);
+                            if (buildInventory != null)
                             {
-                                buildInventory.RemoveItemsOfType(item.Value, item.Key);
+                                MyGridClipboard.CalculateItemRequirements(m_entities, m_buildComponents);
+                                foreach (var item in m_buildComponents.TotalMaterials)
+                                {
+                                    buildInventory.RemoveItemsOfType(item.Value, item.Key);
+                                }
                             }
                         }
                     }
                 }
+
+                m_results = new List<MyCubeGrid>();
+
+                MyEntityIdentifier.LazyInitPerThreadStorage(2048);
+
+                m_canPlaceGrid = true;
+                foreach (var entity in m_entities)
+                {
+                    MySandboxGame.Log.WriteLine("CreateCompressedMsg: Type: " + entity.GetType().Name.ToString() + "  Name: " + entity.Name + "  EntityID: " + entity.EntityId.ToString("X8"));
+                    MyCubeGrid grid = MyEntities.CreateFromObjectBuilder(entity, false) as MyCubeGrid;
+                    m_results.Add(grid);
+
+                    m_canPlaceGrid &= TestPastedGridPlacement(grid);
+                    if (m_canPlaceGrid == false)
+                    {
+                        break;
+                    }
+
+                    if (m_instantBuild && isAdmin)
+                    {
+                        ChangeOwnership(m_inventoryEntityId, grid);
+                    }
+
+                    MySandboxGame.Log.WriteLine("Status: Exists(" + MyEntities.EntityExists(entity.EntityId) + ") InScene(" + ((entity.PersistentFlags & MyPersistentEntityFlags2.InScene) == MyPersistentEntityFlags2.InScene) + ")");
+                }
+
+                m_resultIDs = new List<VRage.ModAPI.IMyEntity>();
+                MyEntityIdentifier.GetPerThreadEntities(m_resultIDs);
+                MyEntityIdentifier.ClearPerThreadEntities();
             }
 
-            List<MyCubeGrid> results = new List<MyCubeGrid>();
-
-            bool canPlaceGrid = true;
-            foreach (var entity in entities)
+            private bool TestPastedGridPlacement(MyCubeGrid grid)
             {
-                MySandboxGame.Log.WriteLine("CreateCompressedMsg: Type: " + entity.GetType().Name.ToString() + "  Name: " + entity.Name + "  EntityID: " + entity.EntityId.ToString("X8"));
-
-                // This does not work, because EntityCreation is not supported on separate thread
-                //MyEntities.CreateAsync(entity, false, (e) => results.Add((MyCubeGrid)e));
-
-                MyCubeGrid grid = MyEntities.CreateFromObjectBuilder(entity) as MyCubeGrid;
-                results.Add(grid);
-
                 var settings = MyClipboardComponent.ClipboardDefinition.PastingSettings.GetGridPlacementSettings(grid.GridSizeEnum, grid.IsStatic);
-                canPlaceGrid &= TestPlacementArea(grid, grid.IsStatic, ref settings, (BoundingBoxD)grid.PositionComp.LocalAABB, !grid.IsStatic);
-                if (canPlaceGrid == false)
-                {
-                    break;
-                }
-
-                if (instantBuild && isAdmin)
-                {
-                    ChangeOwnership(inventoryEntityId, grid);
-                }
-
-                MySandboxGame.Log.WriteLine("Status: Exists(" + MyEntities.EntityExists(entity.EntityId) + ") InScene(" + ((entity.PersistentFlags & MyPersistentEntityFlags2.InScene) == MyPersistentEntityFlags2.InScene) + ")");
+                return TestPlacementArea(grid, grid.IsStatic, ref settings, (BoundingBoxD)grid.PositionComp.LocalAABB, !grid.IsStatic);
             }
 
-            if (canPlaceGrid)
+            public void Callback()
             {
-                AfterPaste(results, objectVelocity, detectDisconnects);
-            }
-            else
-            {
-                foreach (var grid in results)
+                if (!IsLocallyInvoked)
                 {
-                    grid.Close();
+                    MyMultiplayer.RaiseStaticEvent(s => MyCubeGrid.SendHudNotificationAfterPaste, SenderEndpointId);
                 }
+                else if (!MySandboxGame.IsDedicated)
+                {
+                    MyHud.PopRotatingWheelVisible();
+                }
+                if (m_canPlaceGrid && m_results.Count > 0)
+                {
+                    foreach (var entity in m_resultIDs)
+                    {
+                        VRage.ModAPI.IMyEntity foundEntity;
+                        MyEntityIdentifier.TryGetEntity(entity.EntityId, out foundEntity);
+                        if (foundEntity == null)
+                            MyEntityIdentifier.AddEntityWithId(entity);
+                        else
+                            Debug.Fail("Two threads added the same entity");
+                    }
 
-                if(!MyEventContext.Current.IsLocallyInvoked)
+                    foreach (var grid in m_results)
+                    {
+                        m_canPlaceGrid &= TestPastedGridPlacement(grid);
+                    }
+                    if (m_canPlaceGrid)
+                        AfterPaste(m_results, m_objectVelocity, m_detectDisconnects);
+                }
+                else
                 {
-                    MyMultiplayer.RaiseStaticEvent(s => MyCubeGrid.ShowPasteFailedOperation,MyEventContext.Current.Sender);
+                    foreach (var grid in m_results)
+                    {
+                        grid.Close();
+                    }
+
+                    if (!IsLocallyInvoked)
+                    {
+                        MyMultiplayer.RaiseStaticEvent(s => MyCubeGrid.ShowPasteFailedOperation, SenderEndpointId);
+                    }
                 }
             }
+        }
+
+        [Event, Reliable, Server]
+        public static void TryPasteGrid_Implementation(List<MyObjectBuilder_CubeGrid> entities, bool detectDisconnects, long inventoryEntityId, Vector3 objectVelocity, bool multiBlock,
+            bool instantBuild)
+        {
+            if (!MyEventContext.Current.IsLocallyInvoked && !MySession.Static.IsCopyPastingEnabledForUser(MyEventContext.Current.Sender.Value)) //GK: Check the correct user that is the one of the current event context
+            {
+                MyEventContext.ValidationFailed();
+                MyMultiplayer.RaiseStaticEvent(s => MyCubeGrid.SendHudNotificationAfterPaste, MyEventContext.Current.Sender);
+                return;
+            }
+            bool shouldRemoveScripts = !MySession.Static.IsUserScripter(MyEventContext.Current.Sender.Value);
+            PasteGridData workData = new PasteGridData(entities, detectDisconnects, inventoryEntityId, objectVelocity, multiBlock, instantBuild, shouldRemoveScripts, MyEventContext.Current.Sender, MyEventContext.Current.IsLocallyInvoked);
+            Parallel.Start(TryPasteGrid_ImplementationInternal, OnPasteCompleted, workData);
+        }
+
+        static void TryPasteGrid_ImplementationInternal(WorkData workData)
+        {
+            PasteGridData pasteData = workData as PasteGridData;
+            if (pasteData == null)
+            {
+                workData.FlagAsFailed();
+                return;
+            }
+
+            pasteData.TryPasteGrid();
+        }
+
+        static void OnPasteCompleted(WorkData workData)
+        {
+            PasteGridData pasteData = workData as PasteGridData;
+            if (pasteData == null)
+            {
+                workData.FlagAsFailed();
+                return;
+            }
+
+            pasteData.Callback();
         }
         
         [Event, Reliable, Client]
         public static void ShowPasteFailedOperation()
         {
             MyHud.Notifications.Add(MyNotificationSingletons.PasteFailed);
+        }
+
+        [Event, Reliable, Client]
+        public static void SendHudNotificationAfterPaste()
+        {
+            MyHud.PopRotatingWheelVisible();
         }
 
         private static void ChangeOwnership(long inventoryEntityId, MyCubeGrid grid)
@@ -8145,22 +8613,21 @@ namespace Sandbox.Game.Entities
         {
             foreach (var pastedGrid in grids)
             {
-                if (!MySession.Static.EnableConvertToStation && pastedGrid.IsStatic)
+                if (pastedGrid.IsStatic)
                 {
-                    pastedGrid.TestDynamic = true;
+                    pastedGrid.TestDynamic = MyCubeGrid.MyTestDynamicReason.GridCopied;
                 }
 
                 MyEntities.Add(pastedGrid);
 
                 if (pastedGrid.Physics != null)
                 {
-                    if (!pastedGrid.IsStatic && (!MyFakes.ENABLE_BATTLE_SYSTEM || !MySession.Static.Battle))
+                    if (!pastedGrid.IsStatic)
                     {
                         pastedGrid.Physics.LinearVelocity = objectVelocity;
                     }
 
-                    if (!pastedGrid.IsStatic && MySession.Static.ControlledEntity != null && MySession.Static.ControlledEntity.Entity.Physics != null
-                        && (!MyFakes.ENABLE_BATTLE_SYSTEM || !MySession.Static.Battle))
+                    if (!pastedGrid.IsStatic && MySession.Static.ControlledEntity != null && MySession.Static.ControlledEntity.Entity.Physics != null)
                     {
                         if (MySession.Static.ControlledEntity != null)
                             pastedGrid.Physics.AngularVelocity = MySession.Static.ControlledEntity.Entity.Physics.AngularVelocity;
@@ -8183,6 +8650,7 @@ namespace Sandbox.Game.Entities
                             break;
                     }
                 }
+                pastedGrid.IsReadyForReplication = true;
             }
 
             MatrixD worldMatrix = grids[0].PositionComp.WorldMatrix;
@@ -8644,6 +9112,11 @@ namespace Sandbox.Game.Entities
             MyCubeBlock block = null;
             int c = 0;
 
+            MyIdentity identity = MySession.Static.Players.TryGetIdentity(requestingPlayer);
+            MyPlayer player = identity != null ? MyPlayer.GetPlayerFromCharacter(identity.Character) : null;
+            if (identity != null && identity.Character != null && player != null && MySession.Static.IsUserSpaceMaster(player.Client.SteamUserId))
+                c = requests.Count;
+
             while (c < requests.Count)
             {
                 var request = requests[c];
@@ -8710,22 +9183,85 @@ namespace Sandbox.Game.Entities
             public ushort Id;
         }
 
-        public void SendControlThrust(Vector3B controlThrust)
+        #endregion
+
+        public override void SerializeControls(BitStream stream)
         {
-            if (m_thrustState.ShouldSend(controlThrust) && Sync.IsServer)
+            MyShipController shipController = null;
+            if (!IsStatic)
             {
-                MyMultiplayer.RaiseEvent(this, x => x.ApplyControlThrust, controlThrust);
+                shipController = GridSystems.ControlSystem.GetShipController();
+            }
+
+            if (shipController != null)
+            {
+                stream.WriteBool(true);
+                var netState = shipController.GetNetState();
+                netState.Serialize(stream);
+            }
+            else stream.WriteBool(false);
+        }
+
+        private MyGridNetState m_lastNetState;
+        public override void DeserializeControls(BitStream stream, bool outOfOrder)
+        {
+            var valid = stream.ReadBool();
+            if (valid)
+            {
+                var netState = new MyGridNetState(stream);
+                if (!outOfOrder)
+                    m_lastNetState = netState;
+
+                var shipController = GridSystems.ControlSystem.GetShipController();
+                if (shipController != null && !shipController.ControllerInfo.IsLocallyControlled())
+                    shipController.SetNetState(m_lastNetState);
+            }
+            else m_lastNetState.Valid = false;
+        }
+
+        public override void ApplyLastControls()
+        {
+            if (m_lastNetState.Valid)
+            {
+                var shipController = GridSystems.ControlSystem.GetShipController();
+                if (shipController != null && !shipController.ControllerInfo.IsLocallyControlled())
+                    shipController.SetNetState(m_lastNetState);
             }
         }
 
-        [Event, Reliable, Broadcast]
-        void ApplyControlThrust(Vector3B thrust)
+        #region VisualScripting
+
+        private List<long> m_targetingList = new List<long>();
+        private bool m_targetingListIsWhitelist = false;
+        private bool m_usesTargetingList = false;
+        public bool UsesTargetingList { get { return m_usesTargetingList; } }
+
+        public void TargetingAddId(long id)
         {
-            var thrustComp = Components.Get<MyEntityThrustComponent>();
-            if (thrustComp != null && GridSystems.ControlSystem.IsLocallyControlled == false && Sync.IsServer == false)
-            {
-                thrustComp.ControlThrust = new Vector3(thrust.X, thrust.Y, thrust.Z) / 127.0f;
-            }
+            if (!m_targetingList.Contains(id))
+                m_targetingList.Add(id);
+            m_usesTargetingList = m_targetingList.Count > 0 || m_targetingListIsWhitelist;
+        }
+
+        public void TargetingRemoveId(long id)
+        {
+            if (m_targetingList.Contains(id))
+                m_targetingList.Remove(id);
+            m_usesTargetingList = m_targetingList.Count > 0 || m_targetingListIsWhitelist;
+        }
+
+        public void TargetingSetWhitelist(bool whitelist)
+        {
+            m_targetingListIsWhitelist = whitelist;
+            m_usesTargetingList = m_targetingList.Count > 0 || m_targetingListIsWhitelist;
+        }
+
+        public bool TargetingCanAttackGrid(long id)
+        {
+            if (m_targetingListIsWhitelist)
+                return m_targetingList.Contains(id);
+            else
+                return !m_targetingList.Contains(id);
         }
 
         #endregion
@@ -8733,23 +9269,9 @@ namespace Sandbox.Game.Entities
 
     public class MyCubeGridHitInfo
     {
-        public MyIntersectionResultLineTriangleEx Triangle
-        {
-            get;
-            set;
-        }
-
-        public Vector3I Position
-        {
-            get;
-            set;
-        }
-
-        public int CubePartIndex
-        {
-            get;
-            set;
-        }
+        public MyIntersectionResultLineTriangleEx Triangle;
+        public Vector3I Position;
+        public int CubePartIndex = -1;
 
         public void Reset()
         {

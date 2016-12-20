@@ -68,11 +68,13 @@ namespace Sandbox.Game.Weapons
 
         protected override bool CheckIsWorking()
         {
-			return ResourceSink.IsPowered && base.CheckIsWorking();
+            return ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && base.CheckIsWorking();
         }
 
         private MyMultilineConveyorEndpoint m_conveyorEndpoint;
         private readonly Sync<bool> m_useConveyorSystem;
+        private MyEntity[] m_shootIgnoreEntities;   // for projectiles to know which entities to ignore
+
         public IMyConveyorEndpoint ConveyorEndpoint
         {
             get { return m_conveyorEndpoint; }
@@ -84,8 +86,15 @@ namespace Sandbox.Game.Weapons
             AddDebugRenderComponent(new MyDebugRenderComponentDrawConveyorEndpoint(m_conveyorEndpoint));
         }
 
+        public override bool IsStationary()
+        {
+            return true;
+        }
+
         public MySmallGatlingGun()
         {
+            m_shootIgnoreEntities = new MyEntity[] { this };
+
 #if XB1 // XB1_SYNC_NOREFLECTION
             m_useConveyorSystem = SyncType.CreateAndAddProp<bool>();
 #endif // XB1
@@ -117,11 +126,11 @@ namespace Sandbox.Game.Weapons
 #endif // !XB1
         }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MySmallGatlingGun>())
                 return;
-
+            base.CreateTerminalControls();
             var useConvSystem = new MyTerminalControlOnOffSwitch<MySmallGatlingGun>("UseConveyor", MySpaceTexts.Terminal_UseConveyorSystem);
             useConvSystem.Getter = (x) => (x).UseConveyorSystem;
             useConvSystem.Setter = (x, v) => (x).UseConveyorSystem = v;
@@ -170,7 +179,7 @@ namespace Sandbox.Game.Weapons
             sinkComp.Init(
                 weaponBlockDefinition.ResourceSinkGroup,
                 MyEnergyConstants.MAX_REQUIRED_POWER_SHIP_GUN,
-                () => ResourceSink.MaxRequiredInput);
+                () => ResourceSink.MaxRequiredInputByType(MyResourceDistributorComponent.ElectricityId));
             sinkComp.IsPoweredChanged += Receiver_IsPoweredChanged;
             ResourceSink = sinkComp;
 
@@ -430,7 +439,7 @@ namespace Sandbox.Game.Weapons
                 return false;
             }
 
-            if (!ResourceSink.IsPowered)
+            if (!ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
             {
                 status = MyGunStatusEnum.OutOfPower;
                 return false;
@@ -571,7 +580,7 @@ namespace Sandbox.Game.Weapons
         private void UpdatePower()
         {
 			ResourceSink.Update();
-			if (!ResourceSink.IsPowered)
+            if (!ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
                 StopLoopSound();
         }
 
@@ -656,9 +665,9 @@ namespace Sandbox.Game.Weapons
 
         #region IMyGunBaseUser
 
-        MyEntity IMyGunBaseUser.IgnoreEntity
+        MyEntity[] IMyGunBaseUser.IgnoreEntities
         {
-            get { return this; }
+            get { return m_shootIgnoreEntities; }
         }
 
         MyEntity IMyGunBaseUser.Weapon

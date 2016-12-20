@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Xml.Serialization;
 using VRage.ObjectBuilders;
 using VRage.Game.Definitions;
+using VRage.Game.ModAPI;
 using VRage.Library.Utils;
 
 
@@ -20,6 +21,8 @@ namespace VRage.Game
         ThirdPersonSpectator,
         SpectatorDelta,
         SpectatorFixed,
+        SpectatorOrbit,
+        SpectatorFreeMouse
     }
 
     [ProtoContract]
@@ -175,7 +178,7 @@ namespace VRage.Game
         public List<ModItem> Mods;
 
         [ProtoMember]
-        public List<ulong> PromotedUsers;
+        public SerializableDictionary<ulong, MyPromoteLevel> PromotedUsers;
 
         [ProtoMember]
         public SerializableDefinitionId Scenario = DEFAULT_SCENARIO;
@@ -267,8 +270,14 @@ namespace VRage.Game
         [ProtoMember]
         public string BriefingVideo;
 
+        public string CustomLoadingScreenImage;
+        public string CustomLoadingScreenText;
+        [ProtoMember]
+        public string CustomSkybox = "";
+
         [ProtoMember, DefaultValue(9)]
         public int RequiresDX = 9;
+
 
         #region obsolete
 

@@ -84,11 +84,11 @@ namespace SpaceEngineers.Game.Entities.Blocks
             m_isCountingDown.ValidateNever();
         }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MyTimerBlock>())
                 return;
-
+            base.CreateTerminalControls();
             var silent = new MyTerminalControlCheckbox<MyTimerBlock>("Silent", MySpaceTexts.BlockPropertyTitle_Silent, MySpaceTexts.ToolTipTimerBlock_Silent);
             silent.Getter = (x) => x.Silent;
             silent.Setter = (x, v) => x.Silent = v;
@@ -244,7 +244,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
             sinkComp.Init(
                 timerBlockDefinition.ResourceSinkGroup,
                 0.0000001f,
-                () => (Enabled && IsFunctional) ? ResourceSink.MaxRequiredInput : 0f);
+                () => (Enabled && IsFunctional) ? ResourceSink.MaxRequiredInputByType(MyResourceDistributorComponent.ElectricityId) : 0f);
             ResourceSink = sinkComp;
 
             base.Init(objectBuilder, cubeGrid);
@@ -301,6 +301,12 @@ namespace SpaceEngineers.Game.Entities.Blocks
                     Toolbar.UpdateItem(i);
                     Toolbar.ActivateItemAtIndex(i);
                 }
+
+                //Visual scripting action
+                if (CubeGrid.Physics != null && MyVisualScriptLogicProvider.TimerBlockTriggered != null)
+                    MyVisualScriptLogicProvider.TimerBlockTriggered(CustomName.ToString());
+                if (CubeGrid.Physics != null && !string.IsNullOrEmpty(Name) && MyVisualScriptLogicProvider.TimerBlockTriggeredEntityName != null)
+                    MyVisualScriptLogicProvider.TimerBlockTriggeredEntityName(Name);
             }
             UpdateEmissivity();
             DetailedInfo.Clear();
@@ -439,7 +445,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
         {
             UpdateIsWorking();
             // If no power, memory of the device is wiped.
-            if(!ResourceSink.IsPowered)
+            if (!ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
             {
                 this.ClearMemory();
             }
@@ -447,7 +453,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
 
         protected override bool CheckIsWorking()
         {
-			return ResourceSink.IsPowered && base.CheckIsWorking();
+            return ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && base.CheckIsWorking();
         }
 
         public override void OnAddedToScene(object source)

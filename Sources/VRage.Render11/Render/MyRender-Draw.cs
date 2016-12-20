@@ -45,7 +45,7 @@ namespace VRageRender
         static MyScreenshot? m_screenshot;
 
         static List<renderColoredTextureProperties> m_texturesToRender = new List<renderColoredTextureProperties>();
-
+        static readonly StringBuilder m_exceptionBuilder = new StringBuilder();
         internal static void Draw(bool draw = true)
         {
             try
@@ -69,7 +69,7 @@ namespace VRageRender
                     if (!(MyRender11.Settings.OffscreenSpritesRendering && m_drawScene))
                     {
                         ProcessDrawQueue();
-                        DrawSprites(MyRender11.Backbuffer);
+                        DrawSprites(MyRender11.Backbuffer, new MyViewport(MyRender11.ViewportResolution.X, MyRender11.ViewportResolution.Y));
                     }
 
                     MyFileTextureManager texManager = MyManagers.FileTextures;
@@ -93,13 +93,19 @@ namespace VRageRender
                 {
                     MyRender11.Log.WriteLine("Reason: " + Device.DeviceRemovedReason);
                 }
-                MyRender11.Log.DecreaseIndent();
 
+                // Include the stats
+                m_exceptionBuilder.Clear();
+                MyStatsUpdater.UpdateStats();
+                MyStatsDisplay.WriteTo(m_exceptionBuilder);
+                MyRender11.Log.WriteLine(m_exceptionBuilder.ToString());
+                MyRender11.Log.Flush();
+                MyRender11.Log.DecreaseIndent();
                 throw;
             }
         }
 
-        private static void DispatchDrawQueue()
+        private static void DispatchDrawQueue(bool ignoreDrawScene = false)
         {
             while (m_drawQueue.Count > 0)
             {
@@ -128,7 +134,8 @@ namespace VRageRender
                         }
                     case MyRenderMessageEnum.DrawScene:
                         {
-                            m_drawScene = true;
+                            if (!ignoreDrawScene)
+                                m_drawScene = true;
                             break;
                         }
                 }
@@ -314,7 +321,6 @@ namespace VRageRender
             UpdateSceneFrame();
             MyGpuProfiler.IC_EndBlock();
 
-            var testingDepth = MyRender11.MultisamplingEnabled ? MyScreenDependants.m_resolvedDepth : MyGBuffer.Main.DepthStencil;
             MyGpuProfiler.IC_BeginBlock("Clear");
             MyGBuffer.Main.Clear(VRageMath.Color.Black);
             MyGpuProfiler.IC_EndBlock();
@@ -326,8 +332,10 @@ namespace VRageRender
                 ProfilerShort.End();
             }
 
+            IBorrowedRtvTexture debugAmbientOcclusion; // TODO: Think of another way to get this texture to the DebugRenderer...
+
             ProfilerShort.Begin("DrawGameScene");
-            DrawGameScene(Backbuffer);
+            DrawGameScene(Backbuffer, out debugAmbientOcclusion);
             ProfilerShort.End();
             if (MyOpenVR.Static != null)
             {
@@ -351,19 +359,21 @@ namespace VRageRender
 
             ProfilerShort.Begin("MyDebugRenderer.Draw");
             MyGpuProfiler.IC_BeginBlock("MyDebugRenderer.Draw");
-            MyDebugRenderer.Draw(MyRender11.Backbuffer);
+            MyDebugRenderer.Draw(MyRender11.Backbuffer, debugAmbientOcclusion);
             MyGpuProfiler.IC_EndBlock();
             ProfilerShort.End();
 
+            debugAmbientOcclusion.Release();
+
             ProfilerShort.Begin("MyPrimitivesRenderer.Draw");
             MyGpuProfiler.IC_BeginBlock("MyPrimitivesRenderer.Draw");
-            MyPrimitivesRenderer.Draw(MyRender11.Backbuffer, testingDepth);
+            MyPrimitivesRenderer.Draw(MyRender11.Backbuffer);
             MyGpuProfiler.IC_EndBlock();
             ProfilerShort.End();
 
             ProfilerShort.Begin("MyLinesRenderer.Draw");
             MyGpuProfiler.IC_BeginBlock("MyLinesRenderer.Draw");
-            MyLinesRenderer.Draw(MyRender11.Backbuffer, testingDepth);
+            MyLinesRenderer.Draw(MyRender11.Backbuffer);
             MyGpuProfiler.IC_EndBlock();
             ProfilerShort.End();
 
@@ -372,7 +382,7 @@ namespace VRageRender
                 ProfilerShort.Begin("Screenshot");
                 if (m_screenshot.Value.SizeMult == Vector2.One)
                 {
-                    SaveScreenshotFromResource(Backbuffer.Resource);
+                    SaveScreenshotFromResource(Backbuffer);
                 }
                 else
                 {
@@ -387,7 +397,8 @@ namespace VRageRender
             ProfilerShort.End();
         }
 
-        public static IBorrowedRtvTexture DrawSpritesOffscreen(string textureName, int widht, int height)
+        public static IBorrowedRtvTexture DrawSpritesOffscreen(string textureName, int widht, int height,
+            Format format = Format.B8G8R8A8_UNorm, Color? clearColor = null)
         {
             if (String.IsNullOrEmpty(textureName))
                 textureName = DEFAULT_TEXTURE_TARGET;
@@ -398,12 +409,20 @@ namespace VRageRender
             if (height == -1)
                 height = MyRender11.ViewportResolution.Y;
 
-            var texture = MyManagers.RwTexturesPool.BorrowRtv(textureName, widht, height, Format.B8G8R8A8_UNorm);
-            if (!ProcessDrawSpritesQueue(textureName))
-                return texture;
+            var texture = MyManagers.RwTexturesPool.BorrowRtv(textureName, widht, height, format);
+            MyImmediateRC.RC.ClearRtv(texture, clearColor == null ? Color.Zero : clearColor.Value);
+            DispatchDrawQueue(true);
 
-            MyImmediateRC.RC.ClearRtv(texture, Color.Zero);
-            DrawSprites(texture);
+            MySpritesRenderer.PushState(new Vector2(widht, height));
+            bool processed = ProcessDrawSpritesQueue(textureName);
+            if (!processed)
+            {
+                MySpritesRenderer.PopState();
+                return texture;
+            }
+
+            DrawSprites(texture, new MyViewport(widht, height));
+            MySpritesRenderer.PopState();
             return texture;
         }
 
@@ -468,12 +487,12 @@ namespace VRageRender
         }
 
 
-        private static void DrawSprites(IRtvBindable texture)
+        private static void DrawSprites(IRtvBindable texture, MyViewport viewPort)
         {
             GetRenderProfiler().StartProfilingBlock("MySpritesRenderer.Draw");
             MyStatsUpdater.Timestamps.Update(ref MyStatsUpdater.Timestamps.PreDrawSprites_Draw);
             MyGpuProfiler.IC_BeginBlock("SpriteRenderer");
-            MySpritesRenderer.Draw(texture, new MyViewport(MyRender11.ViewportResolution.X, MyRender11.ViewportResolution.Y));
+            MySpritesRenderer.Draw(texture, viewPort);
             MyGpuProfiler.IC_EndBlock();
             MyStatsUpdater.Timestamps.Update(ref MyStatsUpdater.Timestamps.PostDrawSprites_Draw);
             GetRenderProfiler().EndProfilingBlock();

@@ -38,6 +38,7 @@ using VRage.Game.ModAPI;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Interfaces;
 using Sandbox.Engine.Multiplayer;
+using VRage.Audio;
 using VRage.Sync;
 using VRageRender.Import;
 using IMyEntity = VRage.ModAPI.IMyEntity;
@@ -142,7 +143,7 @@ namespace Sandbox.Game.Entities
         {
             base.UpdateAfterSimulation();
             // DA: Consider using havok fields (buoyancy demo) for gravity of planets.
-            Physics.RigidBody.Gravity = Sync.RelativeSimulationRatio * Sync.RelativeSimulationRatio * MyGravityProviderSystem.CalculateNaturalGravityInPoint(PositionComp.GetPosition());
+            Physics.RigidBody.Gravity = MyGravityProviderSystem.CalculateNaturalGravityInPoint(PositionComp.GetPosition());
 
             if (m_massChangeForCollisions < 1f)
             {
@@ -667,6 +668,11 @@ namespace Sandbox.Game.Entities
         [Event, Reliable, Server]
         void OnClosedRequest()
         {
+            if (!MySession.Static.CreativeMode && !MyEventContext.Current.IsLocallyInvoked && !MySession.Static.HasPlayerCreativeRights(MyEventContext.Current.Sender.Value))
+            {
+                MyEventContext.ValidationFailed();
+                return;
+            }
             Close();
         }
 

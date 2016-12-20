@@ -42,8 +42,6 @@ namespace Sandbox.Game.Entities.Cube
 #else // !XB1
         protected readonly Sync<float> m_dummyDisplacement;
 #endif // !XB1
-        protected event Action<MyMotorBase> AttachedEntityChanged;
-
 
         public Vector3 DummyPosition
         {
@@ -67,12 +65,19 @@ namespace Sandbox.Game.Entities.Cube
         public float DummyDisplacement
         {
             get { return m_dummyDisplacement + ModelDummyDisplacement; }
-            set { m_dummyDisplacement.Value = value - ModelDummyDisplacement; }
+            set
+            {
+                if (m_dummyDisplacement.Value.IsEqual(value - ModelDummyDisplacement))
+                    return;
+                m_dummyDisplacement.Value = value - ModelDummyDisplacement;
+                if(SafeConstraint != null)
+                    CubeGrid.Physics.RigidBody.Activate();
+            }
         }
 
-        public MyCubeGrid RotorGrid { get { return m_topGrid; } }
+        public MyCubeGrid RotorGrid { get { return TopGrid; } }
 
-        public MyCubeBlock Rotor { get { return m_topBlock; } }
+        public MyCubeBlock Rotor { get { return TopBlock; } }
 
         public float RequiredPowerInput { get { return MotorDefinition.RequiredPowerInput; } }
 
@@ -83,7 +88,7 @@ namespace Sandbox.Game.Entities.Cube
         public Vector3 RotorAngularVelocity
         {
             // TODO: Imho it would be better to read velocity from constraint
-            get { return CubeGrid.Physics.RigidBody.AngularVelocity - m_topGrid.Physics.RigidBody.AngularVelocity; }
+            get { return CubeGrid.Physics.RigidBody.AngularVelocity - TopGrid.Physics.RigidBody.AngularVelocity; }
         }
 
         public float MaxRotorAngularVelocity
@@ -94,7 +99,7 @@ namespace Sandbox.Game.Entities.Cube
    
         protected override bool CheckIsWorking()
         {
-            return ResourceSink.IsPowered && base.CheckIsWorking();
+            return ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && base.CheckIsWorking();
         }
 
         public override void Init(MyObjectBuilder_CubeBlock objectBuilder, MyCubeGrid cubeGrid)
@@ -105,7 +110,7 @@ namespace Sandbox.Game.Entities.Cube
             sinkComp.Init(
                 MotorDefinition.ResourceSinkGroup,
                 MotorDefinition.RequiredPowerInput,
-                () => (Enabled && IsFunctional) ? sinkComp.MaxRequiredInput : 0.0f);
+                () => (Enabled && IsFunctional) ? sinkComp.MaxRequiredInputByType(MyResourceDistributorComponent.ElectricityId) : 0.0f);
             sinkComp.IsPoweredChanged += Receiver_IsPoweredChanged;
             ResourceSink = sinkComp;
 
@@ -162,68 +167,9 @@ namespace Sandbox.Game.Entities.Cube
             }
         }
 
-        public override void OnBuildSuccess(long builtBy)
-        {
-            Debug.Assert(m_constraint == null);
-
-            if (Sync.IsServer)
-            {
-                CreateTopGrid(builtBy);
-            }
-
-            NeedsUpdate &= ~MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
-            base.OnBuildSuccess(builtBy);
-        }
-
-        public void RecreateRotor(long? builderId = null)
-        {
-            if (builderId.HasValue)
-            {
-                MyMultiplayer.RaiseEvent(this, x => x.DoRecreateRotor, builderId.Value);
-            }
-            else
-            {
-                MyMultiplayer.RaiseEvent(this, x => x.DoRecreateRotor, MySession.Static.LocalPlayerId);
-            }
-        }
-
-        [Event, Reliable, Server]
-        private void DoRecreateRotor(long builderId)
-        {
-            if (m_topBlock != null) return;
-
-            CreateTopGrid(builderId);
-        }
-
         protected override MatrixD GetTopGridMatrix()
         {
             return MatrixD.CreateWorld(Vector3D.Transform(DummyPosition, CubeGrid.WorldMatrix), WorldMatrix.Forward, WorldMatrix.Up);
-        }
-
-        protected override bool CanPlaceRotor(MyAttachableTopBlockBase rotorBlock, long builtBy)
-        {
-            return true;
-        }
-
-        public override void UpdateOnceBeforeFrame()
-        {
-            base.UpdateOnceBeforeFrame();
-            TryWeld();
-            TryAttach();
-
-
-            if (AttachedEntityChanged != null)
-            {
-                // OtherEntityId is null when detached, 0 when ready to connect, and other when attached
-                AttachedEntityChanged(this);
-            }
-        }
-
-        public override void UpdateBeforeSimulation10()
-        {
-            base.UpdateBeforeSimulation10();
-            TryWeld();
-            TryAttach();
         }
 
         public override void UpdateBeforeSimulation100()
@@ -246,13 +192,13 @@ namespace Sandbox.Game.Entities.Cube
             if (!MySandboxGame.IsGameReady || m_soundEmitter == null || IsWorking == false)
                 return;
 
-            if (m_topGrid == null || m_topGrid.Physics == null)
+            if (TopGrid == null || TopGrid.Physics == null)
             {
                 m_soundEmitter.StopSound(true);
                 return;
             }
 
-            if (IsWorking && Math.Abs(m_topGrid.Physics.RigidBody.DeltaAngle.W) > 0.00025f)
+            if (IsWorking && Math.Abs(TopGrid.Physics.RigidBody.DeltaAngle.W) > 0.00025f)
                 m_soundEmitter.PlaySingleSound(BlockDefinition.PrimarySound, true);
             else
                 m_soundEmitter.StopSound(false);

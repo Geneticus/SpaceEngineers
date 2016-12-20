@@ -105,10 +105,10 @@ namespace Sandbox.Game
         public const MyParticleEffectsIDEnum DRILL_SHIP_SPARKS_EFFECT = MyParticleEffectsIDEnum.Collision_Sparks;
 
         //public const float DRILL_UPDATE_INTERVAL_IN_MILISECONDS = 150;
-        public const int DRILL_UPDATE_INTERVAL_IN_FRAMES = 150;
+        public const int DRILL_UPDATE_INTERVAL_IN_FRAMES = 90;
         public const int DRILL_UPDATE_DISTRIBUTION_IN_FRAMES = 10;
-        public const float DRILL_UPDATE_INTERVAL_IN_MILISECONDS = 1500;
-        public const float DRILL_RELEASE_TIME_IN_MILISECONDS = 1550; // Should be higher than update interval, otherwise sound stops every once in a while.
+        public const float DRILL_UPDATE_INTERVAL_IN_MILISECONDS = 325;
+        public const float DRILL_RELEASE_TIME_IN_MILISECONDS = 350; // Should be higher than update interval, otherwise sound stops every once in a while.
         public const float PARTICLE_EFFECT_DURATION = 500;
         public const float VOXEL_HARVEST_RATIO = 0.009f;
         public const float MAX_DROP_CUBIC_METERS = 0.150f;
@@ -188,8 +188,10 @@ namespace Sandbox.Game
 
     public static class MyDebrisConstants
     {
-        public const int EXPLOSION_DEBRIS_LIFESPAN_MIN_IN_MILISECONDS = 10000;
-        public const int EXPLOSION_DEBRIS_LIFESPAN_MAX_IN_MILISECONDS = 20000;
+        public const int EXPLOSION_VOXEL_DEBRIS_LIFESPAN_MIN_IN_MILISECONDS = 10000;
+        public const int EXPLOSION_VOXEL_DEBRIS_LIFESPAN_MAX_IN_MILISECONDS = 20000;
+        public const int EXPLOSION_MODEL_DEBRIS_LIFESPAN_MIN_IN_MILISECONDS = 4000;
+        public const int EXPLOSION_MODEL_DEBRIS_LIFESPAN_MAX_IN_MILISECONDS = 7000;
         public const int EXPLOSION_DEBRIS_OBJECTS_MAX = 150;
         public const float EXPLOSION_DEBRIS_INITIAL_SPEED_MIN = 4.0f;
         public const float EXPLOSION_DEBRIS_INITIAL_SPEED_MAX = 8.0f;
@@ -203,6 +205,7 @@ namespace Sandbox.Game
 
         // only approximate, will always be higher (see MyDebris.GeneratePositions for usage)
         public const int APPROX_NUMBER_OF_DEBRIS_OBJECTS_PER_MODEL_EXPLOSION = 3;
+        public const float CUT_TREE_IN_MILISECONDS = 1500;
     }
 
     public static class MyInventoryConstants

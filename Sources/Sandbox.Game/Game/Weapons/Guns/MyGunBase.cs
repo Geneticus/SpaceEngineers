@@ -43,17 +43,19 @@ namespace Sandbox.Game.Weapons
 
         private class WeaponEffect
         {
-            public MyModelDummy Dummy;
+            public string Name;
+            public Matrix LocalMatrix;
             public int EffectId;
             public MyWeaponDefinition.WeaponEffectAction Action;
             public MyParticleEffect Effect;
 
-            public WeaponEffect(MyModelDummy dummy, int effectId, MyWeaponDefinition.WeaponEffectAction action, MyParticleEffect effect)
+            public WeaponEffect(string name, Matrix localMatrix, int effectId, MyWeaponDefinition.WeaponEffectAction action, MyParticleEffect effect)
             {
-                this.Dummy = dummy;
+                this.Name = name;
                 this.EffectId = effectId;
                 this.Effect = effect;
                 this.Action = action;
+                this.LocalMatrix = localMatrix;
             }
         }
 
@@ -68,6 +70,8 @@ namespace Sandbox.Game.Weapons
         protected IMyGunBaseUser m_user;
         private List<WeaponEffect> m_activeEffects = new List<WeaponEffect>();
         public Matrix m_holdingDummyMatrix;
+
+        int m_shotProjectiles = 0;
 
         #endregion
 
@@ -273,14 +277,21 @@ namespace Sandbox.Game.Weapons
             return MyUtilRandomVector3ByDeviatingVector.GetRandom(direction, deviateAngle);
         }
 
+        public Vector3 GetDeviatedVector(int hash, float deviateAngle, Vector3 direction)
+        {
+            return MyUtilRandomVector3ByDeviatingVector.GetRandom(hash, direction, deviateAngle);
+        }
+
         private void AddProjectile(MyWeaponPropertiesWrapper weaponProperties, Vector3D initialPosition, Vector3D initialVelocity, Vector3D direction, MyEntity owner)
         {
             Vector3 projectileForwardVector = direction;
             if (weaponProperties.IsDeviated)
             {
-                projectileForwardVector = GetDeviatedVector(weaponProperties.WeaponDefinition.DeviateShotAngle, direction);
+                projectileForwardVector = GetDeviatedVector(m_shotProjectiles + direction.GetHashCode(), weaponProperties.WeaponDefinition.DeviateShotAngle, direction);
                 projectileForwardVector.Normalize();
             }
+
+            m_shotProjectiles++;
 
             MyProjectiles.Add(weaponProperties.GetCurrentAmmoDefinitionAs<MyProjectileAmmoDefinition>(), initialPosition, initialVelocity, projectileForwardVector, m_user, owner);
         }
@@ -328,6 +339,7 @@ namespace Sandbox.Game.Weapons
 
         public void Shoot(Vector3D initialPosition, Vector3 initialVelocity, Vector3 direction, MyEntity owner = null)
         {
+            //VRageRender.MyRenderProxy.DebugDrawLine3D(initialPosition, initialPosition + direction * 1000, Color.Red, Color.Red, true, true);
             MyAmmoDefinition ammoDef = m_weaponProperties.AmmoDefinition;
             switch (ammoDef.AmmoType)
             {
@@ -367,7 +379,7 @@ namespace Sandbox.Game.Weapons
                             {
                                 for (int j = 0; j < m_activeEffects.Count; j++)
                                 {
-                                    if (m_activeEffects[j].Dummy == dummy && m_activeEffects[j].EffectId == effectId)
+                                    if (m_activeEffects[j].Name == dummy.Name && m_activeEffects[j].EffectId == effectId)
                                     {
                                         add = false;
                                         break;
@@ -376,13 +388,12 @@ namespace Sandbox.Game.Weapons
                             }
                             if (add && MyParticlesManager.TryCreateParticleEffect(effectId, out effect))
                             {
+                                var dummyNormalized = MatrixD.Normalize(dummy.Matrix);
+                                effect.WorldMatrix = MatrixD.Multiply(dummyNormalized, WorldMatrix);
+
                                 if (WeaponProperties.WeaponDefinition.WeaponEffects[i].Loop)
                                 {
-                                    m_activeEffects.Add(new WeaponEffect(dummy, effectId, action, effect));
-                                }
-                                else
-                                {
-                                    effect.WorldMatrix = MatrixD.Multiply(MatrixD.Normalize(dummy.Matrix), WorldMatrix);
+                                    m_activeEffects.Add(new WeaponEffect(dummy.Name, dummyNormalized, effectId, action, effect));
                                 }
                             }
                         }
@@ -397,7 +408,7 @@ namespace Sandbox.Game.Weapons
             {
                 if (!m_activeEffects[i].Effect.IsStopped || m_activeEffects[i].Effect.GetParticlesCount() > 0)
                 {
-                    m_activeEffects[i].Effect.WorldMatrix = MatrixD.Multiply(MatrixD.Normalize(m_activeEffects[i].Dummy.Matrix), WorldMatrix);
+                    m_activeEffects[i].Effect.WorldMatrix = MatrixD.Multiply(m_activeEffects[i].LocalMatrix, WorldMatrix);
                 }
                 else
                 {
@@ -540,6 +551,10 @@ namespace Sandbox.Game.Weapons
             {
                 return m_cachedAmmunitionAmount > 0;
             }
+
+            if (MySession.Static.CreativeMode)
+                return true;
+
             if (CurrentAmmo < AMMO_PER_SHOOT) // so far it is always one bullet per shot. If anything, WeaponDefinition has to be extended.
             {
                 return m_user.AmmoInventory.GetItemAmount(CurrentAmmoMagazineId) > 0;
@@ -549,61 +564,64 @@ namespace Sandbox.Game.Weapons
 
         public void ConsumeAmmo()
         {
-            if (!MySession.Static.CreativeMode)
+            if (Sync.IsServer)
             {
-                if (Sync.IsServer)
+                CurrentAmmo -= AMMO_PER_SHOOT;
+                if (CurrentAmmo < 0 && HasEnoughAmmunition())
                 {
-                    CurrentAmmo -= AMMO_PER_SHOOT;
-                    if (CurrentAmmo == -1 && HasEnoughAmmunition())
-                    {
-                        CurrentAmmo = WeaponProperties.AmmoMagazineDefinition.Capacity - 1;
+                    CurrentAmmo = WeaponProperties.AmmoMagazineDefinition.Capacity - 1;
 
+                    if (!MySession.Static.CreativeMode)
                         m_user.AmmoInventory.RemoveItemsOfType(1, CurrentAmmoMagazineId);
-                    }
-
-                    RefreshAmmunitionAmount();
                 }
 
-                var weaponInventory = m_user.AmmoInventory;
-                if (weaponInventory != null)
-                {
-                    MyPhysicalInventoryItem? inventoryItem = null;
-                    if (InventoryItemId.HasValue)
-                    {
-                        inventoryItem = weaponInventory.GetItemByID(InventoryItemId.Value);
-                    }
-                    else
-                    {
-                        inventoryItem = weaponInventory.FindUsableItem(m_user.PhysicalItemId);
-                        if (inventoryItem.HasValue)
-                        {
-                            InventoryItemId = inventoryItem.Value.ItemId;
-                        }
-                    }
+                RefreshAmmunitionAmount();
+            }
 
+            var weaponInventory = m_user.AmmoInventory;
+            if (weaponInventory != null)
+            {
+                MyPhysicalInventoryItem? inventoryItem = null;
+                if (InventoryItemId.HasValue)
+                {
+                    inventoryItem = weaponInventory.GetItemByID(InventoryItemId.Value);
+                }
+                else
+                {
+                    inventoryItem = weaponInventory.FindUsableItem(m_user.PhysicalItemId);
                     if (inventoryItem.HasValue)
                     {
-                        var pgo = inventoryItem.Value.Content as MyObjectBuilder_PhysicalGunObject;
-                        if (pgo != null)
-                        {
-                            var gunBaseObjectBuilder = pgo.GunEntity as IMyObjectBuilder_GunObject<MyObjectBuilder_GunBase>;
-                            Debug.Assert(gunBaseObjectBuilder != null, "ObjectBuilder of an entity implementing IMyGunObject probably does not implement IMyObjectBuilder_GunObject!");
+                        InventoryItemId = inventoryItem.Value.ItemId;
+                    }
+                }
 
-                            if (gunBaseObjectBuilder != null)
+                if (inventoryItem.HasValue)
+                {
+                    var pgo = inventoryItem.Value.Content as MyObjectBuilder_PhysicalGunObject;
+                    if (pgo != null)
+                    {
+                        var gunBaseObjectBuilder = pgo.GunEntity as IMyObjectBuilder_GunObject<MyObjectBuilder_GunBase>;
+                        Debug.Assert(gunBaseObjectBuilder != null, "ObjectBuilder of an entity implementing IMyGunObject probably does not implement IMyObjectBuilder_GunObject!");
+
+                        if (gunBaseObjectBuilder != null)
+                        {
+                            if (gunBaseObjectBuilder.DeviceBase == null)
                             {
-                                if (gunBaseObjectBuilder.DeviceBase == null)
-                                {
-                                    gunBaseObjectBuilder.InitializeDeviceBase(GetObjectBuilder());
-                                }
-                                else
-                                {
-                                    gunBaseObjectBuilder.GetDevice().RemainingAmmo = CurrentAmmo;
-                                }
+                                gunBaseObjectBuilder.InitializeDeviceBase(GetObjectBuilder());
+                            }
+                            else
+                            {
+                                gunBaseObjectBuilder.GetDevice().RemainingAmmo = CurrentAmmo;
                             }
                         }
                     }
                 }
             }
+        }
+
+        public void StopShoot()
+        {
+            m_shotProjectiles = 0;
         }
 
         public int GetTotalAmmunitionAmount()
@@ -620,6 +638,12 @@ namespace Sandbox.Game.Weapons
         {
             if (Sync.IsServer == false)
             {
+                return;
+            }
+
+            if (MySession.Static.CreativeMode)
+            {
+                m_cachedAmmunitionAmount.Value = CurrentAmmo;
                 return;
             }
 

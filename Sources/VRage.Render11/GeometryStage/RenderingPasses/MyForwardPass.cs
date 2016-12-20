@@ -1,5 +1,4 @@
-﻿using SharpDX.Direct3D11;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using VRage.Render11.Resources;
 
 namespace VRageRender
@@ -26,19 +25,19 @@ namespace VRageRender
             RC.PixelShader.SetSampler(MyCommon.SHADOW_SAMPLER_SLOT, MySamplerStateManager.Shadowmap);
             RC.PixelShader.SetSrv(31, MyRender11.DynamicShadows.ShadowCascades.CascadeShadowmapBackup);
 
-            RC.SetDepthStencilState(null);
+            RC.SetDepthStencilState(MyDepthStencilStateManager.DepthTestWrite);
         }
 
-        protected unsafe override sealed void RecordCommandsInternal(MyRenderableProxy proxy)
+        protected sealed override unsafe void RecordCommandsInternal(MyRenderableProxy proxy)
         {
-			if ((proxy.Mesh.Buffers.IB == IndexBufferId.NULL && proxy.MergedMesh.Buffers.IB == IndexBufferId.NULL) ||
+            if ((proxy.Mesh.Buffers.IB == null && proxy.MergedMesh.Buffers.IB == null) ||
                 proxy.DrawSubmesh.IndexCount == 0 ||
                 (proxy.DrawSubmesh.Flags & MyDrawSubmesh.MySubmeshFlags.Forward) == 0)
             {
                 return;
             }
 
-            ++Stats.Meshes;
+            ++Stats.Draws;
 
             SetProxyConstants(proxy);
             BindProxyGeometry(proxy, RC);
@@ -52,7 +51,6 @@ namespace VRageRender
             else
                 RC.SetRasterizerState(null);
 
-            ++Stats.Submeshes;
             var submesh = proxy.DrawSubmesh;
 
             if (submesh.MaterialId != Locals.matTexturesID)
@@ -134,6 +132,11 @@ namespace VRageRender
             base.End();
 
             RC.EndProfilingBlock();
+        }
+
+        protected override MyFrustumEnum FrustumType
+        {
+            get { return MyFrustumEnum.EnvironmentProbe; }
         }
 
 #if XB1

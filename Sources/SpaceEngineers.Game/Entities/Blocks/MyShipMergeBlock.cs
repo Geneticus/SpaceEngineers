@@ -91,6 +91,15 @@ namespace SpaceEngineers.Game.Entities.Blocks
         private EmissivityState m_emissivityState = EmissivityState.UNSET;
         private bool HasConstraint = false;
 
+        private bool IsWithinWorldLimits
+        {
+            get
+            {
+                if (!Sandbox.Game.World.MySession.Static.EnableBlockLimits) return true;
+                return Sandbox.Game.World.MySession.Static.MaxGridSize == 0 || CubeGrid.BlocksCount + m_other.CubeGrid.BlocksCount <= Sandbox.Game.World.MySession.Static.MaxGridSize;
+            }
+        }
+
         public override void Init(MyObjectBuilder_CubeBlock objectBuilder, MyCubeGrid cubeGrid)
         {
             base.Init(objectBuilder, cubeGrid);
@@ -307,6 +316,18 @@ namespace SpaceEngineers.Game.Entities.Blocks
             CheckEmissivity();
         }
 
+        protected override void OnStopWorking()
+        {
+            CheckEmissivity();
+            base.OnStopWorking();
+        }
+
+        protected override void OnStartWorking()
+        {
+            CheckEmissivity();
+            base.OnStartWorking();
+        }
+
         private void CheckEmissivity()
         {
             if (!InScene)
@@ -472,7 +493,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
             if (SafeConstraint != null)
             {
                 bool staticOk = this.CubeGrid.IsStatic || !m_other.CubeGrid.IsStatic;
-                if (!staticOk || !IsWorking || !m_other.IsWorking)
+                if (!staticOk || !IsWorking || !m_other.IsWorking || !IsWithinWorldLimits)
                     return;
 
                 Debug.Assert(!m_other.CubeGrid.MarkedForClose && !CubeGrid.MarkedForClose);
@@ -553,6 +574,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
                         return;
 
                     if (!block.FriendlyWithBlock(this)) return;
+                    if (other is MyCubeGrid && MyCubeGridGroups.Static.Physical.HasSameGroup(other, CubeGrid)) return;
 
                     CreateConstraint(other, block);
 
@@ -725,5 +747,13 @@ namespace SpaceEngineers.Game.Entities.Blocks
             add { BeforeMerge += value; }
             remove { BeforeMerge += value; }
         }
+
+        public override int GetBlockSpecificState()
+        {
+            //returns 2 when locked, 1 when in constraint or 0 otherwise
+            return (m_emissivityState == EmissivityState.LOCKED ? 2 : (m_emissivityState == EmissivityState.CONSTRAINED ? 1 : 0));
+        }
+
+        public bool IsLocked { get { return m_emissivityState == EmissivityState.LOCKED; } }
     }
 }

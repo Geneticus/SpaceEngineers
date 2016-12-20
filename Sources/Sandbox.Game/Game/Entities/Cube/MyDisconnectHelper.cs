@@ -14,6 +14,7 @@ using Sandbox.Engine.Utils;
 using VRage;
 using Sandbox.Game.GameSystems.StructuralIntegrity;
 using VRage.Profiler;
+using Sandbox.Game.World;
 
 namespace Sandbox.Game.Entities.Cube
 {
@@ -110,14 +111,18 @@ namespace Sandbox.Game.Entities.Cube
                     m_groups.Clear();
                     m_sortedBlocks.Clear();
                     m_disconnectHelper.Clear();
+                    ProfilerShort.End();
                     return true;
                 }
                 MyCubeGrid.CreateSplits(grid, m_sortedBlocks, m_groups);
             }
             else
             {
-                if (grid.IsStatic)
-                    grid.TestDynamic = true;
+                if (!MySession.Static.Settings.StationVoxelSupport)
+                {
+                    if (grid.IsStatic)
+                        grid.TestDynamic = MyCubeGrid.MyTestDynamicReason.GridSplit;
+                }
             }
             ProfilerShort.End();
 

@@ -21,7 +21,7 @@ using VRage.Sync;
 
 namespace Sandbox.Game.Entities
 {
-    public abstract class MyAirtightDoorGeneric : MyFunctionalBlock, ModAPI.IMyAirtightDoorBase
+    public abstract class MyAirtightDoorGeneric : MyDoorBase, ModAPI.IMyAirtightDoorBase
     {
 
         private MySoundPair m_sound;
@@ -34,8 +34,6 @@ namespace Sandbox.Game.Entities
 
         private int m_lastUpdateTime;
 
-        private readonly Sync<bool> m_open;
-
         private static readonly float EPSILON = 0.000000001f;
 
         protected List<MyEntitySubpart> m_subparts = new List<MyEntitySubpart>(4);
@@ -43,14 +41,6 @@ namespace Sandbox.Game.Entities
         protected static string[] m_emissiveNames;
         protected Color m_prevEmissiveColor;
         protected float m_prevEmissivity=-1;
-
-        public bool Open
-        {
-            get
-            {
-                return m_open;
-            }
-        }
 
         public float OpenRatio
         {
@@ -67,35 +57,23 @@ namespace Sandbox.Game.Entities
 
         protected override bool CheckIsWorking()
         {
-            return ResourceSink.IsPowered && base.CheckIsWorking();
+            return ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && base.CheckIsWorking();
         }
 
 
         #region constructors & init & save
-        public MyAirtightDoorGeneric()
+        public MyAirtightDoorGeneric() : base()
         {
 #if XB1 // XB1_SYNC_NOREFLECTION
             m_open = SyncType.CreateAndAddProp<bool>();
 #endif // XB1
-            CreateTerminalControls();
+            //GR: added to base class do not use here
+            //CreateTerminalControls();
 
             m_open.Value = false;
             m_currOpening = 0f;
             m_currSpeed = 0f;
             m_open.ValueChanged += (x) => DoChangeOpenClose();
-        }
-
-        static void CreateTerminalControls()
-        {
-            if (MyTerminalControlFactory.AreControlsCreated<MyAirtightDoorGeneric>())
-                return;
-
-            var open = new MyTerminalControlOnOffSwitch<MyAirtightDoorGeneric>("Open", MySpaceTexts.Blank, on: MySpaceTexts.BlockAction_DoorOpen, off: MySpaceTexts.BlockAction_DoorClosed);
-            open.Getter = (x) => x.Open;
-            open.Setter = (x, v) => x.m_open.Value = v;
-            open.EnableToggleAction();
-            open.EnableOnOffActions();
-            MyTerminalControlFactory.AddControl(open);
         }
 
         private new MyAirtightDoorGenericDefinition BlockDefinition
@@ -193,15 +171,26 @@ namespace Sandbox.Game.Entities
 
         #region update
 
+        bool m_updated = false;
         bool m_stateChange = false;
         public override void UpdateBeforeSimulation()
         {
+            if (!m_updated)
+            {
+                MatrixD tmp = PositionComp.WorldMatrix;
+                foreach (var subpart in m_subparts)
+                {
+                    subpart.PositionComp.UpdateWorldMatrix(ref tmp);
+                }
+                m_updated = true;
+            }
             if (m_stateChange && ((m_open && 1f - m_currOpening < EPSILON) || (!m_open && m_currOpening < EPSILON)))
             {
                 //END OF MOVEMENT
                 if (m_soundEmitter != null && m_soundEmitter.Loop)
                     m_soundEmitter.StopSound(false);
                 m_currSpeed = 0;
+                NeedsUpdate &= ~(MyEntityUpdateEnum.EACH_FRAME | MyEntityUpdateEnum.EACH_100TH_FRAME);
                 ResourceSink.Update();
                 RaisePropertiesChanged();
                 if (!m_open)
@@ -213,7 +202,7 @@ namespace Sandbox.Game.Entities
             }
             if (m_soundEmitter != null)
             {
-                if (Enabled && ResourceSink.IsPowered && m_currSpeed != 0)
+                if (Enabled && ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && m_currSpeed != 0)
                 {
                     StartSound(m_sound);
                 }
@@ -227,7 +216,7 @@ namespace Sandbox.Game.Entities
 
         private void UpdateCurrentOpening()
         {
-            if (Enabled && ResourceSink.IsPowered)
+            if (Enabled && ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
             {
                 float timeDelta = (MySandboxGame.TotalGamePlayTimeInMilliseconds - m_lastUpdateTime) / 1000f;
                 float deltaPos = m_currSpeed * timeDelta;
@@ -277,7 +266,7 @@ namespace Sandbox.Game.Entities
 
         internal void DoChangeOpenClose()
         {
-            if (!Enabled || !ResourceSink.IsPowered)
+            if (!Enabled || !ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
                 return;
 
             if (m_soundEmitter != null)

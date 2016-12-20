@@ -20,7 +20,7 @@ namespace Sandbox.Engine.Voxels
 
             public readonly Vector3I Coords;
 
-            public byte MaxLod;
+            public byte MaxLod { get; internal set;}
 
             // Volume with lod data
             public static readonly int TotalVolume = Volume
@@ -379,25 +379,23 @@ namespace Sandbox.Engine.Voxels
                     using (m_storageLock.AcquireSharedUsing())
                         ReadDatForChunk(chunk, required & ~chunk.Cached);
                 }
+
             }
         }
 
         private void ReadDatForChunk(VoxelChunk chunk, MyStorageDataTypeFlags data)
         {
-            using (chunk.Lock.AcquireExclusiveUsing())
-            {
-                var rangeStart = chunk.Coords << VoxelChunk.SizeBits;
-                var rangeEnd = ((chunk.Coords + 1) << VoxelChunk.SizeBits) - 1;
+            var rangeStart = chunk.Coords << VoxelChunk.SizeBits;
+            var rangeEnd = ((chunk.Coords + 1) << VoxelChunk.SizeBits) - 1;
 
-                MyStorageData storage = chunk.MakeData();
+            MyStorageData storage = chunk.MakeData();
 
-                MyVoxelRequestFlags flags = 0;
+            MyVoxelRequestFlags flags = 0;
 
-                ReadRangeInternal(storage, ref Vector3I.Zero, data, 0, ref rangeStart, ref rangeEnd, ref flags);
+            ReadRangeInternal(storage, ref Vector3I.Zero, data, 0, ref rangeStart, ref rangeEnd, ref flags);
 
-                chunk.Cached |= data;
-                chunk.MaxLod = 0;
-            }
+            chunk.Cached |= data;
+            chunk.MaxLod = 0;
         }
 
         private void DequeueDirtyChunk(out VoxelChunk chunk, out Vector3I coords)

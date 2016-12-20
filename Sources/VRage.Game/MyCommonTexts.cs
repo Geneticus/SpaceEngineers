@@ -739,7 +739,7 @@ using VRage.Utils;
         public static readonly MyStringId LoadScreenButtonEditSettings = MyStringId.GetOrCompute("LoadScreenButtonEditSettings");
 
         ///<summary>
-        ///Custom World
+        ///Custom Game
         ///</summary>
         public static readonly MyStringId ScreenCaptionCustomWorld = MyStringId.GetOrCompute("ScreenCaptionCustomWorld");
 
@@ -899,7 +899,7 @@ using VRage.Utils;
         public static readonly MyStringId NextPage = MyStringId.GetOrCompute("NextPage");
 
         ///<summary>
-        ///Press {0} for help and tutorials
+        ///Press {0} for help
         ///</summary>
         public static readonly MyStringId NotificationNeedShowHelpScreen = MyStringId.GetOrCompute("NotificationNeedShowHelpScreen");
 
@@ -1094,7 +1094,7 @@ using VRage.Utils;
         public static readonly MyStringId ToolTipVideoOptionsRenderQuality = MyStringId.GetOrCompute("ToolTipVideoOptionsRenderQuality");
 
         ///<summary>
-        ///Select a graphic adapter and/or a monitor
+        ///Select a graphic adapter and/or a monitor. Changing the adapter requires restart of the game.
         ///</summary>
         public static readonly MyStringId ToolTipVideoOptionsVideoAdapter = MyStringId.GetOrCompute("ToolTipVideoOptionsVideoAdapter");
 
@@ -1122,6 +1122,11 @@ using VRage.Utils;
         ///Horizontal field of view angle
         ///</summary>
         public static readonly MyStringId ToolTipVideoOptionsFieldOfView = MyStringId.GetOrCompute("ToolTipVideoOptionsFieldOfView");
+
+        ///<summary>
+        ///Changing adapter requires restarting the game. Restart now?
+        ///</summary>
+        public static readonly MyStringId MessageBoxTextRestartNeededAfterAdapterSwitch = MyStringId.GetOrCompute("MessageBoxTextRestartNeededAfterAdapterSwitch");
 
         ///<summary>
         ///Show on-screen control hints during gameplay
@@ -1209,7 +1214,7 @@ using VRage.Utils;
         public static readonly MyStringId NotificationRotationFormat = MyStringId.GetOrCompute("NotificationRotationFormat");
 
         ///<summary>
-        ///Press {0} to configure toolbar or create new objects
+        ///Press {0} to configure toolbar
         ///</summary>
         public static readonly MyStringId NotificationScreenFormat = MyStringId.GetOrCompute("NotificationScreenFormat");
 
@@ -1319,7 +1324,7 @@ using VRage.Utils;
         public static readonly MyStringId ProgressTextCreatingWorld = MyStringId.GetOrCompute("ProgressTextCreatingWorld");
 
         ///<summary>
-        ///Workshop
+        ///Workshop Content
         ///</summary>
         public static readonly MyStringId ScreenCaptionWorkshop = MyStringId.GetOrCompute("ScreenCaptionWorkshop");
 
@@ -1349,7 +1354,7 @@ using VRage.Utils;
         public static readonly MyStringId MessageBoxCaptionModPublishFailed = MyStringId.GetOrCompute("MessageBoxCaptionModPublishFailed");
 
         ///<summary>
-        ///Copy & Load
+        ///Quickstart
         ///</summary>
         public static readonly MyStringId ScreenLoadSubscribedWorldCopyAndLoad = MyStringId.GetOrCompute("ScreenLoadSubscribedWorldCopyAndLoad");
 
@@ -1519,7 +1524,7 @@ using VRage.Utils;
         public static readonly MyStringId ToolTipWorkshopBrowseWorkshop = MyStringId.GetOrCompute("ToolTipWorkshopBrowseWorkshop");
 
         ///<summary>
-        ///Download selected world to your computer and load
+        ///Launch with default parameters.
         ///</summary>
         public static readonly MyStringId ToolTipWorkshopCopyAndLoad = MyStringId.GetOrCompute("ToolTipWorkshopCopyAndLoad");
 
@@ -2249,7 +2254,7 @@ using VRage.Utils;
         public static readonly MyStringId SpectatorControls = MyStringId.GetOrCompute("SpectatorControls");
 
         ///<summary>
-        ///Spectator with fixed view vector to controlled object
+        ///Spectator with fixed position to controlled object
         ///</summary>
         public static readonly MyStringId SpectatorControls_Delta_Desc = MyStringId.GetOrCompute("SpectatorControls_Delta_Desc");
 
@@ -2294,7 +2299,7 @@ using VRage.Utils;
         public static readonly MyStringId Spectator = MyStringId.GetOrCompute("Spectator");
 
         ///<summary>
-        ///Delta spectator
+        ///Orbit spectator
         ///</summary>
         public static readonly MyStringId SpectatorControls_Delta = MyStringId.GetOrCompute("SpectatorControls_Delta");
 
@@ -3624,9 +3629,34 @@ using VRage.Utils;
         public static readonly MyStringId ScreenDebugAdminMenu_NumberOfLocalTrash = MyStringId.GetOrCompute("ScreenDebugAdminMenu_NumberOfLocalTrash");
 
         ///<summary>
-        ///Include in removal
+        ///Include in trash
         ///</summary>
         public static readonly MyStringId ScreenDebugAdminMenu_TrashRemoval = MyStringId.GetOrCompute("ScreenDebugAdminMenu_TrashRemoval");
+
+        ///<summary>
+        ///Continuous trash interval
+        ///</summary>
+        public static readonly MyStringId ScreenDebugAdminMenu_ContinuousTrashInterval = MyStringId.GetOrCompute("ScreenDebugAdminMenu_ContinuousTrashInterval");
+
+        ///<summary>
+        ///Trash action
+        ///</summary>
+        public static readonly MyStringId ScreenDebugAdminMenu_TrashAction = MyStringId.GetOrCompute("ScreenDebugAdminMenu_TrashAction");
+
+        ///<summary>
+        ///Suspend
+        ///</summary>
+        public static readonly MyStringId ScreenDebugAdminMenu_PauseTrashButton = MyStringId.GetOrCompute("ScreenDebugAdminMenu_PauseTrashButton");
+
+        ///<summary>
+        ///Activate
+        ///</summary>
+        public static readonly MyStringId ScreenDebugAdminMenu_ResumeTrashButton = MyStringId.GetOrCompute("ScreenDebugAdminMenu_ResumeTrashButton");
+
+        ///<summary>
+        ///Disable trash performing
+        ///</summary>
+        public static readonly MyStringId ScreenDebugAdminMenu_PauseTrashButtonTooltip = MyStringId.GetOrCompute("ScreenDebugAdminMenu_PauseTrashButtonTooltip");
 
         ///<summary>
         ///Show trash information
@@ -3794,7 +3824,7 @@ using VRage.Utils;
         public static readonly MyStringId ControlTypeNavigation2 = MyStringId.GetOrCompute("ControlTypeNavigation2");
 
         ///<summary>
-        ///Copy World
+        ///Customize
         ///</summary>
         public static readonly MyStringId ScreenLoadSubscribedWorldCopyWorld = MyStringId.GetOrCompute("ScreenLoadSubscribedWorldCopyWorld");
 
@@ -3819,7 +3849,7 @@ using VRage.Utils;
         public static readonly MyStringId MessageBoxTextWorldExistsOverwrite = MyStringId.GetOrCompute("MessageBoxTextWorldExistsOverwrite");
 
         ///<summary>
-        ///Download selected world to save games without loading it (Use to Edit Settings before playing world)
+        ///Customize settings before launch.
         ///</summary>
         public static readonly MyStringId ToolTipWorkshopCopyWorld = MyStringId.GetOrCompute("ToolTipWorkshopCopyWorld");
 
@@ -3859,6 +3889,61 @@ using VRage.Utils;
         public static readonly MyStringId ControlName_ChangeBlockVariants = MyStringId.GetOrCompute("ControlName_ChangeBlockVariants");
 
         ///<summary>
+        ///You have no registered saved games. Your progress cannot be loaded.
+        ///</summary>
+        public static readonly MyStringId MessageBoxLastSessionNotFound = MyStringId.GetOrCompute("MessageBoxLastSessionNotFound");
+
+        ///<summary>
+        ///Campaign
+        ///</summary>
+        public static readonly MyStringId NewGame_SelectionLabel = MyStringId.GetOrCompute("NewGame_SelectionLabel");
+
+        ///<summary>
+        ///Campaign
+        ///</summary>
+        public static readonly MyStringId ScreenCaptionNewGame = MyStringId.GetOrCompute("ScreenCaptionNewGame");
+
+        ///<summary>
+        ///Continue Game
+        ///</summary>
+        public static readonly MyStringId ScreenMenuButtonContinueGame = MyStringId.GetOrCompute("ScreenMenuButtonContinueGame");
+
+        ///<summary>
+        ///Custom Game
+        ///</summary>
+        public static readonly MyStringId ScreenMenuButtonCustomGame = MyStringId.GetOrCompute("ScreenMenuButtonCustomGame");
+
+        ///<summary>
+        ///Join Game
+        ///</summary>
+        public static readonly MyStringId ScreenMenuButtonJoinGame = MyStringId.GetOrCompute("ScreenMenuButtonJoinGame");
+
+        ///<summary>
+        ///Load Game
+        ///</summary>
+        public static readonly MyStringId ScreenMenuButtonLoadGame = MyStringId.GetOrCompute("ScreenMenuButtonLoadGame");
+
+        ///<summary>
+        ///New Game
+        ///</summary>
+        public static readonly MyStringId ScreenMenuButtonCampaign = MyStringId.GetOrCompute("ScreenMenuButtonCampaign");
+
+        ///<summary>
+        ///Created
+        ///</summary>
+        public static readonly MyStringId Created = MyStringId.GetOrCompute("Created");
+
+        ///<summary>
+        ///Backups
+        ///</summary>
+        public static readonly MyStringId LoadScreenButtonBackups = MyStringId.GetOrCompute("LoadScreenButtonBackups");
+
+        ///<summary>
+        ///The backup folder of selected saved game is missing.
+        ///</summary>
+        public static readonly MyStringId SaveBrowserMissingBackup = MyStringId.GetOrCompute("SaveBrowserMissingBackup");
+
+        ///<summary>
         ///Skin
         ///</summary>
         public static readonly MyStringId ScreenOptionsGame_Skin = MyStringId.GetOrCompute("ScreenOptionsGame_Skin");
@@ -3867,6 +3952,11 @@ using VRage.Utils;
         ///Note: Not all screens support skin at the moment
         ///</summary>
         public static readonly MyStringId ScreenOptionsGame_SkinWarning = MyStringId.GetOrCompute("ScreenOptionsGame_SkinWarning");
+
+        ///<summary>
+        ///Server is loading world
+        ///</summary>
+        public static readonly MyStringId LoadingDialogServerIsLoadingWorld = MyStringId.GetOrCompute("LoadingDialogServerIsLoadingWorld");
 
         ///<summary>
         ///Animated block preview
@@ -3882,4 +3972,429 @@ using VRage.Utils;
         ///Speed based ship sounds
         ///</summary>
         public static readonly MyStringId AudioSettings_ShipSoundsBasedOnSpeed = MyStringId.GetOrCompute("AudioSettings_ShipSoundsBasedOnSpeed");
+
+        ///<summary>
+        ///Continue
+        ///</summary>
+        public static readonly MyStringId ScreenMenuButtonContinue = MyStringId.GetOrCompute("ScreenMenuButtonContinue");
+
+        ///<summary>
+        ///Void
+        ///</summary>
+        public static readonly MyStringId Void = MyStringId.GetOrCompute("Void");
+
+        ///<summary>
+        ///Game performance is low. Cause: {0}
+        ///</summary>
+        public static readonly MyStringId NotificationPerformanceLow = MyStringId.GetOrCompute("NotificationPerformanceLow");
+
+        ///<summary>
+        ///AI
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaAI = MyStringId.GetOrCompute("PerformanceWarningAreaAI");
+
+        ///<summary>
+        ///Blocks update
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaBlocks = MyStringId.GetOrCompute("PerformanceWarningAreaBlocks");
+
+        ///<summary>
+        ///Conveyor system
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaConveyor = MyStringId.GetOrCompute("PerformanceWarningAreaConveyor");
+
+        ///<summary>
+        ///Grids update
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaGrid = MyStringId.GetOrCompute("PerformanceWarningAreaGrid");
+
+        ///<summary>
+        ///Gyroscope system
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaGyro = MyStringId.GetOrCompute("PerformanceWarningAreaGyro");
+
+        ///<summary>
+        ///Oxygen system
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaOxygen = MyStringId.GetOrCompute("PerformanceWarningAreaOxygen");
+
+        ///<summary>
+        ///Physics
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaPhysics = MyStringId.GetOrCompute("PerformanceWarningAreaPhysics");
+
+        ///<summary>
+        ///Render (CPU)
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaRender = MyStringId.GetOrCompute("PerformanceWarningAreaRender");
+
+        ///<summary>
+        ///Scripts
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaScripts = MyStringId.GetOrCompute("PerformanceWarningAreaScripts");
+
+        ///<summary>
+        ///Loading mesh/texture
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaTextures = MyStringId.GetOrCompute("PerformanceWarningAreaTextures");
+
+        ///<summary>
+        ///Show warnings in game
+        ///</summary>
+        public static readonly MyStringId ScreenOptionsGame_EnablePerformanceWarnings = MyStringId.GetOrCompute("ScreenOptionsGame_EnablePerformanceWarnings");
+
+        ///<summary>
+        ///Show a warning whenever the game's performance slows down
+        ///</summary>
+        public static readonly MyStringId ToolTipGameOptionsEnablePerformanceWarnings = MyStringId.GetOrCompute("ToolTipGameOptionsEnablePerformanceWarnings");
+
+        ///<summary>
+        ///GPU (geometry)
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaClearAndGeometryRender = MyStringId.GetOrCompute("PerformanceWarningAreaClearAndGeometryRender");
+
+        ///<summary>
+        ///GPU (lights)
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaLights = MyStringId.GetOrCompute("PerformanceWarningAreaLights");
+
+        ///<summary>
+        ///GPU (postprocessing)
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaPostProcess = MyStringId.GetOrCompute("PerformanceWarningAreaPostProcess");
+
+        ///<summary>
+        ///GPU (foliage)
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaRenderFoliage = MyStringId.GetOrCompute("PerformanceWarningAreaRenderFoliage");
+
+        ///<summary>
+        ///GPU (shadows)
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaShadows = MyStringId.GetOrCompute("PerformanceWarningAreaShadows");
+
+        ///<summary>
+        ///GPU (SSAO)
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaSSAO = MyStringId.GetOrCompute("PerformanceWarningAreaSSAO");
+
+        ///<summary>
+        ///GPU (transparency)
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaTransparentPass = MyStringId.GetOrCompute("PerformanceWarningAreaTransparentPass");
+
+        ///<summary>
+        ///PERFORMANCE WARNINGS Press Ctrl + {0} for more info
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningHeading = MyStringId.GetOrCompute("PerformanceWarningHeading");
+
+        ///<summary>
+        ///Updating AI and pathfinding. Turn off cyberhounds and spiders.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaAIDescription = MyStringId.GetOrCompute("PerformanceWarningAreaAIDescription");
+
+        ///<summary>
+        ///Update of individual blocks. Too many blocks in the world.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaBlocksDescription = MyStringId.GetOrCompute("PerformanceWarningAreaBlocksDescription");
+
+        ///<summary>
+        ///Rendering world geometry. Lower your voxel quality.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaClearAndGeometryRenderDescription = MyStringId.GetOrCompute("PerformanceWarningAreaClearAndGeometryRenderDescription");
+
+        ///<summary>
+        ///Update of conveyors. Too many conveyors or blocks using conveyors in the world.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaConveyorDescription = MyStringId.GetOrCompute("PerformanceWarningAreaConveyorDescription");
+
+        ///<summary>
+        ///Updating of ship systems other than oxygen, gyroscopes and conveyors.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaGridDescription = MyStringId.GetOrCompute("PerformanceWarningAreaGridDescription");
+
+        ///<summary>
+        ///Update of gyroscope systems. Too many gyroscopes in the world.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaGyroDescription = MyStringId.GetOrCompute("PerformanceWarningAreaGyroDescription");
+
+        ///<summary>
+        ///Rendering lights. Too many artificial lights in the world.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaLightsDescription = MyStringId.GetOrCompute("PerformanceWarningAreaLightsDescription");
+
+        ///<summary>
+        ///Update of oxygen systems. Too many or too large pressurized areas.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaOxygenDescription = MyStringId.GetOrCompute("PerformanceWarningAreaOxygenDescription");
+
+        ///<summary>
+        ///Update of physics. Too many individual objects interacting with each  other.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaPhysicsDescription = MyStringId.GetOrCompute("PerformanceWarningAreaPhysicsDescription");
+
+        ///<summary>
+        ///GPU postprocessing. Includes antialiasing.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaPostProcessDescription = MyStringId.GetOrCompute("PerformanceWarningAreaPostProcessDescription");
+
+        ///<summary>
+        ///CPU preparing world for rendering.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaRenderDescription = MyStringId.GetOrCompute("PerformanceWarningAreaRenderDescription");
+
+        ///<summary>
+        ///Rendering foliage (grass). Lower your foliage settings.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaRenderFoliageDescription = MyStringId.GetOrCompute("PerformanceWarningAreaRenderFoliageDescription");
+
+        ///<summary>
+        ///Executing programmable blocks' scripts. Too many or too complicated  scripts.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaScriptsDescription = MyStringId.GetOrCompute("PerformanceWarningAreaScriptsDescription");
+
+        ///<summary>
+        ///Rendering shadows. Lower your shadow quality.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaShadowsDescription = MyStringId.GetOrCompute("PerformanceWarningAreaShadowsDescription");
+
+        ///<summary>
+        ///Ambient occlusion.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaSSAODescription = MyStringId.GetOrCompute("PerformanceWarningAreaSSAODescription");
+
+        ///<summary>
+        ///Loading of meshes or textures.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaTexturesDescription = MyStringId.GetOrCompute("PerformanceWarningAreaTexturesDescription");
+
+        ///<summary>
+        ///Rendering transparent objects and particles.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningAreaTransparentPassDescription = MyStringId.GetOrCompute("PerformanceWarningAreaTransparentPassDescription");
+
+        ///<summary>
+        ///Performance Warnings
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningHelpHeader = MyStringId.GetOrCompute("PerformanceWarningHelpHeader");
+
+        ///<summary>
+        ///You can still place {0} blocks
+        ///</summary>
+        public static readonly MyStringId NotificationBlocksLeft = MyStringId.GetOrCompute("NotificationBlocksLeft");
+
+        ///<summary>
+        ///Player's block limit
+        ///</summary>
+        public static readonly MyStringId PlayerMaxBlocks = MyStringId.GetOrCompute("PlayerMaxBlocks");
+
+        ///<summary>
+        ///Built by
+        ///</summary>
+        public static readonly MyStringId BuiltBy = MyStringId.GetOrCompute("BuiltBy");
+
+        ///<summary>
+        ///Assign
+        ///</summary>
+        public static readonly MyStringId ScreenTerminalInfo_Assign = MyStringId.GetOrCompute("ScreenTerminalInfo_Assign");
+
+        ///<summary>
+        ///blocks
+        ///</summary>
+        public static readonly MyStringId ScreenTerminalInfo_Blocks = MyStringId.GetOrCompute("ScreenTerminalInfo_Blocks");
+
+        ///<summary>
+        ///Player {0} is transfering ownership of {1} blocks in ship {2} to you. Do you accept?
+        ///</summary>
+        public static readonly MyStringId MessageBoxTextConfirmAcceptTransferGrid = MyStringId.GetOrCompute("MessageBoxTextConfirmAcceptTransferGrid");
+
+        ///<summary>
+        ///Are you sure you want to delete all your blocks from {0}? The ship may fall apart.
+        ///</summary>
+        public static readonly MyStringId MessageBoxTextConfirmDeleteGrid = MyStringId.GetOrCompute("MessageBoxTextConfirmDeleteGrid");
+
+        ///<summary>
+        ///Are you sure you want to transfer ownership of your blocks from {0} to player {1}?
+        ///</summary>
+        public static readonly MyStringId MessageBoxTextConfirmTransferGrid = MyStringId.GetOrCompute("MessageBoxTextConfirmTransferGrid");
+
+        ///<summary>
+        ///Player {0} does not have enough free blocks to accept your part of the ship
+        ///</summary>
+        public static readonly MyStringId MessageBoxTextNotEnoughFreeBlocksForTransfer = MyStringId.GetOrCompute("MessageBoxTextNotEnoughFreeBlocksForTransfer");
+
+        ///<summary>
+        ///Owned blocks overview
+        ///</summary>
+        public static readonly MyStringId ScreenTerminalInfo_Overview = MyStringId.GetOrCompute("ScreenTerminalInfo_Overview");
+
+        ///<summary>
+        ///You built
+        ///</summary>
+        public static readonly MyStringId ScreenTerminalInfo_YouBuilt = MyStringId.GetOrCompute("ScreenTerminalInfo_YouBuilt");
+
+        ///<summary>
+        ///Player {0} is no longer online.
+        ///</summary>
+        public static readonly MyStringId MessageBoxTextPlayerNotOnline = MyStringId.GetOrCompute("MessageBoxTextPlayerNotOnline");
+
+        ///<summary>
+        ///Block limits
+        ///</summary>
+        public static readonly MyStringId WorldSettings_BlockLimits = MyStringId.GetOrCompute("WorldSettings_BlockLimits");
+
+        ///<summary>
+        ///Block limits are set to ensure good performance. Please disable this option only for experimental purposes.
+        ///</summary>
+        public static readonly MyStringId MessageBoxTextBlockLimitDisableWarning = MyStringId.GetOrCompute("MessageBoxTextBlockLimitDisableWarning");
+
+        ///<summary>
+        ///Use recommended block limits.
+        ///</summary>
+        public static readonly MyStringId ToolTipWorldSettingsBlockLimits = MyStringId.GetOrCompute("ToolTipWorldSettingsBlockLimits");
+
+        ///<summary>
+        ///Blocks issues
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningIssuesBlocks = MyStringId.GetOrCompute("PerformanceWarningIssuesBlocks");
+
+        ///<summary>
+        ///Graphics issues
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningIssuesGraphics = MyStringId.GetOrCompute("PerformanceWarningIssuesGraphics");
+
+        ///<summary>
+        ///Other issues
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningIssuesOther = MyStringId.GetOrCompute("PerformanceWarningIssuesOther");
+
+        ///<summary>
+        ///Graphics
+        ///</summary>
+        public static readonly MyStringId ScreenOptionsButtonGraphics = MyStringId.GetOrCompute("ScreenOptionsButtonGraphics");
+
+        ///<summary>
+        ///Show all warnings
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningShowAll = MyStringId.GetOrCompute("PerformanceWarningShowAll");
+
+        ///<summary>
+        ///Off - Only current performance warnings are displayed. On - All performance warnings of this session are displayed.
+        ///</summary>
+        public static readonly MyStringId ToolTipPerformanceWarningShowAll = MyStringId.GetOrCompute("ToolTipPerformanceWarningShowAll");
+
+        ///<summary>
+        ///Last occurrence
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningLastOccurrence = MyStringId.GetOrCompute("PerformanceWarningLastOccurrence");
+
+        ///<summary>
+        ///Too many blocks of this type.
+        ///</summary>
+        public static readonly MyStringId PerformanceWarningTooManyBlocks = MyStringId.GetOrCompute("PerformanceWarningTooManyBlocks");
+
+        ///<summary>
+        ///Enable echo
+        ///</summary>
+        public static readonly MyStringId AudioSettings_EnableReverb = MyStringId.GetOrCompute("AudioSettings_EnableReverb");
+
+        ///<summary>
+        ///Ambient occlusion
+        ///</summary>
+        public static readonly MyStringId ScreenGraphicsOptions_AmbientOcclusion = MyStringId.GetOrCompute("ScreenGraphicsOptions_AmbientOcclusion");
+
+        ///<summary>
+        ///HBAO
+        ///</summary>
+        public static readonly MyStringId ScreenGraphicsOptions_AmbientOcclusion_HBAO = MyStringId.GetOrCompute("ScreenGraphicsOptions_AmbientOcclusion_HBAO");
+
+        ///<summary>
+        ///None
+        ///</summary>
+        public static readonly MyStringId ScreenGraphicsOptions_AmbientOcclusion_None = MyStringId.GetOrCompute("ScreenGraphicsOptions_AmbientOcclusion_None");
+
+        ///<summary>
+        ///PUBLISH CAMPAIGN
+        ///</summary>
+        public static readonly MyStringId MessageBoxCaptionDoYouWishToPublishCampaign = MyStringId.GetOrCompute("MessageBoxCaptionDoYouWishToPublishCampaign");
+
+        ///<summary>
+        ///CAMPAIGN PUBLISHED
+        ///</summary>
+        public static readonly MyStringId MessageBoxCaptionCampaignPublished = MyStringId.GetOrCompute("MessageBoxCaptionCampaignPublished");
+
+        ///<summary>
+        ///CAMPAIGN PUBLISH FAILED
+        ///</summary>
+        public static readonly MyStringId MessageBoxCaptionModCampaignPublishFailed = MyStringId.GetOrCompute("MessageBoxCaptionModCampaignPublishFailed");
+
+        ///<summary>
+        ///Are you sure you want to upload and publish selected campaign on Steam Workshop? Note that by submitting this item, you agree to the workshop terms of service (see http://steamcommunity.com/sharedfiles/workshoplegalagreement).
+        ///</summary>
+        public static readonly MyStringId MessageBoxTextDoYouWishToPublishCampaign = MyStringId.GetOrCompute("MessageBoxTextDoYouWishToPublishCampaign");
+
+        ///<summary>
+        ///Publish has been completed successfully. If you have Steam Overlay enabled, a page will open and you can edit attributes such as title, description or visibility (it is public by default).
+        ///</summary>
+        public static readonly MyStringId MessageBoxTextCampaignPublished = MyStringId.GetOrCompute("MessageBoxTextCampaignPublished");
+
+        ///<summary>
+        ///Entity Name: 
+        ///</summary>
+        public static readonly MyStringId ScreenDebugAdminMenu_EntityName = MyStringId.GetOrCompute("ScreenDebugAdminMenu_EntityName");
+
+        ///<summary>
+        ///Multiplayer warning: High latency connection (>250 ms)
+        ///</summary>
+        public static readonly MyStringId Multiplayer_HighPing = MyStringId.GetOrCompute("Multiplayer_HighPing");
+
+        ///<summary>
+        ///Multiplayer warning: Low sim speed on server
+        ///</summary>
+        public static readonly MyStringId Multiplayer_LowSimSpeed = MyStringId.GetOrCompute("Multiplayer_LowSimSpeed");
+
+        ///<summary>
+        ///Start a new campaign game.
+        ///</summary>
+        public static readonly MyStringId NewGameScreen_Description = MyStringId.GetOrCompute("NewGameScreen_Description");
+
+        ///<summary>
+        ///Choose one of your subscribed workshop items or browse for more.
+        ///</summary>
+        public static readonly MyStringId WorkshopScreen_Description = MyStringId.GetOrCompute("WorkshopScreen_Description");
+
+        ///<summary>
+        ///Create a new custom world.
+        ///</summary>
+        public static readonly MyStringId WorldSettingsScreen_Description = MyStringId.GetOrCompute("WorldSettingsScreen_Description");
+
+        ///<summary>
+        ///Newsletter
+        ///</summary>
+        public static readonly MyStringId ScreenCaptionNewsletter = MyStringId.GetOrCompute("ScreenCaptionNewsletter");
+
+        ///<summary>
+        ///A confirmation message was sent to the provided email
+        ///</summary>
+        public static readonly MyStringId ScreenNewsletterConfirmationMessage = MyStringId.GetOrCompute("ScreenNewsletterConfirmationMessage");
+
+        ///<summary>
+        ///Email
+        ///</summary>
+        public static readonly MyStringId ScreenNewsletterEmailLabel = MyStringId.GetOrCompute("ScreenNewsletterEmailLabel");
+
+        ///<summary>
+        ///Don't ask me again
+        ///</summary>
+        public static readonly MyStringId ScreenNewsletterNoInterestCheckbox = MyStringId.GetOrCompute("ScreenNewsletterNoInterestCheckbox");
+
+        ///<summary>
+        ///If you wish to receive Keen Software House newsletter, please provide your email.
+        ///</summary>
+        public static readonly MyStringId ScreenNewsletterSubtitle = MyStringId.GetOrCompute("ScreenNewsletterSubtitle");
+
+        ///<summary>
+        ///Model quality
+        ///</summary>
+        public static readonly MyStringId ScreenGraphicsOptions_ModelQuality = MyStringId.GetOrCompute("ScreenGraphicsOptions_ModelQuality");
     }

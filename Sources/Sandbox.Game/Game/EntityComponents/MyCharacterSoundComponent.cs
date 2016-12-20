@@ -54,7 +54,8 @@ namespace Sandbox.Game.Components
         HELMET_LOW,
         HELMET_CRITICAL,
         HELMET_NONE,
-        MOVEMENT_SOUND
+        MOVEMENT_SOUND,
+        MAGNETIC_SOUND
 	}
 
 	[MyComponentBuilder(typeof(MyObjectBuilder_CharacterSoundComponent))]
@@ -207,6 +208,8 @@ namespace Sandbox.Game.Components
                 m_movementEmitter = new MyEntity3DSoundEmitter(Entity as MyEntity);
             }
 
+            CharacterSounds[(int)CharacterSoundsEnum.MAGNETIC_SOUND] = new MySoundPair("PlayFallGlass"); 
+            
             //Preload();
             //if (m_character.Definition.DeathSoundName != null && m_character.Definition.DeathSoundName.Length > 0) CharacterSounds[(int)CharacterSoundsEnum.DEATH_SOUND] = new MySoundPair(m_character.Definition.DeathSoundName);
 		}
@@ -310,12 +313,31 @@ namespace Sandbox.Game.Components
 			var cueEnum = SelectSound();
             UpdateBreath();
 
-            if (m_movementEmitter != null && CharacterSounds[(int)CharacterSoundsEnum.MOVEMENT_SOUND] != MySoundPair.Empty)
+            if (m_isWalking && m_character.IsMagneticBootsEnabled && (CharacterSounds[(int)CharacterSoundsEnum.MAGNETIC_SOUND] != MySoundPair.Empty))
+                cueEnum = CharacterSounds[(int)CharacterSoundsEnum.MAGNETIC_SOUND];
+
+            if (m_movementEmitter != null)
             {
-                if (m_isWalking && !m_movementEmitter.IsPlaying)
-                    m_movementEmitter.PlaySound(CharacterSounds[(int)CharacterSoundsEnum.MOVEMENT_SOUND]);
-                if (!m_isWalking && m_movementEmitter.IsPlaying)
-                    m_movementEmitter.StopSound(false);
+                //if (m_character.IsMagneticBootsEnabled)
+                //{
+                //    if (CharacterSounds[(int)CharacterSoundsEnum.MAGNETIC_SOUND] != MySoundPair.Empty)
+                //    {
+                //        if (m_isWalking && !m_movementEmitter.IsPlaying)
+                //            m_movementEmitter.PlaySound(CharacterSounds[(int)CharacterSoundsEnum.MAGNETIC_SOUND]);
+                //        if (!m_isWalking && m_movementEmitter.IsPlaying)
+                //            m_movementEmitter.StopSound(false);
+                //    }
+                //}
+                //else
+                {
+                    if (CharacterSounds[(int)CharacterSoundsEnum.MOVEMENT_SOUND] != MySoundPair.Empty)
+                    {
+                        if (m_isWalking && !m_movementEmitter.IsPlaying)
+                            m_movementEmitter.PlaySound(CharacterSounds[(int)CharacterSoundsEnum.MOVEMENT_SOUND]);
+                        if (!m_isWalking && m_movementEmitter.IsPlaying)
+                            m_movementEmitter.StopSound(false);
+                    }
+                }            
             }
 
 			var primaryEmitter = m_soundEmitters[(int)MySoundEmitterEnum.PrimaryState];
@@ -644,7 +666,7 @@ namespace Sandbox.Game.Components
         {
             if(m_oxygenEmitter == null)
                 return;
-            if (m_character.IsDead == false && MySession.Static != null && (MySession.Static.Settings.EnableOxygen || MySession.Static.CreativeMode) && m_character.OxygenComponent != null && m_character.OxygenComponent.HelmetEnabled)
+            if (m_character.IsDead == false && MySession.Static != null && MySession.Static.Settings.EnableOxygen && !MySession.Static.CreativeMode && m_character.OxygenComponent != null && m_character.OxygenComponent.HelmetEnabled)
             {
                 MySoundPair oxygenSoundToPlay;
                 if (MySession.Static.CreativeMode)
@@ -675,7 +697,9 @@ namespace Sandbox.Game.Components
             // turn off breathing when helmet is off and there is no oxygen https://app.asana.com/0/64822442925263/33431071589757
             if (m_character.OxygenComponent != null && m_character.Breath != null)
             {
-                if (m_character.Parent is MyCockpit && (m_character.Parent as MyCockpit).BlockDefinition.IsPressurized)
+                if (MySession.Static.Settings.EnableOxygen && MySession.Static.CreativeMode == false)
+                {
+                    if (m_character.Parent is MyCockpit && (m_character.Parent as MyCockpit).BlockDefinition.IsPressurized)
                     {
                         if (m_character.OxygenComponent.HelmetEnabled)
                         {
@@ -710,11 +734,15 @@ namespace Sandbox.Game.Components
                         }
                     }
                 }
+                else
+                {
+                    m_character.Breath.CurrentState = MyCharacterBreath.State.Calm;
+                }
             }
+        }
 
 		public void PlayFallSound()
 		{
-            m_character.CurrentMovementState(MyCharacterMovementEnum.Standing);
 			var walkSurfaceMaterial = RayCastGround();
             if (walkSurfaceMaterial != MyStringHash.NullOrEmpty && MyMaterialPropertiesHelper.Static != null)
 			{

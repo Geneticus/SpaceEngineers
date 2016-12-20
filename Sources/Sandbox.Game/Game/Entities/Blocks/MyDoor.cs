@@ -35,27 +35,25 @@ using VRage.Sync;
 namespace Sandbox.Game.Entities
 {
     [MyCubeBlockType(typeof(MyObjectBuilder_Door))]
-    public class MyDoor : MyFunctionalBlock, ModAPI.IMyDoor
+    public class MyDoor : MyDoorBase, ModAPI.IMyDoor
     {
         private const float CLOSED_DISSASEMBLE_RATIO = 3.3f;
 
         private MySoundPair m_openSound;
         private MySoundPair m_closeSound;
 
-        private readonly Sync<float> m_currOpening;
+        private float m_currOpening;
         private float m_currSpeed;
         private int m_lastUpdateTime;
 
         private MyEntitySubpart m_leftSubpart = null;
         private MyEntitySubpart m_rightSubpart = null;
 
-        private readonly Sync<bool> m_open;
-
         public float MaxOpen = 1.2f;
 
         protected override bool CheckIsWorking()
         {
-            return ResourceSink.IsPowered && base.CheckIsWorking();
+            return ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && base.CheckIsWorking();
         }
 
         public override float DisassembleRatio
@@ -67,16 +65,15 @@ namespace Sandbox.Game.Entities
             }
         }
 
-        public MyDoor()
+        public MyDoor() : base()
         {
 #if XB1 // XB1_SYNC_NOREFLECTION
-            m_currOpening = SyncType.CreateAndAddProp<float>();
             m_open = SyncType.CreateAndAddProp<bool>();
 #endif // XB1
-            CreateTerminalControls();
+            //GR: added to base class do not use here
+            //CreateTerminalControls();
 
-            m_currOpening.ValidateNever();
-            m_currOpening.Value = 0f;
+            m_currOpening = 0f;
             m_currSpeed = 0f;
             m_open.ValidateNever();
             m_open.ValueChanged += x => OnStateChange();
@@ -90,7 +87,7 @@ namespace Sandbox.Game.Entities
 
         private void UpdateEmissivity()
         {
-			if (Enabled && ResourceSink.IsPowered)
+            if (Enabled && ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
             {
                 MyCubeBlock.UpdateEmissiveParts(Render.RenderObjectIDs[0], 1.0f, Color.Green, Color.White);
                 OnStateChange();
@@ -99,53 +96,9 @@ namespace Sandbox.Game.Entities
                 MyCubeBlock.UpdateEmissiveParts(Render.RenderObjectIDs[0], 0.0f, Color.Red, Color.White);
         }
 
-        public bool Open
-        {
-            get
-            {
-                return m_open;
-            }
-            set
-            {
-				if (m_open != value && Enabled && ResourceSink.IsPowered)
-                {
-                    m_open.Value = value;
-                }
-            }
-        }
-
         public float OpenRatio
         {
-            get { return m_currOpening/MaxOpen; }
-        }
-
-        static void CreateTerminalControls()
-        {
-            if (MyTerminalControlFactory.AreControlsCreated<MyDoor>())
-                return;
-
-            var open = new MyTerminalControlOnOffSwitch<MyDoor>("Open", MySpaceTexts.Blank, on: MySpaceTexts.BlockAction_DoorOpen, off: MySpaceTexts.BlockAction_DoorClosed);
-            open.Getter = (x) => x.Open;
-            open.Setter = (x, v) => x.SetOpenRequest(v, x.OwnerId);
-            open.EnableToggleAction();
-            open.EnableOnOffActions();
-            MyTerminalControlFactory.AddControl(open);
-        }
-
-        public void SetOpenRequest(bool open, long identityId)
-        {
-            MyMultiplayer.RaiseEvent(this, x => x.OpenRequest, open, identityId);
-        }
-
-        [Event,Reliable,Server]
-        void OpenRequest(bool open, long identityId)
-        {
-            VRage.Game.MyRelationsBetweenPlayerAndBlock relation = GetUserRelationToOwner(identityId);
-
-            if (relation.IsFriendly())
-            {
-                Open = open;
-            }
+            get { return m_currOpening / MaxOpen; }
         }
 
         protected override void OnEnabledChanged()
@@ -183,7 +136,7 @@ namespace Sandbox.Game.Entities
             sinkComp.Init(
                 resourceSinkGroup,
                 MyEnergyConstants.MAX_REQUIRED_POWER_DOOR,
-                () => (Enabled && IsFunctional) ? sinkComp.MaxRequiredInput : 0f);
+                () => (Enabled && IsFunctional) ? sinkComp.MaxRequiredInputByType(MyResourceDistributorComponent.ElectricityId) : 0f);
             sinkComp.IsPoweredChanged += Receiver_IsPoweredChanged;
          
 
@@ -198,14 +151,14 @@ namespace Sandbox.Game.Entities
             m_open.Value = ob.State;
             if (ob.Opening == -1)
             {
-                m_currOpening.Value = IsFunctional ? 0 : MaxOpen;
+                m_currOpening = IsFunctional ? 0 : MaxOpen;
                 m_open.Value = !IsFunctional;
             }
             else
-                m_currOpening.Value = ob.Opening;
+                m_currOpening = ob.Opening;
 
-		
-			if (!Enabled || !ResourceSink.IsPowered)
+
+            if (!Enabled || !ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
                 UpdateSlidingDoorsPosition();
 
             OnStateChange();
@@ -280,11 +233,10 @@ namespace Sandbox.Game.Entities
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_FRAME;
             m_lastUpdateTime = MySandboxGame.TotalGamePlayTimeInMilliseconds;
-            if (Sync.IsServer)
-            {
-                UpdateCurrentOpening();
-            }
+
+            UpdateCurrentOpening();
             UpdateSlidingDoorsPosition();
+
             var handle = DoorStateChanged;
             if (handle != null) handle(m_open);
         }
@@ -320,10 +272,13 @@ namespace Sandbox.Game.Entities
             {
                 if (m_soundEmitter != null && m_soundEmitter.IsPlaying && m_soundEmitter.Loop && (BlockDefinition.DamagedSound == null || m_soundEmitter.SoundId != BlockDefinition.DamagedSound.SoundId))
                     m_soundEmitter.StopSound(false);
+
+                NeedsUpdate &= ~MyEntityUpdateEnum.EACH_FRAME;
+                m_currSpeed = 0;
                 return;
             }
 
-            if (m_soundEmitter != null && Enabled && ResourceSink.IsPowered)
+            if (m_soundEmitter != null && Enabled && ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
             {
                 if (Open)
                     StartSound(m_openSound);
@@ -332,21 +287,19 @@ namespace Sandbox.Game.Entities
             }
 
             base.UpdateBeforeSimulation();
-            if (Sync.IsServer)
-            {
-                UpdateCurrentOpening();
-            }
+
+            UpdateCurrentOpening();
 
             m_lastUpdateTime = MySandboxGame.TotalGamePlayTimeInMilliseconds;
         }
 
         private void UpdateCurrentOpening()
         {
-			if (Enabled && ResourceSink.IsPowered)
+            if (Enabled && ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
             {
                 float timeDelta = (MySandboxGame.TotalGamePlayTimeInMilliseconds - m_lastUpdateTime) / 1000f;
                 float deltaPos = m_currSpeed * timeDelta;
-                m_currOpening.Value = MathHelper.Clamp(m_currOpening + deltaPos, 0f, MaxOpen);
+                m_currOpening = MathHelper.Clamp(m_currOpening + deltaPos, 0f, MaxOpen);
             }
         }
 
@@ -360,29 +313,29 @@ namespace Sandbox.Game.Entities
             if (m_leftSubpart != null && m_leftSubpart.Physics != null)
             {
                 m_leftSubpart.PositionComp.LocalMatrix = Matrix.CreateTranslation(new Vector3(-opening, 0f, 0f));
-                if (m_leftSubpart.Physics.LinearVelocity.Equals(CubeGrid.Physics.LinearVelocity, 0.01f) == false)
-                {
-                    m_leftSubpart.Physics.LinearVelocity = this.CubeGrid.Physics.LinearVelocity;
-                }
+                //if (m_leftSubpart.Physics.LinearVelocity.Equals(CubeGrid.Physics.LinearVelocity, 0.01f) == false)
+                //{
+                //    m_leftSubpart.Physics.LinearVelocity = this.CubeGrid.Physics.LinearVelocity;
+                //}
 
-                if (m_leftSubpart.Physics.AngularVelocity.Equals(this.CubeGrid.Physics.AngularVelocity, 0.01f) == false)
-                {
-                    m_leftSubpart.Physics.AngularVelocity = this.CubeGrid.Physics.AngularVelocity;
-                }
+                //if (m_leftSubpart.Physics.AngularVelocity.Equals(this.CubeGrid.Physics.AngularVelocity, 0.01f) == false)
+                //{
+                //    m_leftSubpart.Physics.AngularVelocity = this.CubeGrid.Physics.AngularVelocity;
+                //}
             }
 
             if (m_rightSubpart != null && m_rightSubpart.Physics != null)
             {
                 m_rightSubpart.PositionComp.LocalMatrix = Matrix.CreateTranslation(new Vector3(opening, 0f, 0f));
-                if (m_rightSubpart.Physics.LinearVelocity.Equals(CubeGrid.Physics.LinearVelocity, 0.01f) == false)
-                {
-                    m_rightSubpart.Physics.LinearVelocity = this.CubeGrid.Physics.LinearVelocity;
-                }
+                //if (m_rightSubpart.Physics.LinearVelocity.Equals(CubeGrid.Physics.LinearVelocity, 0.01f) == false)
+                //{
+                //    m_rightSubpart.Physics.LinearVelocity = this.CubeGrid.Physics.LinearVelocity;
+                //}
 
-                if (m_rightSubpart.Physics.AngularVelocity.Equals(this.CubeGrid.Physics.AngularVelocity, 0.01f) == false)
-                {
-                    m_rightSubpart.Physics.AngularVelocity = this.CubeGrid.Physics.AngularVelocity;
-                }
+                //if (m_rightSubpart.Physics.AngularVelocity.Equals(this.CubeGrid.Physics.AngularVelocity, 0.01f) == false)
+                //{
+                //    m_rightSubpart.Physics.AngularVelocity = this.CubeGrid.Physics.AngularVelocity;
+                //}
             }
         }
 

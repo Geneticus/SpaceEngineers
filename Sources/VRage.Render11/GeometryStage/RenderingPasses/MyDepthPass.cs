@@ -14,6 +14,7 @@ namespace VRageRender
     {
         internal IDsvBindable Dsv;
         internal IRasterizerState DefaultRasterizer;
+        internal bool IsCascade;
 
         internal sealed override void Begin()
         {
@@ -53,7 +54,7 @@ namespace VRageRender
             if (!IsProxyValidForDraw(proxy))
                 return;
 
-            Stats.Meshes++;
+            Stats.Draws++;
 
             SetProxyConstants(proxy);
             BindProxyGeometry(proxy, RC);
@@ -83,6 +84,7 @@ namespace VRageRender
             {
                 RC.DrawIndexed(submesh.IndexCount, submesh.StartIndex, submesh.BaseVertex);
                 ++Stats.Instances;
+                Stats.Triangles += submesh.IndexCount / 3;
                 ++MyStatsUpdater.Passes.DrawShadows;
             }
             else
@@ -90,6 +92,7 @@ namespace VRageRender
                 //MyRender11.AddDebugQueueMessage("DepthPass DrawIndexedInstanced " + proxy.Material.ToString());
                 RC.DrawIndexedInstanced(submesh.IndexCount, proxy.InstanceCount, submesh.StartIndex, submesh.BaseVertex, proxy.StartInstance);
                 Stats.Instances += proxy.InstanceCount;
+                Stats.Triangles += proxy.InstanceCount * submesh.IndexCount / 3;
                 MyStatsUpdater.Passes.DrawShadows++;
             }
         }
@@ -161,6 +164,7 @@ namespace VRageRender
 
             Dsv = null;
             DefaultRasterizer = null;
+            IsCascade = false;
         }
 
         internal override MyRenderingPass Fork()
@@ -169,8 +173,14 @@ namespace VRageRender
 
             renderPass.Dsv = Dsv;
             renderPass.DefaultRasterizer = DefaultRasterizer;
+            renderPass.IsCascade = IsCascade;
 
             return renderPass;
+        }
+
+        protected override MyFrustumEnum FrustumType
+        {
+            get { return IsCascade ? MyFrustumEnum.ShadowCascade : MyFrustumEnum.ShadowProjection; }
         }
     }
 }

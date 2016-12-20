@@ -575,6 +575,8 @@ namespace Sandbox.Game.GameSystems
             if (MySession.Static.LocalCharacter == null || !(MySession.Static.ControlledEntity is MyShipController))
             {
                 m_playEffect = false;
+                //GR: In this case also change field of view
+                MySector.MainCamera.FieldOfView = MySandboxGame.Config.FieldOfView;
                 return false;
             }
 
@@ -725,7 +727,7 @@ namespace Sandbox.Game.GameSystems
                 MatrixD matrix = MatrixD.CreateFromDir(-dir);
                 matrix.Translation = m_grid.PositionComp.WorldAABB.Center + dir * m_grid.PositionComp.WorldAABB.HalfExtents.AbsMax() * 2f;
                 m_effect.WorldMatrix = matrix;
-                m_effect.UserScale = (float)m_grid.PositionComp.WorldAABB.HalfExtents.AbsMax() / 15f;
+               // m_effect.UserScale = (float)m_grid.PositionComp.WorldAABB.HalfExtents.AbsMax() / 15f;
             }
         }
 

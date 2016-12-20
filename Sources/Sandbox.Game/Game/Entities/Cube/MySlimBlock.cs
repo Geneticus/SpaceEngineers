@@ -88,6 +88,22 @@ namespace Sandbox.Game.Entities.Cube
         public Vector3I Max;
         public MyBlockOrientation Orientation = MyBlockOrientation.Identity;
         public Vector3I Position;
+        public float BlockGeneralDamageModifier = 1f;
+		
+		public Vector3D WorldPosition
+        {
+            get { return CubeGrid.GridIntegerToWorld(Position); }
+        }
+
+        public BoundingBoxD WorldAABB
+        {
+            get 
+			{ 
+				return new BoundingBoxD((Min * CubeGrid.GridSize) - CubeGrid.GridSizeHalfVector, 
+										(Max * CubeGrid.GridSize) + CubeGrid.GridSizeHalfVector).TransformFast(CubeGrid.PositionComp.WorldMatrix); 
+			}
+        }
+		
         private MyCubeGrid m_cubeGrid;
         public MyCubeGrid CubeGrid
         {
@@ -125,6 +141,8 @@ namespace Sandbox.Game.Entities.Cube
 
         private MyConstructionStockpile m_stockpile = null;
         private float m_cachedMaxDeformation;
+
+        private long m_builtByID;
 
         /// <summary>
         /// Neighbours which are connected by mount points
@@ -254,6 +272,11 @@ namespace Sandbox.Game.Entities.Cube
             {
                 return m_componentStack;
             }
+        }
+
+        public long BuiltBy
+        {
+            get { return m_builtByID; }
         }
 
         public event Action<MySlimBlock, MyCubeGrid> CubeGridChanged;
@@ -412,6 +435,9 @@ namespace Sandbox.Game.Entities.Cube
 
             UpdateMaxDeformation();
 
+            m_builtByID = objectBuilder.BuiltBy;
+            BlockGeneralDamageModifier = objectBuilder.BlockGeneralDamageModifier;
+
             ProfilerShort.End();
         }
         public void ResumeDamageEffect()
@@ -499,6 +525,7 @@ namespace Sandbox.Game.Entities.Cube
             builder.IntegrityPercent = m_componentStack.Integrity / m_componentStack.MaxIntegrity;
             builder.BuildPercent = m_componentStack.BuildRatio;
             builder.ColorMaskHSV = ColorMaskHSV;
+            builder.BuiltBy = m_builtByID;
 
             if (m_stockpile == null || m_stockpile.GetItems().Count == 0)
                 builder.ConstructionStockpile = null;
@@ -511,6 +538,7 @@ namespace Sandbox.Game.Entities.Cube
                 builder.MultiBlockId = MultiBlockId;
                 builder.MultiBlockIndex = MultiBlockIndex;
             }
+            builder.BlockGeneralDamageModifier = BlockGeneralDamageModifier;
 
             return builder;
         }
@@ -1075,6 +1103,9 @@ namespace Sandbox.Game.Entities.Cube
 
         public bool DoDamage(float damage, MyStringHash damageType, bool sync, MyHitInfo? hitInfo, long attackerId)
         {
+            damage = damage * BlockGeneralDamageModifier * CubeGrid.GridGeneralDamageModifier;
+            if (damage < 0)
+                return false;
             if (sync)
             {
                 Debug.Assert(Sync.IsServer);
@@ -1182,11 +1213,16 @@ namespace Sandbox.Game.Entities.Cube
             m_lastDamageType = damageType;
         }
 
-        void IMyDecalProxy.AddDecals(MyHitInfo hitInfo, MyStringHash source, object customdata, IMyDecalHandler decalHandler)
+        void IMyDecalProxy.AddDecals(MyHitInfo hitInfo, MyStringHash source, object customdata, IMyDecalHandler decalHandler, MyStringHash material)
         {
             MyDecalRenderInfo renderable = new MyDecalRenderInfo();
             MyCubeGridHitInfo gridHitInfo = customdata as MyCubeGridHitInfo;
-            renderable.Flags = BlockDefinition.PhysicalMaterial.Transparent ? MyDecalFlags.Transparent : MyDecalFlags.None;
+            if (gridHitInfo == null)
+            {
+                Debug.Fail("MyCubeGridHitInfo must not be null");
+                return;
+            }
+
             if (FatBlock == null)
             {
                 renderable.Position = Vector3D.Transform(hitInfo.Position, CubeGrid.PositionComp.WorldMatrixInvScaled);
@@ -1199,25 +1235,22 @@ namespace Sandbox.Game.Entities.Cube
                 renderable.Normal = Vector3D.TransformNormal(hitInfo.Normal, FatBlock.PositionComp.WorldMatrixInvScaled);
                 renderable.RenderObjectId = FatBlock.Render.GetRenderObjectID();
             }
-            renderable.Material = MyStringHash.GetOrCompute(BlockDefinition.PhysicalMaterial.Id.SubtypeName);
 
-            if (gridHitInfo != null)
+            if (material.GetHashCode() == 0)
+                renderable.Material = MyStringHash.GetOrCompute(BlockDefinition.PhysicalMaterial.Id.SubtypeName);
+            else
+                renderable.Material = material;
+
+            VertexBoneIndicesWeights? boneIndicesWeights = gridHitInfo.Triangle.GetAffectingBoneIndicesWeights(ref m_boneIndexWeightTmp);
+            if (boneIndicesWeights.HasValue)
             {
-                VertexBoneIndicesWeights? boneIndicesWeights = gridHitInfo.Triangle.GetAffectingBoneIndicesWeights(ref m_boneIndexWeightTmp);
-                if (boneIndicesWeights.HasValue)
-                {
-                    renderable.BoneIndices = boneIndicesWeights.Value.Indices;
-                    renderable.BoneWeights = boneIndicesWeights.Value.Weights;
-
-                    var decalId = decalHandler.AddDecal(ref renderable);
-                    if (decalId != null)
-                        CubeGrid.RenderData.AddDecal(Position, gridHitInfo, decalId.Value);
-
-                    return;
-                }
+                renderable.BoneIndices = boneIndicesWeights.Value.Indices;
+                renderable.BoneWeights = boneIndicesWeights.Value.Weights;
             }
 
-            decalHandler.AddDecal(ref renderable);
+            var decalId = decalHandler.AddDecal(ref renderable);
+            if (decalId != null)
+                CubeGrid.RenderData.AddDecal(Position, gridHitInfo, decalId.Value);
         }
 
         /// <summary>
@@ -1929,19 +1962,12 @@ namespace Sandbox.Game.Entities.Cube
 
         public void ComputeScaledCenter(out Vector3D scaledCenter)
         {
-            var min = (Vector3)Min;
-            var max = (Vector3)Max;
-            min -= 0.5f;
-            max += 0.5f;
-            scaledCenter = (max + min) * 0.5f;
-            scaledCenter *= CubeGrid.GridSize;
+            scaledCenter = (Max + Min) * CubeGrid.GridSizeHalf;
         }
 
         public void ComputeScaledHalfExtents(out Vector3 scaledHalfExtents)
         {
-            var min = (Vector3)Min * CubeGrid.GridSize;
-            var max = (Vector3)(Max + 1) * CubeGrid.GridSize;
-            scaledHalfExtents = (max - min) * 0.5f;
+            scaledHalfExtents = ((Max + 1)- Min) * CubeGrid.GridSizeHalf;
         }
 
         public float GetMass()
@@ -1956,14 +1982,14 @@ namespace Sandbox.Game.Entities.Cube
 
         void IMyDestroyableObject.OnDestroy()
         {
-            m_componentStack.DestroyCompletely();
-            ReleaseUnneededStockpileItems();
             if (FatBlock != null)
             {
                 ProfilerShort.Begin("MySlimBlock.OnDestroy");
                 FatBlock.OnDestroy();
                 ProfilerShort.End();
             }
+            m_componentStack.DestroyCompletely();
+            ReleaseUnneededStockpileItems();
             CubeGrid.RemoveFromDamageApplication(this);
             AccumulatedDamage = 0;
 
@@ -2436,6 +2462,41 @@ namespace Sandbox.Game.Entities.Cube
             }
 
             block.DoDamage(msg.Damage, msg.Type, hitInfo: msg.HitInfo, attackerId: msg.AttackerEntityId);
+        }
+
+        /// <summary>
+        /// Makes sure this block no longer counts towards the block limit of the player who built it
+        /// </summary>
+        public void RemoveAuthorship()
+        {
+            var identity = MySession.Static.Players.TryGetIdentity(m_builtByID);
+            if (identity != null)
+                identity.DecreaseBlocksBuilt(BlockDefinition.BlockPairName, CubeGrid);
+        }
+
+        /// <summary>
+        /// Makes the block count towards the block limit of the player who built it
+        /// </summary>
+        public void AddAuthorship()
+        {
+            var identity = MySession.Static.Players.TryGetIdentity(m_builtByID);
+            if (identity != null)
+                identity.IncreaseBlocksBuilt(BlockDefinition.BlockPairName, CubeGrid);
+        }
+
+        /// <summary>
+        /// Transfers the block to count towards other player's limit
+        /// </summary>
+        public void TransferAuthorship(long newOwner)
+        {
+            var oldIdentity = MySession.Static.Players.TryGetIdentity(m_builtByID);
+            var newIdentity = MySession.Static.Players.TryGetIdentity(newOwner);
+            if (oldIdentity != null && newIdentity != null)
+            {
+                oldIdentity.DecreaseBlocksBuilt(BlockDefinition.BlockPairName, CubeGrid);
+                m_builtByID = newOwner;
+                newIdentity.IncreaseBlocksBuilt(BlockDefinition.BlockPairName, CubeGrid);
+            }
         }
 
         [ProtoContract]

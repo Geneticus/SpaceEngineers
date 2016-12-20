@@ -140,11 +140,11 @@ namespace SpaceEngineers.Game.Entities.Blocks
 
         }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MySoundBlock>())
                 return;
-
+            base.CreateTerminalControls();
             var volumeSlider = new MyTerminalControlSlider<MySoundBlock>("VolumeSlider", MySpaceTexts.BlockPropertyTitle_SoundBlockVolume, MySpaceTexts.BlockPropertyDescription_SoundBlockVolume);
             volumeSlider.SetLimits(0, 1.0f);
             volumeSlider.DefaultValue = 1;
@@ -276,7 +276,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
                 {
                     foreach (var soundDescTmp in category.Sounds)
                     {
-                        if (soundDescTmp.SoundId.Equals(cueId.SoundId))
+                        if (cueId.SoundId.ToString().EndsWith(soundDescTmp.SoundId.ToString()))    //GK: EndsWith instead of Equals to catch both Realistic and Arcade sounds
                             soundDesc = soundDescTmp;
                     }     
                 }
@@ -547,7 +547,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
 
         protected override bool CheckIsWorking()
         {
-			return base.CheckIsWorking() && ResourceSink.IsPowered;
+            return base.CheckIsWorking() && ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId);
         }
 
         protected override void OnEnabledChanged()

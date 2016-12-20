@@ -27,6 +27,7 @@ using VRage.Network;
 using VRage.Utils;
 using VRageMath;
 using Sandbox.Engine.Networking;
+using Sandbox.Game;
 
 namespace SpaceEngineers.Game.World
 {
@@ -341,7 +342,9 @@ namespace SpaceEngineers.Game.World
             var playerId = new MyPlayer.PlayerId(steamPlayerId, serialId);
             var player = Sync.Players.GetPlayerById(playerId);
 
-            if (MyScenarioSystem.Static != null && (MyScenarioSystem.Static.GameState == MyScenarioSystem.MyState.JoinScreen || MyScenarioSystem.Static.GameState == MyScenarioSystem.MyState.WaitingForClients))
+            if (MyScenarioSystem.Static != null && 
+                (MyScenarioSystem.Static.GameState == MyScenarioSystem.MyState.JoinScreen || MyScenarioSystem.Static.GameState == MyScenarioSystem.MyState.WaitingForClients) ||
+                player == null)
             {
                 return;
             }
@@ -371,8 +374,7 @@ namespace SpaceEngineers.Game.World
                     {
                         if (cryoChamber.TryToControlPilot(player))
                         {
-                            MyMultiplayer.ReplicateImmediatelly(MyExternalReplicable.FindByObject(cryoChamber.CubeGrid), new EndpointId(player.Id.SteamId));
-                            MyMultiplayer.ReplicateImmediatelly(MyExternalReplicable.FindByObject(cryoChamber.Pilot), new EndpointId(player.Id.SteamId));
+                            MyMultiplayer.RaiseStaticEvent(x => MySession.SetSpectatorPositionFromServer, cubeGrid.PositionComp.GetPosition(), new EndpointId(player.Id.SteamId));
                             return true;
                         }
                     }
@@ -385,7 +387,8 @@ namespace SpaceEngineers.Game.World
         [Event, Reliable, Client]
         static void ShowMedicalScreen_Implementation()
         {
-            MyGuiSandbox.AddScreen(new MyGuiScreenMedicals());
+            if(!MyCampaignManager.Static.IsCampaignRunning)
+                MyGuiSandbox.AddScreen(new MyGuiScreenMedicals());
         }
 
         public override bool HandleRespawnRequest(bool joinGame, bool newIdentity, long medicalRoomId, string respawnShipId, MyPlayer.PlayerId playerId, Vector3D? spawnPosition, VRage.ObjectBuilders.SerializableDefinitionId? botDefinitionId)
@@ -399,7 +402,8 @@ namespace SpaceEngineers.Game.World
                 return false;
 
             Vector3D currentPosition = Vector3D.Zero;
-            if (player != null && player.Character != null) currentPosition = player.Character.PositionComp.GetPosition();
+            if (player != null && player.Character != null) 
+                currentPosition = player.Character.PositionComp.GetPosition();
 
             if (TryFindCryoChamberCharacter(player))
             {
@@ -419,7 +423,7 @@ namespace SpaceEngineers.Game.World
                     return true;
                 }
 
-                if (spawnPosition.HasValue)
+                if (spawnPosition.HasValue && player != null)
                 {
                     Vector3D gravity = MyGravityProviderSystem.CalculateTotalGravityInPoint(spawnPosition.Value);
                     if (Vector3D.IsZero(gravity))
@@ -438,7 +442,7 @@ namespace SpaceEngineers.Game.World
                 if (medicalRoomId == 0 || !MyFakes.SHOW_FACTIONS_GUI)
                 {
                     List<MyRespawnComponent> respawns = null;
-                    var nearestRespawn = GetNearestRespawn(currentPosition, out respawns, MySession.Static.CreativeMode ? (long?)null : player.Identity.IdentityId);
+                    var nearestRespawn = GetNearestRespawn(currentPosition, out respawns, MySession.Static.CreativeMode ? (long?)null : (player != null ? player.Identity.IdentityId : (long?)null));
                     if (joinGame && respawns.Count > 0)
                     {
                         foundRespawn = respawns[MyRandom.Instance.Next(0, respawns.Count)];
@@ -466,13 +470,15 @@ namespace SpaceEngineers.Game.World
                 if (MySession.Static.Settings.PermanentDeath.Value)
                 {
                     var oldIdentity = Sync.Players.TryGetPlayerIdentity(playerId);
-                    resetIdentity = oldIdentity.FirstSpawnDone;
+                    if (oldIdentity != null)
+                        resetIdentity = oldIdentity.FirstSpawnDone;
                 }
 
                 if (player == null)
                 {
-                    var identity = Sync.Players.CreateNewIdentity(player.DisplayName);
-                    player = Sync.Players.CreateNewPlayer(identity, playerId, player.DisplayName);
+                    //TODO: Cannot use Displayname if player is null...
+                    var identity = Sync.Players.CreateNewIdentity(playerId.SteamId.ToString());
+                    player = Sync.Players.CreateNewPlayer(identity, playerId, playerId.SteamId.ToString());
                     resetIdentity = false;
                 }
 
@@ -608,8 +614,9 @@ namespace SpaceEngineers.Game.World
         public void SpawnAsNewPlayer(MyPlayer player, Vector3D currentPosition, string respawnShipId, bool resetIdentity, MyBotDefinition botDefinition)
         {
             Debug.Assert(Sync.IsServer, "Calling SpawnAsNewPlayer on client!");
+            Debug.Assert(player != null, "Spawning with empty player!");
             Debug.Assert(player.Identity != null, "Spawning with empty identity!");
-            if (!Sync.IsServer || player.Identity == null) return;
+            if (!Sync.IsServer || player == null || player.Identity == null) return;
 
             if (resetIdentity)
             {
@@ -625,7 +632,7 @@ namespace SpaceEngineers.Game.World
                 SpawnInSuit(player, null, botDefinition);
             }
 
-            if (MySession.Static.Settings.EnableOxygen && player.Character.OxygenComponent != null && player.Character.OxygenComponent.NeedsOxygenFromSuit)
+            if (MySession.Static != null && player.Character != null && MySession.Static.Settings.EnableOxygen && player.Character.OxygenComponent != null && player.Character.OxygenComponent.NeedsOxygenFromSuit)
             {
                 player.Character.OxygenComponent.SwitchHelmet();
             }
@@ -640,8 +647,6 @@ namespace SpaceEngineers.Game.World
             if (Sync.MultiplayerActive)
                 SyncCooldownToPlayer(player.Id.SteamId, player.Id.SteamId == Sync.MyId);
 
-            MyCharacter character = null;
-            MyCockpit cockpit = null;
             List<MyCubeGrid> respawnGrids = new List<MyCubeGrid>();
 
             var respawnShipDef = MyDefinitionManager.Static.GetRespawnShipDefinition(respawnShipId);
@@ -655,7 +660,7 @@ namespace SpaceEngineers.Game.World
             if (prefabDef.CubeGrids != null && prefabDef.CubeGrids.Length > 0)
             {
                 MyObjectBuilder_CubeGrid firstGrid = prefabDef.CubeGrids[0];
-                if (firstGrid.UsePositionForSpawn)
+                if (firstGrid.UsePositionForSpawn && !MyEntities.IsWorldLimited())
                 {
                     position = new Vector3D(
                         firstGrid.PositionAndOrientation.Value.Position.x,
@@ -672,6 +677,9 @@ namespace SpaceEngineers.Game.World
 
             GetSpawnPosition(prefabDef.BoundingSphere.Radius, ref position, out forward, out up, planetSpawnHeightRatio, spawnRangeMin, spawnRangeMax);
 
+            Stack<Action> callback = new Stack<Action>();
+            callback.Push(delegate() { PutPlayerInRespawnGrid(player, respawnGrids, botDefinition); });
+
             MyPrefabManager.Static.SpawnPrefab(
                 respawnGrids,
                 prefabDef.Id.SubtypeName,
@@ -679,7 +687,14 @@ namespace SpaceEngineers.Game.World
                 forward,
                 up,
                 spawningOptions: VRage.Game.ModAPI.SpawningOptions.RotateFirstCockpitTowardsDirection,
-                updateSync: true);
+                updateSync: true,
+                callbacks: callback);
+        }
+
+        private void PutPlayerInRespawnGrid(MyPlayer player, List<MyCubeGrid> respawnGrids, MyBotDefinition botDefinition)
+        {
+            MyCharacter character = null;
+            MyCockpit cockpit = null;
 
             // Find cockpits
             List<MyCockpit> shipCockpits = new List<MyCockpit>();
@@ -713,7 +728,10 @@ namespace SpaceEngineers.Game.World
             if (shipCockpits.Count > 0)
                 cockpit = shipCockpits[0];
 
-            System.Diagnostics.Debug.Assert(cockpit != null, "character is spawning in ship without cockpit !");
+            // No cockpit on grid. It's not good, but it's safe.
+            // Can be caused by modded respawn ship, wrongly loaded definition (not probably), 
+            // or not spawned RS because of blocked place (because of grid spawn paralelization).
+            //System.Diagnostics.Debug.Assert(cockpit != null, "Character is spawning in ship without cockpit!");
 
             // Create character
             MatrixD matrix = MatrixD.Identity;
@@ -752,7 +770,8 @@ namespace SpaceEngineers.Game.World
             else
             {
                 character.SetPlayer(player);
-                Sync.Players.SetPlayerToCockpit(player, cockpit);
+                Sync.Players.SetControlledEntity(player.Id, cockpit);
+               // Sync.Players.SetPlayerToCockpit(player, cockpit);
             }
             Sync.Players.RevivePlayer(player);
         }

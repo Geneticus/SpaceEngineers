@@ -20,11 +20,17 @@ using VRage.Sync;
 using VRage.Trace;
 using VRageMath;
 using VRageRender;
+using Sandbox.Definitions;
 
 namespace SpaceEngineers.Game.Entities.Blocks
 {
     public abstract class MyGravityGeneratorBase : MyFunctionalBlock, IMyGizmoDrawableObject, IMyGravityGeneratorBase, IMyGravityProvider
     {
+        private new MyGravityGeneratorBaseDefinition BlockDefinition
+        {
+            get { return (MyGravityGeneratorBaseDefinition)base.BlockDefinition; }
+        }
+
         protected Color m_gizmoColor = new Vector4(0, 0.1f, 0, 0.1f);
         protected const float m_maxGizmoDrawDistance = 1000.0f;
 
@@ -101,7 +107,7 @@ namespace SpaceEngineers.Game.Entities.Blocks
         }
         protected override bool CheckIsWorking()
         {
-			return (ResourceSink != null ? ResourceSink.IsPowered : true) && base.CheckIsWorking();
+            return (ResourceSink != null ? ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) : true) && base.CheckIsWorking();
         }
 
         public MyGravityGeneratorBase()
@@ -297,5 +303,42 @@ namespace SpaceEngineers.Game.Entities.Blocks
 		{
 			return (IsPositionInRange(worldPoint) ? 1.0f : 0.0f);
 		}
+
+        #region ModAPI
+        float ModAPI.IMyGravityGeneratorBase.Gravity
+        {
+            get { return GravityAcceleration / MyGravityProviderSystem.G; }
+            set { GravityAcceleration = value * MyGravityProviderSystem.G; }
+        }
+
+        float ModAPI.IMyGravityGeneratorBase.GravityAcceleration
+        {
+            get { return GravityAcceleration; }
+            set { GravityAcceleration = value; }
+        }
+
+        float ModAPI.Ingame.IMyGravityGeneratorBase.Gravity
+        {
+            get { return GravityAcceleration / MyGravityProviderSystem.G; }
+            set { GravityAcceleration = MathHelper.Clamp(value * MyGravityProviderSystem.G, BlockDefinition.MinGravityAcceleration, BlockDefinition.MaxGravityAcceleration); }
+        }
+        
+        float ModAPI.Ingame.IMyGravityGeneratorBase.GravityAcceleration
+        {
+            get { return GravityAcceleration; }
+            set { GravityAcceleration = MathHelper.Clamp(value, BlockDefinition.MinGravityAcceleration, BlockDefinition.MaxGravityAcceleration); }
+        }
+
+        bool ModAPI.Ingame.IMyGravityGeneratorBase.IsPositionInRange(Vector3D worldPoint)
+        {
+            return IsPositionInRange(worldPoint);
+        }
+
+        Vector3 ModAPI.Ingame.IMyGravityGeneratorBase.GetWorldGravity(Vector3D worldPoint)
+        {
+            return GetWorldGravity(worldPoint);
+        }
+
+        #endregion ModAPI
     }
 }

@@ -39,11 +39,11 @@ namespace Sandbox.Game.Entities.Cube
             m_broadcastUsingAntennas.ValueChanged += (entity) => BroadcastChanged();
         }
 
-        static void CreateTerminalControls()
+        protected override void CreateTerminalControls()
         {
             if (MyTerminalControlFactory.AreControlsCreated<MyOreDetector>())
                 return;
-
+            base.CreateTerminalControls();
             var range = new MyTerminalControlSlider<MyOreDetector>("Range", MySpaceTexts.BlockPropertyTitle_OreDetectorRange, MySpaceTexts.BlockPropertyDescription_OreDetectorRange);
             range.SetLimits(1, 100);
             range.DefaultValue = 100;
@@ -66,7 +66,7 @@ namespace Sandbox.Game.Entities.Cube
 
         protected override bool CheckIsWorking()
         {
-			return ResourceSink.IsPowered && base.CheckIsWorking();
+            return ResourceSink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) && base.CheckIsWorking();
         }
 
         public override void Init(MyObjectBuilder_CubeBlock objectBuilder, MyCubeGrid cubeGrid)
@@ -77,7 +77,7 @@ namespace Sandbox.Game.Entities.Cube
             sinkComp.Init(
                 m_definition.ResourceSinkGroup,
                 MyEnergyConstants.MAX_REQUIRED_POWER_ORE_DETECTOR,
-                () => (Enabled && IsFunctional) ? ResourceSink.MaxRequiredInput : 0f);
+                () => (Enabled && IsFunctional) ? ResourceSink.MaxRequiredInputByType(MyResourceDistributorComponent.ElectricityId) : 0f);
             ResourceSink = sinkComp;
            
             ResourceSink.IsPoweredChanged += Receiver_IsPoweredChanged;

@@ -68,7 +68,7 @@ namespace Sandbox.Game.Entities.Character.Components
         /// <summary>
         /// Update weapon position, either logical and graphical.
         /// </summary>
-        public void Update()
+        public void Update(bool timeAdvanced = true)
         {
             if (Character.Definition == null)
                 return;
@@ -76,8 +76,11 @@ namespace Sandbox.Game.Entities.Character.Components
             UpdateLogicalWeaponPosition();
             if (!Engine.Platform.Game.IsDedicated)
             {
-                m_backkickSpeed *= 0.85f;
-                m_backkickPos = m_backkickPos * 0.5f + m_backkickSpeed;
+                if (timeAdvanced)
+                {
+                    m_backkickSpeed *= 0.85f;
+                    m_backkickPos = m_backkickPos * 0.5f + m_backkickSpeed;
+                }
 
                 UpdateIkTransitions();
                 UpdateGraphicalWeaponPosition();
@@ -85,9 +88,12 @@ namespace Sandbox.Game.Entities.Character.Components
 
             m_lastStateWasFalling = Character.IsFalling;
             m_lastStateWasCrouching = Character.IsCrouching;
-            m_suppressBouncingForTimeSec -= MyEngineConstants.UPDATE_STEP_SIZE_IN_SECONDS;
-            if (m_suppressBouncingForTimeSec < 0)
-                m_suppressBouncingForTimeSec = 0;
+            if (timeAdvanced)
+            {
+                m_suppressBouncingForTimeSec -= MyEngineConstants.UPDATE_STEP_SIZE_IN_SECONDS;
+                if (m_suppressBouncingForTimeSec < 0)
+                    m_suppressBouncingForTimeSec = 0;
+            }
         }
 
         /// <summary>
@@ -99,7 +105,7 @@ namespace Sandbox.Game.Entities.Character.Components
             float characterSpeed;
             Character.AnimationController.Variables.GetValue(MyAnimationVariableStorageHints.StrIdSpeed, out characterSpeed);
             bool isWalkingState = MyCharacter.IsRunningState(Character.GetCurrentMovementState()) && characterSpeed > Character.Definition.MaxWalkSpeed;
-            bool isShooting = Character.IsShooting(MyShootActionEnum.PrimaryAction) && (!Character.IsSprinting);
+            bool isShooting = (Character.IsShooting(MyShootActionEnum.PrimaryAction) || Character.IsShooting(MyShootActionEnum.SecondaryAction)) && (!Character.IsSprinting);
             bool isInIronSight = Character.ZoomMode == MyZoomModeEnum.IronSight && (!Character.IsSprinting);
 
             float deltaW = MyEngineConstants.UPDATE_STEP_SIZE_IN_SECONDS / handItemDefinition.BlendTime;
@@ -135,8 +141,7 @@ namespace Sandbox.Game.Entities.Character.Components
             // gather useful variables
             bool isLocallyControlled = Character.ControllerInfo.IsLocallyControlled();
             bool isInFirstPerson = (Character.IsInFirstPersonView || Character.ForceFirstPersonCamera) && isLocallyControlled;
-            var jetpack = Character.JetpackComp;
-            bool flying = jetpack != null && jetpack.Running;
+            bool flying = Character.JetpackRunning;
             if (m_lastStateWasFalling && flying)
             {
                 m_currentAnimationToIkTime = m_animationToIKDelay * (float)Math.Cos(Character.HeadLocalXAngle - m_lastLocalRotX);
@@ -219,13 +224,16 @@ namespace Sandbox.Game.Entities.Character.Components
                 armsIkWeight += variantWeights.Z;
             armsIkWeight /= variantWeights.X + variantWeights.Y + variantWeights.Z + variantWeights.W;
 
-            ApplyWeaponBouncing(handItemDefinition, ref weaponMatrixLocal);
+            ApplyWeaponBouncing(handItemDefinition, ref weaponMatrixLocal, (float)(1.0 - 0.95 * variantWeights.W));
             
             // apply head transform on top of it
             if (!isInFirstPerson)
             {
                 weaponMatrixPositioned.M43 += 0.5 * weaponMatrixLocal.M43 * Math.Max(0, weaponMatrixPositioned.M32);   // offset not to interfere with body
                 weaponMatrixPositioned.M42 += 0.5 * weaponMatrixLocal.M42 * Math.Max(0, weaponMatrixPositioned.M32);   // offset not to interfere with body
+                weaponMatrixPositioned.M42 -= 0.25 * Math.Max(0, weaponMatrixPositioned.M32);   // offset not to interfere with body
+                weaponMatrixPositioned.M43 -= 0.05 * Math.Min(0, weaponMatrixPositioned.M32);   // offset not to interfere with body
+                weaponMatrixPositioned.M41 -= 0.25 * Math.Max(0, weaponMatrixPositioned.M32);   // offset not to interfere with body
             }
             
             MatrixD weaponMatrixPositionedLocal = weaponMatrixLocal * weaponMatrixPositioned;
@@ -255,7 +263,7 @@ namespace Sandbox.Game.Entities.Character.Components
         /// </summary>
         /// <param name="handItemDefinition">definition of hand item</param>
         /// <param name="weaponMatrixLocal">current weapon matrix (character local space)</param>
-        private void ApplyWeaponBouncing(MyHandItemDefinition handItemDefinition, ref MatrixD weaponMatrixLocal)
+        private void ApplyWeaponBouncing(MyHandItemDefinition handItemDefinition, ref MatrixD weaponMatrixLocal, float fpsBounceMultiplier)
         {
             if (!Character.AnimationController.CharacterBones.IsValidIndex(Character.SpineBoneIndex))
                 return;
@@ -271,7 +279,7 @@ namespace Sandbox.Game.Entities.Character.Components
             Vector3 spineAbsRigPos = spineBone.GetAbsoluteRigTransform().Translation;
             Vector3 spineRestPos = new Vector3(spineAbsRigPos.X, m_spineRestPositionY.Get(), spineAbsRigPos.Z);
 
-            Vector3 bounceOffset = (spinePos - spineRestPos);
+            Vector3 bounceOffset = (spinePos - spineRestPos) * fpsBounceMultiplier;
             bounceOffset.Z = isInFirstPerson ? bounceOffset.Z : 0;
             m_sprintStatusWeight += Character.IsSprinting ? m_sprintStatusGainSpeed : -m_sprintStatusGainSpeed;
             m_sprintStatusWeight = MathHelper.Clamp(m_sprintStatusWeight, 0, 1);
@@ -335,8 +343,7 @@ namespace Sandbox.Game.Entities.Character.Components
             LogicalPositionLocalSpace = templogicalPositionLocalSpace;
             LogicalPositionWorld = Vector3D.Transform(LogicalPositionLocalSpace, Character.PositionComp.WorldMatrix);
 
-            var jetpack = Character.JetpackComp;
-            bool flying = jetpack != null && jetpack.Running;
+            bool flying = Character.JetpackRunning;
 
             float headRotXRads = MathHelper.ToRadians(Character.HeadLocalXAngle);
             if (!flying)

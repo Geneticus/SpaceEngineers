@@ -30,15 +30,31 @@ namespace SpaceEngineers.Game.Entities.Blocks
 
             light.ReflectorDirection = WorldMatrix.Forward;
             light.ReflectorUp        = WorldMatrix.Up;
-            light.PointLightOffset   = 0.5f;
+            light.PointLightOffset   = 0f;
 
-            light.GlareOn        = true;
+            light.GlareOn = light.LightOn;
             light.GlareIntensity = 0.4f;
-            light.GlareQuerySize = 1;
+            light.GlareQuerySize = 0.4f;
             light.GlareMaterial  = BlockDefinition.LightGlare;
             light.GlareType      = VRageRender.Lights.MyGlareTypeEnum.Normal;
             light.GlareSize      = 0.327f;
         }
 
+        public override void UpdateVisual()
+        {
+            base.UpdateVisual();
+
+            UpdateEmissivity(true);
+        }
+
+        protected override void UpdateEmissivity(bool force = false)
+        {
+            base.UpdateEmissivity(force);
+
+            if (IsWorking)
+                MyCubeBlock.UpdateEmissiveParts(Render.RenderObjectIDs[0], 1, Color, Color.White);
+            else
+                MyCubeBlock.UpdateEmissiveParts(Render.RenderObjectIDs[0], 0, Color.Gray, Color.White);
+        }
     }
 }

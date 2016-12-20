@@ -17,12 +17,12 @@ namespace Sandbox.Game
 {
     public static class MyParticleEffects
     {
-        public static void GenerateMuzzleFlash(Vector3D position, Vector3 dir, float radius, float length, bool near = false)
+        public static void GenerateMuzzleFlash(Vector3D position, Vector3 dir, float radius, float length)
         {
-            GenerateMuzzleFlash(position, dir, -1, ref MatrixD.Zero, radius, length, near);
+            GenerateMuzzleFlash(position, dir, -1, ref MatrixD.Zero, radius, length);
         }
 
-        public static void GenerateMuzzleFlash(Vector3D position, Vector3 dir, int renderObjectID, ref MatrixD worldToLocal, float radius, float length, bool near = false)
+        public static void GenerateMuzzleFlash(Vector3D position, Vector3 dir, int renderObjectID, ref MatrixD worldToLocal, float radius, float length)
         {
             float angle = MyParticlesManager.Paused ? 0 : MyUtils.GetRandomFloat(0, MathHelper.PiOver2);
 
@@ -30,8 +30,8 @@ namespace Sandbox.Game
             Vector4 color = new Vector4(colorComponent, colorComponent, colorComponent, 1);
 
             MyTransparentGeometry.AddLineBillboard("MuzzleFlashMachineGunSide", color, position, renderObjectID, ref worldToLocal,
-                dir, length, 0.15f, 0, near);
-            MyTransparentGeometry.AddPointBillboard("MuzzleFlashMachineGunFront", color, position, renderObjectID, ref worldToLocal, radius, angle, 0, false, near);
+                dir, length, 0.15f, VRageRender.MyBillboard.BlenType.Standard);
+            MyTransparentGeometry.AddPointBillboard("MuzzleFlashMachineGunFront", color, position, renderObjectID, ref worldToLocal, radius, angle);
         }
 
         private class EffectSoundEmitter
@@ -50,7 +50,7 @@ namespace Sandbox.Game
                 if (MyFakes.ENABLE_NEW_SOUNDS && MySession.Static.Settings.RealisticSound)//snap emitter to closest block - used for realistic sounds
                 {
                     List<MyEntity> m_detectedObjects = new List<MyEntity>();
-                    BoundingSphereD effectSphere = new BoundingSphereD(MySession.Static.LocalCharacter.PositionComp.GetPosition(), 2f);
+                    BoundingSphereD effectSphere = new BoundingSphereD(MySession.Static.LocalCharacter != null ? MySession.Static.LocalCharacter.PositionComp.GetPosition() : MySector.MainCamera.Position, 2f);
                     MyGamePruningStructure.GetAllEntitiesInSphere(ref effectSphere, m_detectedObjects);
                     float distBest = float.MaxValue;
                     float dist;
@@ -71,6 +71,8 @@ namespace Sandbox.Game
                 }
                 Emitter = new MyEntity3DSoundEmitter(entity);
                 Emitter.SetPosition(position);
+                if (sound == null)
+                    sound = MySoundPair.Empty;
                 Emitter.PlaySound(sound);
                 if (Emitter.Sound != null)
                     OriginalVolume = Emitter.Sound.Volume;

@@ -90,6 +90,8 @@ namespace VRage.ModAPI
 
 		DrawOutsideViewDistance = 1 << 18,
 
+        IsGamePrunningStructureObject = 1 << 19,
+
         Default = EntityFlags.Visible | EntityFlags.SkipIfTooSmall | EntityFlags.Save | EntityFlags.NeedsResolveCastShadow | EntityFlags.InvalidateOnMove,
     }
 
@@ -118,7 +120,14 @@ namespace VRage.ModAPI
         MyEntityComponentBase GameLogic { get; set; }
         MyHierarchyComponentBase Hierarchy { get; set; }
         MySyncComponentBase SyncObject { get; }
-
+        
+        /// <summary>
+        /// Custom storage for mods. Shared with all mods.
+        /// </summary>
+        /// <remarks>Not synced, but saved with blueprints.
+        /// Only use set accessor if value is null.
+        /// </remarks>
+        MyModStorageComponentBase Storage { get; set; }
 
         //Entity core
         EntityFlags Flags { get; set; }
